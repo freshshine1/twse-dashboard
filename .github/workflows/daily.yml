@@ -5,6 +5,9 @@ on:
     - cron: '30 8 * * 1-5'   # 16:30 TPE = 08:30 UTC, Mon–Fri
   workflow_dispatch:           # allow manual trigger from Actions tab
 
+permissions:
+  contents: write              # required for git push
+
 jobs:
   fetch:
     runs-on: ubuntu-latest
