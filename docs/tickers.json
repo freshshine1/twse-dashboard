@@ -1,0 +1,5453 @@
+{
+  "updated": "2026-05-26T15:33:06+08:00",
+  "tickers": [
+    {
+      "ticker": "00400A",
+      "name_zh": "主動國泰動能高息"
+    },
+    {
+      "ticker": "00401A",
+      "name_zh": "主動摩根台灣鑫收"
+    },
+    {
+      "ticker": "00403A",
+      "name_zh": "主動統一升級50"
+    },
+    {
+      "ticker": "0050",
+      "name_zh": "元大台灣50"
+    },
+    {
+      "ticker": "0051",
+      "name_zh": "元大中型100"
+    },
+    {
+      "ticker": "0052",
+      "name_zh": "富邦科技"
+    },
+    {
+      "ticker": "0053",
+      "name_zh": "元大電子"
+    },
+    {
+      "ticker": "0055",
+      "name_zh": "元大MSCI金融"
+    },
+    {
+      "ticker": "0056",
+      "name_zh": "元大高股息"
+    },
+    {
+      "ticker": "0057",
+      "name_zh": "富邦摩台"
+    },
+    {
+      "ticker": "0061",
+      "name_zh": "元大寶滬深"
+    },
+    {
+      "ticker": "006203",
+      "name_zh": "元大MSCI台灣"
+    },
+    {
+      "ticker": "006204",
+      "name_zh": "永豐臺灣加權"
+    },
+    {
+      "ticker": "006205",
+      "name_zh": "富邦上証"
+    },
+    {
+      "ticker": "006206",
+      "name_zh": "元大上證50"
+    },
+    {
+      "ticker": "006207",
+      "name_zh": "復華滬深"
+    },
+    {
+      "ticker": "006208",
+      "name_zh": "富邦台50"
+    },
+    {
+      "ticker": "00625K",
+      "name_zh": "富邦上証+R"
+    },
+    {
+      "ticker": "00631L",
+      "name_zh": "元大台灣50正2"
+    },
+    {
+      "ticker": "00632R",
+      "name_zh": "元大台灣50反1"
+    },
+    {
+      "ticker": "00633L",
+      "name_zh": "富邦上証正2"
+    },
+    {
+      "ticker": "00634R",
+      "name_zh": "富邦上証反1"
+    },
+    {
+      "ticker": "00635U",
+      "name_zh": "期元大S&P黃金"
+    },
+    {
+      "ticker": "00636",
+      "name_zh": "國泰中國A50"
+    },
+    {
+      "ticker": "00636K",
+      "name_zh": "國泰中國A50+U"
+    },
+    {
+      "ticker": "00637L",
+      "name_zh": "元大滬深300正2"
+    },
+    {
+      "ticker": "00638R",
+      "name_zh": "元大滬深300反1"
+    },
+    {
+      "ticker": "00639",
+      "name_zh": "富邦深100"
+    },
+    {
+      "ticker": "00640L",
+      "name_zh": "富邦日本正2"
+    },
+    {
+      "ticker": "00641R",
+      "name_zh": "富邦日本反1"
+    },
+    {
+      "ticker": "00642U",
+      "name_zh": "期元大S&P石油"
+    },
+    {
+      "ticker": "00643",
+      "name_zh": "群益深証中小"
+    },
+    {
+      "ticker": "00643K",
+      "name_zh": "群益深証中小+R"
+    },
+    {
+      "ticker": "00645",
+      "name_zh": "富邦日本"
+    },
+    {
+      "ticker": "00646",
+      "name_zh": "元大S&P500"
+    },
+    {
+      "ticker": "00647L",
+      "name_zh": "元大S&P500正2"
+    },
+    {
+      "ticker": "00648R",
+      "name_zh": "元大S&P500反1"
+    },
+    {
+      "ticker": "00650L",
+      "name_zh": "復華香港正2"
+    },
+    {
+      "ticker": "00651R",
+      "name_zh": "復華香港反1"
+    },
+    {
+      "ticker": "00652",
+      "name_zh": "富邦印度"
+    },
+    {
+      "ticker": "00653L",
+      "name_zh": "富邦印度正2"
+    },
+    {
+      "ticker": "00654R",
+      "name_zh": "富邦印度反1"
+    },
+    {
+      "ticker": "00655L",
+      "name_zh": "國泰中國A50正2"
+    },
+    {
+      "ticker": "00656R",
+      "name_zh": "國泰中國A50反1"
+    },
+    {
+      "ticker": "00657",
+      "name_zh": "國泰日經225"
+    },
+    {
+      "ticker": "00657K",
+      "name_zh": "國泰日經225+U"
+    },
+    {
+      "ticker": "00660",
+      "name_zh": "元大歐洲50"
+    },
+    {
+      "ticker": "00661",
+      "name_zh": "元大日經225"
+    },
+    {
+      "ticker": "00662",
+      "name_zh": "富邦NASDAQ"
+    },
+    {
+      "ticker": "00663L",
+      "name_zh": "國泰臺灣加權正2"
+    },
+    {
+      "ticker": "00664R",
+      "name_zh": "國泰臺灣加權反1"
+    },
+    {
+      "ticker": "00665L",
+      "name_zh": "富邦恒生國企正2"
+    },
+    {
+      "ticker": "00666R",
+      "name_zh": "富邦恒生國企反1"
+    },
+    {
+      "ticker": "00668",
+      "name_zh": "國泰美國道瓊"
+    },
+    {
+      "ticker": "00668K",
+      "name_zh": "國泰美國道瓊+U"
+    },
+    {
+      "ticker": "00669R",
+      "name_zh": "國泰美國道瓊反1"
+    },
+    {
+      "ticker": "00670L",
+      "name_zh": "富邦NASDAQ正2"
+    },
+    {
+      "ticker": "00671R",
+      "name_zh": "富邦NASDAQ反1"
+    },
+    {
+      "ticker": "00673R",
+      "name_zh": "期元大S&P原油反1"
+    },
+    {
+      "ticker": "00674R",
+      "name_zh": "期元大S&P黃金反1"
+    },
+    {
+      "ticker": "00675L",
+      "name_zh": "富邦臺灣加權正2"
+    },
+    {
+      "ticker": "00676R",
+      "name_zh": "富邦臺灣加權反1"
+    },
+    {
+      "ticker": "00678",
+      "name_zh": "群益那斯達克生技"
+    },
+    {
+      "ticker": "00680L",
+      "name_zh": "元大美債20正2"
+    },
+    {
+      "ticker": "00681R",
+      "name_zh": "元大美債20反1"
+    },
+    {
+      "ticker": "00682U",
+      "name_zh": "期元大美元指數"
+    },
+    {
+      "ticker": "00683L",
+      "name_zh": "期元大美元指正2"
+    },
+    {
+      "ticker": "00684R",
+      "name_zh": "期元大美元指反1"
+    },
+    {
+      "ticker": "00685L",
+      "name_zh": "群益臺灣加權正2"
+    },
+    {
+      "ticker": "00686R",
+      "name_zh": "群益臺灣加權反1"
+    },
+    {
+      "ticker": "00688L",
+      "name_zh": "國泰20年美債正2"
+    },
+    {
+      "ticker": "00689R",
+      "name_zh": "國泰20年美債反1"
+    },
+    {
+      "ticker": "00690",
+      "name_zh": "兆豐藍籌30"
+    },
+    {
+      "ticker": "00692",
+      "name_zh": "富邦公司治理"
+    },
+    {
+      "ticker": "00693U",
+      "name_zh": "期街口S&P黃豆"
+    },
+    {
+      "ticker": "00700",
+      "name_zh": "富邦恒生國企"
+    },
+    {
+      "ticker": "00701",
+      "name_zh": "國泰股利精選30"
+    },
+    {
+      "ticker": "00702",
+      "name_zh": "國泰標普低波高息"
+    },
+    {
+      "ticker": "00703",
+      "name_zh": "台新MSCI中國"
+    },
+    {
+      "ticker": "00706L",
+      "name_zh": "期元大S&P日圓正2"
+    },
+    {
+      "ticker": "00707R",
+      "name_zh": "期元大S&P日圓反1"
+    },
+    {
+      "ticker": "00708L",
+      "name_zh": "期元大S&P黃金正2"
+    },
+    {
+      "ticker": "00709",
+      "name_zh": "富邦歐洲"
+    },
+    {
+      "ticker": "00710B",
+      "name_zh": "復華彭博非投等債"
+    },
+    {
+      "ticker": "00711B",
+      "name_zh": "復華彭博新興債"
+    },
+    {
+      "ticker": "00712",
+      "name_zh": "復華富時不動產"
+    },
+    {
+      "ticker": "00713",
+      "name_zh": "元大台灣高息低波"
+    },
+    {
+      "ticker": "00714",
+      "name_zh": "群益道瓊美國地產"
+    },
+    {
+      "ticker": "00715L",
+      "name_zh": "期街口布蘭特正2"
+    },
+    {
+      "ticker": "00717",
+      "name_zh": "富邦美國特別股"
+    },
+    {
+      "ticker": "00728",
+      "name_zh": "第一金工業30"
+    },
+    {
+      "ticker": "00730",
+      "name_zh": "富邦臺灣優質高息"
+    },
+    {
+      "ticker": "00731",
+      "name_zh": "復華富時高息低波"
+    },
+    {
+      "ticker": "00733",
+      "name_zh": "富邦臺灣中小"
+    },
+    {
+      "ticker": "00735",
+      "name_zh": "國泰臺韓科技"
+    },
+    {
+      "ticker": "00736",
+      "name_zh": "國泰新興市場"
+    },
+    {
+      "ticker": "00737",
+      "name_zh": "國泰AI機器人"
+    },
+    {
+      "ticker": "00738U",
+      "name_zh": "期元大道瓊白銀"
+    },
+    {
+      "ticker": "00739",
+      "name_zh": "元大MSCI A股"
+    },
+    {
+      "ticker": "00752",
+      "name_zh": "中信中國50"
+    },
+    {
+      "ticker": "00753L",
+      "name_zh": "中信中國50正2"
+    },
+    {
+      "ticker": "00757",
+      "name_zh": "統一FANG+"
+    },
+    {
+      "ticker": "00762",
+      "name_zh": "元大全球AI"
+    },
+    {
+      "ticker": "00763U",
+      "name_zh": "期街口道瓊銅"
+    },
+    {
+      "ticker": "00770",
+      "name_zh": "國泰北美科技"
+    },
+    {
+      "ticker": "00771",
+      "name_zh": "元大US高息特別股"
+    },
+    {
+      "ticker": "00775B",
+      "name_zh": "新光投等債15+"
+    },
+    {
+      "ticker": "00783",
+      "name_zh": "富邦中証500"
+    },
+    {
+      "ticker": "00830",
+      "name_zh": "國泰費城半導體"
+    },
+    {
+      "ticker": "00850",
+      "name_zh": "元大臺灣ESG永續"
+    },
+    {
+      "ticker": "00851",
+      "name_zh": "台新全球AI"
+    },
+    {
+      "ticker": "00852L",
+      "name_zh": "國泰美國道瓊正2"
+    },
+    {
+      "ticker": "00861",
+      "name_zh": "元大全球未來通訊"
+    },
+    {
+      "ticker": "00865B",
+      "name_zh": "國泰US短期公債"
+    },
+    {
+      "ticker": "00875",
+      "name_zh": "國泰網路資安"
+    },
+    {
+      "ticker": "00876",
+      "name_zh": "元大全球5G"
+    },
+    {
+      "ticker": "00878",
+      "name_zh": "國泰永續高股息"
+    },
+    {
+      "ticker": "00881",
+      "name_zh": "國泰台灣科技龍頭"
+    },
+    {
+      "ticker": "00882",
+      "name_zh": "中信中國高股息"
+    },
+    {
+      "ticker": "00885",
+      "name_zh": "富邦越南"
+    },
+    {
+      "ticker": "00891",
+      "name_zh": "中信關鍵半導體"
+    },
+    {
+      "ticker": "00892",
+      "name_zh": "富邦台灣半導體"
+    },
+    {
+      "ticker": "00893",
+      "name_zh": "國泰智能電動車"
+    },
+    {
+      "ticker": "00894",
+      "name_zh": "中信小資高價30"
+    },
+    {
+      "ticker": "00895",
+      "name_zh": "富邦未來車"
+    },
+    {
+      "ticker": "00896",
+      "name_zh": "中信綠能及電動車"
+    },
+    {
+      "ticker": "00897",
+      "name_zh": "富邦基因免疫生技"
+    },
+    {
+      "ticker": "00898",
+      "name_zh": "國泰基因免疫革命"
+    },
+    {
+      "ticker": "00899",
+      "name_zh": "FT潔淨能源"
+    },
+    {
+      "ticker": "00900",
+      "name_zh": "富邦特選高股息30"
+    },
+    {
+      "ticker": "00901",
+      "name_zh": "永豐智能車供應鏈"
+    },
+    {
+      "ticker": "00902",
+      "name_zh": "中信電池及儲能"
+    },
+    {
+      "ticker": "00903",
+      "name_zh": "富邦元宇宙"
+    },
+    {
+      "ticker": "00904",
+      "name_zh": "新光臺灣半導體30"
+    },
+    {
+      "ticker": "00905",
+      "name_zh": "FT臺灣Smart"
+    },
+    {
+      "ticker": "00907",
+      "name_zh": "永豐優息存股"
+    },
+    {
+      "ticker": "00908",
+      "name_zh": "富邦入息REITs+"
+    },
+    {
+      "ticker": "00909",
+      "name_zh": "國泰數位支付服務"
+    },
+    {
+      "ticker": "00910",
+      "name_zh": "第一金太空衛星"
+    },
+    {
+      "ticker": "00911",
+      "name_zh": "兆豐洲際半導體"
+    },
+    {
+      "ticker": "00912",
+      "name_zh": "中信臺灣智慧50"
+    },
+    {
+      "ticker": "00913",
+      "name_zh": "兆豐台灣晶圓製造"
+    },
+    {
+      "ticker": "00915",
+      "name_zh": "凱基優選高股息30"
+    },
+    {
+      "ticker": "00916",
+      "name_zh": "國泰全球品牌50"
+    },
+    {
+      "ticker": "00917",
+      "name_zh": "中信特選金融"
+    },
+    {
+      "ticker": "00918",
+      "name_zh": "大華優利高填息30"
+    },
+    {
+      "ticker": "00919",
+      "name_zh": "群益台灣精選高息"
+    },
+    {
+      "ticker": "00920",
+      "name_zh": "富邦ESG綠色電力"
+    },
+    {
+      "ticker": "00921",
+      "name_zh": "兆豐龍頭等權重"
+    },
+    {
+      "ticker": "00922",
+      "name_zh": "國泰台灣領袖50"
+    },
+    {
+      "ticker": "00923",
+      "name_zh": "群益台ESG低碳50"
+    },
+    {
+      "ticker": "00924",
+      "name_zh": "復華S&P500成長"
+    },
+    {
+      "ticker": "00926",
+      "name_zh": "凱基全球菁英55"
+    },
+    {
+      "ticker": "00927",
+      "name_zh": "群益半導體收益"
+    },
+    {
+      "ticker": "00929",
+      "name_zh": "復華台灣科技優息"
+    },
+    {
+      "ticker": "00930",
+      "name_zh": "永豐ESG低碳高息"
+    },
+    {
+      "ticker": "00932",
+      "name_zh": "兆豐永續高息等權"
+    },
+    {
+      "ticker": "00934",
+      "name_zh": "中信成長高股息"
+    },
+    {
+      "ticker": "00935",
+      "name_zh": "野村臺灣新科技50"
+    },
+    {
+      "ticker": "00936",
+      "name_zh": "台新永續高息中小"
+    },
+    {
+      "ticker": "00938",
+      "name_zh": "凱基優選30"
+    },
+    {
+      "ticker": "00939",
+      "name_zh": "統一台灣高息動能"
+    },
+    {
+      "ticker": "00940",
+      "name_zh": "元大台灣價值高息"
+    },
+    {
+      "ticker": "00941",
+      "name_zh": "中信上游半導體"
+    },
+    {
+      "ticker": "00943",
+      "name_zh": "兆豐電子高息等權"
+    },
+    {
+      "ticker": "00944",
+      "name_zh": "野村趨勢動能高息"
+    },
+    {
+      "ticker": "00945B",
+      "name_zh": "凱基美國非投等債"
+    },
+    {
+      "ticker": "00946",
+      "name_zh": "群益科技高息成長"
+    },
+    {
+      "ticker": "00947",
+      "name_zh": "台新臺灣IC設計"
+    },
+    {
+      "ticker": "00949",
+      "name_zh": "復華日本龍頭"
+    },
+    {
+      "ticker": "00951",
+      "name_zh": "台新日本半導體"
+    },
+    {
+      "ticker": "00952",
+      "name_zh": "凱基台灣AI50"
+    },
+    {
+      "ticker": "00953B",
+      "name_zh": "群益優選非投等債"
+    },
+    {
+      "ticker": "00954",
+      "name_zh": "中信日本半導體"
+    },
+    {
+      "ticker": "00956",
+      "name_zh": "中信日經高股息"
+    },
+    {
+      "ticker": "00960",
+      "name_zh": "野村全球航運龍頭"
+    },
+    {
+      "ticker": "00961",
+      "name_zh": "FT臺灣永續高息"
+    },
+    {
+      "ticker": "00962",
+      "name_zh": "台新AI優息動能"
+    },
+    {
+      "ticker": "00963",
+      "name_zh": "中信全球高股息"
+    },
+    {
+      "ticker": "00964",
+      "name_zh": "中信亞太高股息"
+    },
+    {
+      "ticker": "00965",
+      "name_zh": "元大航太防衛科技"
+    },
+    {
+      "ticker": "00971",
+      "name_zh": "野村美國研發龍頭"
+    },
+    {
+      "ticker": "00972",
+      "name_zh": "野村日本動能高息"
+    },
+    {
+      "ticker": "009800",
+      "name_zh": "中信NASDAQ"
+    },
+    {
+      "ticker": "009801",
+      "name_zh": "中信美國創新科技"
+    },
+    {
+      "ticker": "009802",
+      "name_zh": "富邦旗艦50"
+    },
+    {
+      "ticker": "009803",
+      "name_zh": "玉山市值動能50"
+    },
+    {
+      "ticker": "009804",
+      "name_zh": "聯邦台精彩50"
+    },
+    {
+      "ticker": "009805",
+      "name_zh": "新光美國電力基建"
+    },
+    {
+      "ticker": "009808",
+      "name_zh": "華南永昌優選50"
+    },
+    {
+      "ticker": "009809",
+      "name_zh": "富邦淨零ESG50"
+    },
+    {
+      "ticker": "00980A",
+      "name_zh": "主動野村臺灣優選"
+    },
+    {
+      "ticker": "009810",
+      "name_zh": "玉山全球藍籌100"
+    },
+    {
+      "ticker": "009811",
+      "name_zh": "統一美國50"
+    },
+    {
+      "ticker": "009812",
+      "name_zh": "野村日本東證"
+    },
+    {
+      "ticker": "009813",
+      "name_zh": "貝萊德標普卓越50"
+    },
+    {
+      "ticker": "009816",
+      "name_zh": "凱基台灣TOP50"
+    },
+    {
+      "ticker": "009817",
+      "name_zh": "國泰日本不動產"
+    },
+    {
+      "ticker": "009818",
+      "name_zh": "華南永昌NASDAQxT"
+    },
+    {
+      "ticker": "009819",
+      "name_zh": "中信數據及電力"
+    },
+    {
+      "ticker": "00981A",
+      "name_zh": "主動統一台股增長"
+    },
+    {
+      "ticker": "00981T",
+      "name_zh": "平衡凱基雙核收息"
+    },
+    {
+      "ticker": "009820",
+      "name_zh": "元大納斯達克精選"
+    },
+    {
+      "ticker": "00982A",
+      "name_zh": "主動群益台灣強棒"
+    },
+    {
+      "ticker": "00982D",
+      "name_zh": "主動富邦動態入息"
+    },
+    {
+      "ticker": "00982T",
+      "name_zh": "平衡兆豐台美動能"
+    },
+    {
+      "ticker": "00983A",
+      "name_zh": "主動中信ARK創新"
+    },
+    {
+      "ticker": "00983D",
+      "name_zh": "主動富邦複合收益"
+    },
+    {
+      "ticker": "00984A",
+      "name_zh": "主動安聯台灣高息"
+    },
+    {
+      "ticker": "00984D",
+      "name_zh": "主動聯博全球非投"
+    },
+    {
+      "ticker": "00985A",
+      "name_zh": "主動野村台灣50"
+    },
+    {
+      "ticker": "00985B",
+      "name_zh": "群益ESG投等債0-5"
+    },
+    {
+      "ticker": "00986A",
+      "name_zh": "主動台新龍頭成長"
+    },
+    {
+      "ticker": "00987A",
+      "name_zh": "主動台新優勢成長"
+    },
+    {
+      "ticker": "00988A",
+      "name_zh": "主動統一全球創新"
+    },
+    {
+      "ticker": "00989A",
+      "name_zh": "主動摩根美國科技"
+    },
+    {
+      "ticker": "00990A",
+      "name_zh": "主動元大AI新經濟"
+    },
+    {
+      "ticker": "00991A",
+      "name_zh": "主動復華未來50"
+    },
+    {
+      "ticker": "00992A",
+      "name_zh": "主動群益科技創新"
+    },
+    {
+      "ticker": "00993A",
+      "name_zh": "主動安聯台灣"
+    },
+    {
+      "ticker": "00994A",
+      "name_zh": "主動第一金台股優"
+    },
+    {
+      "ticker": "00995A",
+      "name_zh": "主動中信台灣卓越"
+    },
+    {
+      "ticker": "00996A",
+      "name_zh": "主動兆豐台灣豐收"
+    },
+    {
+      "ticker": "00997A",
+      "name_zh": "主動群益美國增長"
+    },
+    {
+      "ticker": "00999A",
+      "name_zh": "主動野村臺灣高息"
+    },
+    {
+      "ticker": "01001T",
+      "name_zh": "土銀富邦R1"
+    },
+    {
+      "ticker": "01002T",
+      "name_zh": "土銀國泰R1"
+    },
+    {
+      "ticker": "01004T",
+      "name_zh": "土銀富邦R2"
+    },
+    {
+      "ticker": "01007T",
+      "name_zh": "兆豐國泰R2"
+    },
+    {
+      "ticker": "01009T",
+      "name_zh": "王道圓滿R1"
+    },
+    {
+      "ticker": "01010T",
+      "name_zh": "京城樂富R1"
+    },
+    {
+      "ticker": "020000",
+      "name_zh": "富邦特選蘋果N"
+    },
+    {
+      "ticker": "020011",
+      "name_zh": "統一微波高息20N"
+    },
+    {
+      "ticker": "020012",
+      "name_zh": "富邦行動通訊N"
+    },
+    {
+      "ticker": "02001L",
+      "name_zh": "富邦蘋果正二N"
+    },
+    {
+      "ticker": "02001R",
+      "name_zh": "富邦蘋果反一N"
+    },
+    {
+      "ticker": "020020",
+      "name_zh": "元大台股領航N"
+    },
+    {
+      "ticker": "020028",
+      "name_zh": "元大特選電動車N"
+    },
+    {
+      "ticker": "020029",
+      "name_zh": "元大ESG高股息N"
+    },
+    {
+      "ticker": "020030",
+      "name_zh": "統一智慧電動車N"
+    },
+    {
+      "ticker": "020031",
+      "name_zh": "統一IC設計臺灣N"
+    },
+    {
+      "ticker": "020032",
+      "name_zh": "元大綠能N"
+    },
+    {
+      "ticker": "020034",
+      "name_zh": "元大IC設計N"
+    },
+    {
+      "ticker": "020036",
+      "name_zh": "元大金融配息N"
+    },
+    {
+      "ticker": "020037",
+      "name_zh": "元大金融高股息N"
+    },
+    {
+      "ticker": "020038",
+      "name_zh": "元大ESG配息N"
+    },
+    {
+      "ticker": "020039",
+      "name_zh": "元大加權N"
+    },
+    {
+      "ticker": "1101",
+      "name_zh": "台泥"
+    },
+    {
+      "ticker": "1101B",
+      "name_zh": "台泥乙特"
+    },
+    {
+      "ticker": "1102",
+      "name_zh": "亞泥"
+    },
+    {
+      "ticker": "1103",
+      "name_zh": "嘉泥"
+    },
+    {
+      "ticker": "1104",
+      "name_zh": "環泥"
+    },
+    {
+      "ticker": "1108",
+      "name_zh": "幸福"
+    },
+    {
+      "ticker": "1109",
+      "name_zh": "信大"
+    },
+    {
+      "ticker": "1110",
+      "name_zh": "東泥"
+    },
+    {
+      "ticker": "1201",
+      "name_zh": "味全"
+    },
+    {
+      "ticker": "1203",
+      "name_zh": "味王"
+    },
+    {
+      "ticker": "1210",
+      "name_zh": "大成"
+    },
+    {
+      "ticker": "1213",
+      "name_zh": "大飲"
+    },
+    {
+      "ticker": "1215",
+      "name_zh": "卜蜂"
+    },
+    {
+      "ticker": "1216",
+      "name_zh": "統一"
+    },
+    {
+      "ticker": "1217",
+      "name_zh": "愛之味"
+    },
+    {
+      "ticker": "1218",
+      "name_zh": "泰山"
+    },
+    {
+      "ticker": "1219",
+      "name_zh": "福壽"
+    },
+    {
+      "ticker": "1220",
+      "name_zh": "台榮"
+    },
+    {
+      "ticker": "1225",
+      "name_zh": "福懋油"
+    },
+    {
+      "ticker": "1227",
+      "name_zh": "佳格"
+    },
+    {
+      "ticker": "1229",
+      "name_zh": "聯華"
+    },
+    {
+      "ticker": "1231",
+      "name_zh": "聯華食"
+    },
+    {
+      "ticker": "1232",
+      "name_zh": "大統益"
+    },
+    {
+      "ticker": "1233",
+      "name_zh": "天仁"
+    },
+    {
+      "ticker": "1234",
+      "name_zh": "黑松"
+    },
+    {
+      "ticker": "1235",
+      "name_zh": "興泰"
+    },
+    {
+      "ticker": "1236",
+      "name_zh": "宏亞"
+    },
+    {
+      "ticker": "1256",
+      "name_zh": "鮮活果汁-KY"
+    },
+    {
+      "ticker": "1301",
+      "name_zh": "台塑"
+    },
+    {
+      "ticker": "1303",
+      "name_zh": "南亞"
+    },
+    {
+      "ticker": "1304",
+      "name_zh": "台聚"
+    },
+    {
+      "ticker": "1305",
+      "name_zh": "華夏"
+    },
+    {
+      "ticker": "1307",
+      "name_zh": "三芳"
+    },
+    {
+      "ticker": "1308",
+      "name_zh": "亞聚"
+    },
+    {
+      "ticker": "1309",
+      "name_zh": "台達化"
+    },
+    {
+      "ticker": "1310",
+      "name_zh": "台苯"
+    },
+    {
+      "ticker": "1312",
+      "name_zh": "國喬"
+    },
+    {
+      "ticker": "1312A",
+      "name_zh": "國喬特"
+    },
+    {
+      "ticker": "1313",
+      "name_zh": "聯成"
+    },
+    {
+      "ticker": "1314",
+      "name_zh": "中石化"
+    },
+    {
+      "ticker": "1315",
+      "name_zh": "達新"
+    },
+    {
+      "ticker": "1316",
+      "name_zh": "上曜"
+    },
+    {
+      "ticker": "1319",
+      "name_zh": "東陽"
+    },
+    {
+      "ticker": "1321",
+      "name_zh": "大洋"
+    },
+    {
+      "ticker": "1323",
+      "name_zh": "永裕"
+    },
+    {
+      "ticker": "1324",
+      "name_zh": "地球"
+    },
+    {
+      "ticker": "1325",
+      "name_zh": "恆大"
+    },
+    {
+      "ticker": "1326",
+      "name_zh": "台化"
+    },
+    {
+      "ticker": "1337",
+      "name_zh": "再生-KY"
+    },
+    {
+      "ticker": "1338",
+      "name_zh": "廣華-KY"
+    },
+    {
+      "ticker": "1339",
+      "name_zh": "昭輝"
+    },
+    {
+      "ticker": "1340",
+      "name_zh": "勝悅-KY"
+    },
+    {
+      "ticker": "1341",
+      "name_zh": "富林-KY"
+    },
+    {
+      "ticker": "1342",
+      "name_zh": "八貫"
+    },
+    {
+      "ticker": "1402",
+      "name_zh": "遠東新"
+    },
+    {
+      "ticker": "1409",
+      "name_zh": "新纖"
+    },
+    {
+      "ticker": "1410",
+      "name_zh": "南染"
+    },
+    {
+      "ticker": "1413",
+      "name_zh": "宏洲"
+    },
+    {
+      "ticker": "1414",
+      "name_zh": "東和"
+    },
+    {
+      "ticker": "1416",
+      "name_zh": "廣豐"
+    },
+    {
+      "ticker": "1417",
+      "name_zh": "嘉裕"
+    },
+    {
+      "ticker": "1418",
+      "name_zh": "東華"
+    },
+    {
+      "ticker": "1419",
+      "name_zh": "新紡"
+    },
+    {
+      "ticker": "1423",
+      "name_zh": "利華"
+    },
+    {
+      "ticker": "1432",
+      "name_zh": "大魯閣"
+    },
+    {
+      "ticker": "1434",
+      "name_zh": "福懋"
+    },
+    {
+      "ticker": "1436",
+      "name_zh": "華友聯"
+    },
+    {
+      "ticker": "1437",
+      "name_zh": "勤益控"
+    },
+    {
+      "ticker": "1438",
+      "name_zh": "三地開發"
+    },
+    {
+      "ticker": "1439",
+      "name_zh": "雋揚"
+    },
+    {
+      "ticker": "1440",
+      "name_zh": "南紡"
+    },
+    {
+      "ticker": "1441",
+      "name_zh": "大東"
+    },
+    {
+      "ticker": "1442",
+      "name_zh": "名軒"
+    },
+    {
+      "ticker": "1443",
+      "name_zh": "立益物流"
+    },
+    {
+      "ticker": "1444",
+      "name_zh": "力麗"
+    },
+    {
+      "ticker": "1445",
+      "name_zh": "大宇"
+    },
+    {
+      "ticker": "1446",
+      "name_zh": "宏和"
+    },
+    {
+      "ticker": "1447",
+      "name_zh": "力鵬"
+    },
+    {
+      "ticker": "1449",
+      "name_zh": "佳和"
+    },
+    {
+      "ticker": "1451",
+      "name_zh": "年興"
+    },
+    {
+      "ticker": "1452",
+      "name_zh": "宏益"
+    },
+    {
+      "ticker": "1453",
+      "name_zh": "大將"
+    },
+    {
+      "ticker": "1454",
+      "name_zh": "台富"
+    },
+    {
+      "ticker": "1455",
+      "name_zh": "集盛"
+    },
+    {
+      "ticker": "1456",
+      "name_zh": "怡華"
+    },
+    {
+      "ticker": "1457",
+      "name_zh": "宜進"
+    },
+    {
+      "ticker": "1459",
+      "name_zh": "聯發"
+    },
+    {
+      "ticker": "1460",
+      "name_zh": "宏遠"
+    },
+    {
+      "ticker": "1463",
+      "name_zh": "強盛新"
+    },
+    {
+      "ticker": "1464",
+      "name_zh": "得力"
+    },
+    {
+      "ticker": "1465",
+      "name_zh": "偉全"
+    },
+    {
+      "ticker": "1466",
+      "name_zh": "聚隆"
+    },
+    {
+      "ticker": "1467",
+      "name_zh": "南緯"
+    },
+    {
+      "ticker": "1468",
+      "name_zh": "昶和"
+    },
+    {
+      "ticker": "1470",
+      "name_zh": "大統新創"
+    },
+    {
+      "ticker": "1471",
+      "name_zh": "首利"
+    },
+    {
+      "ticker": "1472",
+      "name_zh": "三洋實業"
+    },
+    {
+      "ticker": "1473",
+      "name_zh": "台南"
+    },
+    {
+      "ticker": "1474",
+      "name_zh": "弘裕"
+    },
+    {
+      "ticker": "1475",
+      "name_zh": "業旺"
+    },
+    {
+      "ticker": "1476",
+      "name_zh": "儒鴻"
+    },
+    {
+      "ticker": "1477",
+      "name_zh": "聚陽"
+    },
+    {
+      "ticker": "1503",
+      "name_zh": "士電"
+    },
+    {
+      "ticker": "1504",
+      "name_zh": "東元"
+    },
+    {
+      "ticker": "1506",
+      "name_zh": "正道"
+    },
+    {
+      "ticker": "1512",
+      "name_zh": "瑞利"
+    },
+    {
+      "ticker": "1513",
+      "name_zh": "中興電"
+    },
+    {
+      "ticker": "1514",
+      "name_zh": "亞力"
+    },
+    {
+      "ticker": "1515",
+      "name_zh": "力山"
+    },
+    {
+      "ticker": "1516",
+      "name_zh": "川飛"
+    },
+    {
+      "ticker": "1517",
+      "name_zh": "利奇"
+    },
+    {
+      "ticker": "1519",
+      "name_zh": "華城"
+    },
+    {
+      "ticker": "1521",
+      "name_zh": "大億"
+    },
+    {
+      "ticker": "1522",
+      "name_zh": "堤維西"
+    },
+    {
+      "ticker": "1522A",
+      "name_zh": "堤維西甲特"
+    },
+    {
+      "ticker": "1524",
+      "name_zh": "耿鼎"
+    },
+    {
+      "ticker": "1525",
+      "name_zh": "江申"
+    },
+    {
+      "ticker": "1526",
+      "name_zh": "日馳"
+    },
+    {
+      "ticker": "1527",
+      "name_zh": "鑽全"
+    },
+    {
+      "ticker": "1528",
+      "name_zh": "恩德"
+    },
+    {
+      "ticker": "1529",
+      "name_zh": "樂事綠能"
+    },
+    {
+      "ticker": "1530",
+      "name_zh": "亞崴"
+    },
+    {
+      "ticker": "1531",
+      "name_zh": "高林股"
+    },
+    {
+      "ticker": "1532",
+      "name_zh": "勤美"
+    },
+    {
+      "ticker": "1533",
+      "name_zh": "車王電"
+    },
+    {
+      "ticker": "1535",
+      "name_zh": "中宇"
+    },
+    {
+      "ticker": "1536",
+      "name_zh": "和大"
+    },
+    {
+      "ticker": "1537",
+      "name_zh": "廣隆"
+    },
+    {
+      "ticker": "1538",
+      "name_zh": "正峰"
+    },
+    {
+      "ticker": "1539",
+      "name_zh": "巨庭"
+    },
+    {
+      "ticker": "1540",
+      "name_zh": "喬福"
+    },
+    {
+      "ticker": "1541",
+      "name_zh": "錩泰"
+    },
+    {
+      "ticker": "1558",
+      "name_zh": "伸興"
+    },
+    {
+      "ticker": "1560",
+      "name_zh": "中砂"
+    },
+    {
+      "ticker": "1563",
+      "name_zh": "巧新"
+    },
+    {
+      "ticker": "1568",
+      "name_zh": "倉佑"
+    },
+    {
+      "ticker": "1582",
+      "name_zh": "信錦"
+    },
+    {
+      "ticker": "1583",
+      "name_zh": "程泰"
+    },
+    {
+      "ticker": "1587",
+      "name_zh": "吉茂"
+    },
+    {
+      "ticker": "1590",
+      "name_zh": "亞德客-KY"
+    },
+    {
+      "ticker": "1597",
+      "name_zh": "直得"
+    },
+    {
+      "ticker": "1598",
+      "name_zh": "岱宇"
+    },
+    {
+      "ticker": "1603",
+      "name_zh": "華電"
+    },
+    {
+      "ticker": "1604",
+      "name_zh": "聲寶"
+    },
+    {
+      "ticker": "1605",
+      "name_zh": "華新"
+    },
+    {
+      "ticker": "1608",
+      "name_zh": "華榮"
+    },
+    {
+      "ticker": "1609",
+      "name_zh": "大亞"
+    },
+    {
+      "ticker": "1611",
+      "name_zh": "中電"
+    },
+    {
+      "ticker": "1612",
+      "name_zh": "宏泰"
+    },
+    {
+      "ticker": "1614",
+      "name_zh": "三洋電"
+    },
+    {
+      "ticker": "1615",
+      "name_zh": "大山"
+    },
+    {
+      "ticker": "1616",
+      "name_zh": "億泰"
+    },
+    {
+      "ticker": "1617",
+      "name_zh": "榮星"
+    },
+    {
+      "ticker": "1618",
+      "name_zh": "合機"
+    },
+    {
+      "ticker": "1623",
+      "name_zh": "大東電"
+    },
+    {
+      "ticker": "1626",
+      "name_zh": "艾美特-KY"
+    },
+    {
+      "ticker": "1702",
+      "name_zh": "南僑"
+    },
+    {
+      "ticker": "1707",
+      "name_zh": "葡萄王"
+    },
+    {
+      "ticker": "1708",
+      "name_zh": "東鹼"
+    },
+    {
+      "ticker": "1709",
+      "name_zh": "和益"
+    },
+    {
+      "ticker": "1710",
+      "name_zh": "東聯"
+    },
+    {
+      "ticker": "1711",
+      "name_zh": "永光"
+    },
+    {
+      "ticker": "1712",
+      "name_zh": "興農"
+    },
+    {
+      "ticker": "1713",
+      "name_zh": "國化"
+    },
+    {
+      "ticker": "1714",
+      "name_zh": "和桐"
+    },
+    {
+      "ticker": "1717",
+      "name_zh": "長興"
+    },
+    {
+      "ticker": "1718",
+      "name_zh": "中纖"
+    },
+    {
+      "ticker": "1720",
+      "name_zh": "生達"
+    },
+    {
+      "ticker": "1721",
+      "name_zh": "三晃"
+    },
+    {
+      "ticker": "1722",
+      "name_zh": "台肥"
+    },
+    {
+      "ticker": "1723",
+      "name_zh": "中碳"
+    },
+    {
+      "ticker": "1725",
+      "name_zh": "元禎"
+    },
+    {
+      "ticker": "1726",
+      "name_zh": "永記"
+    },
+    {
+      "ticker": "1727",
+      "name_zh": "中華化"
+    },
+    {
+      "ticker": "1730",
+      "name_zh": "花仙子"
+    },
+    {
+      "ticker": "1731",
+      "name_zh": "美吾華"
+    },
+    {
+      "ticker": "1732",
+      "name_zh": "毛寶"
+    },
+    {
+      "ticker": "1733",
+      "name_zh": "五鼎"
+    },
+    {
+      "ticker": "1734",
+      "name_zh": "杏輝"
+    },
+    {
+      "ticker": "1735",
+      "name_zh": "日勝化"
+    },
+    {
+      "ticker": "1736",
+      "name_zh": "喬山"
+    },
+    {
+      "ticker": "1737",
+      "name_zh": "臺鹽"
+    },
+    {
+      "ticker": "1752",
+      "name_zh": "南光"
+    },
+    {
+      "ticker": "1760",
+      "name_zh": "寶齡富錦"
+    },
+    {
+      "ticker": "1762",
+      "name_zh": "中化生"
+    },
+    {
+      "ticker": "1773",
+      "name_zh": "勝一"
+    },
+    {
+      "ticker": "1776",
+      "name_zh": "展宇"
+    },
+    {
+      "ticker": "1783",
+      "name_zh": "和康生"
+    },
+    {
+      "ticker": "1786",
+      "name_zh": "科妍"
+    },
+    {
+      "ticker": "1789",
+      "name_zh": "神隆"
+    },
+    {
+      "ticker": "1795",
+      "name_zh": "美時"
+    },
+    {
+      "ticker": "1802",
+      "name_zh": "台玻"
+    },
+    {
+      "ticker": "1805",
+      "name_zh": "寶徠"
+    },
+    {
+      "ticker": "1806",
+      "name_zh": "冠軍"
+    },
+    {
+      "ticker": "1808",
+      "name_zh": "潤隆"
+    },
+    {
+      "ticker": "1809",
+      "name_zh": "中釉"
+    },
+    {
+      "ticker": "1810",
+      "name_zh": "和成"
+    },
+    {
+      "ticker": "1817",
+      "name_zh": "凱撒衛"
+    },
+    {
+      "ticker": "1903",
+      "name_zh": "士紙"
+    },
+    {
+      "ticker": "1904",
+      "name_zh": "正隆"
+    },
+    {
+      "ticker": "1905",
+      "name_zh": "華紙"
+    },
+    {
+      "ticker": "1906",
+      "name_zh": "寶隆"
+    },
+    {
+      "ticker": "1907",
+      "name_zh": "永豐餘"
+    },
+    {
+      "ticker": "1909",
+      "name_zh": "榮成"
+    },
+    {
+      "ticker": "2002",
+      "name_zh": "中鋼"
+    },
+    {
+      "ticker": "2002A",
+      "name_zh": "中鋼特"
+    },
+    {
+      "ticker": "2006",
+      "name_zh": "東和鋼鐵"
+    },
+    {
+      "ticker": "2007",
+      "name_zh": "燁興"
+    },
+    {
+      "ticker": "2008",
+      "name_zh": "高興昌"
+    },
+    {
+      "ticker": "2009",
+      "name_zh": "第一銅"
+    },
+    {
+      "ticker": "2010",
+      "name_zh": "春源"
+    },
+    {
+      "ticker": "2012",
+      "name_zh": "春雨"
+    },
+    {
+      "ticker": "2013",
+      "name_zh": "中鋼構"
+    },
+    {
+      "ticker": "2014",
+      "name_zh": "中鴻"
+    },
+    {
+      "ticker": "2015",
+      "name_zh": "豐興"
+    },
+    {
+      "ticker": "2017",
+      "name_zh": "官田鋼"
+    },
+    {
+      "ticker": "2020",
+      "name_zh": "美亞"
+    },
+    {
+      "ticker": "2022",
+      "name_zh": "聚亨"
+    },
+    {
+      "ticker": "2023",
+      "name_zh": "燁輝"
+    },
+    {
+      "ticker": "2024",
+      "name_zh": "志聯"
+    },
+    {
+      "ticker": "2025",
+      "name_zh": "千興"
+    },
+    {
+      "ticker": "2027",
+      "name_zh": "大成鋼"
+    },
+    {
+      "ticker": "2028",
+      "name_zh": "威致"
+    },
+    {
+      "ticker": "2029",
+      "name_zh": "盛餘"
+    },
+    {
+      "ticker": "2030",
+      "name_zh": "彰源"
+    },
+    {
+      "ticker": "2031",
+      "name_zh": "新光鋼"
+    },
+    {
+      "ticker": "2032",
+      "name_zh": "新鋼"
+    },
+    {
+      "ticker": "2033",
+      "name_zh": "佳大"
+    },
+    {
+      "ticker": "2034",
+      "name_zh": "允強"
+    },
+    {
+      "ticker": "2038",
+      "name_zh": "海光"
+    },
+    {
+      "ticker": "2049",
+      "name_zh": "上銀"
+    },
+    {
+      "ticker": "2059",
+      "name_zh": "川湖"
+    },
+    {
+      "ticker": "2062",
+      "name_zh": "橋椿"
+    },
+    {
+      "ticker": "2069",
+      "name_zh": "運錩"
+    },
+    {
+      "ticker": "2072",
+      "name_zh": "世紀風電"
+    },
+    {
+      "ticker": "2101",
+      "name_zh": "南港"
+    },
+    {
+      "ticker": "2102",
+      "name_zh": "泰豐"
+    },
+    {
+      "ticker": "2103",
+      "name_zh": "台橡"
+    },
+    {
+      "ticker": "2104",
+      "name_zh": "國際中橡"
+    },
+    {
+      "ticker": "2105",
+      "name_zh": "正新"
+    },
+    {
+      "ticker": "2106",
+      "name_zh": "建大"
+    },
+    {
+      "ticker": "2107",
+      "name_zh": "厚生"
+    },
+    {
+      "ticker": "2108",
+      "name_zh": "南帝"
+    },
+    {
+      "ticker": "2109",
+      "name_zh": "華豐"
+    },
+    {
+      "ticker": "2114",
+      "name_zh": "鑫永銓"
+    },
+    {
+      "ticker": "2115",
+      "name_zh": "六暉-KY"
+    },
+    {
+      "ticker": "2201",
+      "name_zh": "裕隆"
+    },
+    {
+      "ticker": "2204",
+      "name_zh": "中華"
+    },
+    {
+      "ticker": "2206",
+      "name_zh": "三陽工業"
+    },
+    {
+      "ticker": "2207",
+      "name_zh": "和泰車"
+    },
+    {
+      "ticker": "2208",
+      "name_zh": "台船"
+    },
+    {
+      "ticker": "2211",
+      "name_zh": "長榮鋼"
+    },
+    {
+      "ticker": "2227",
+      "name_zh": "裕日車"
+    },
+    {
+      "ticker": "2228",
+      "name_zh": "劍麟"
+    },
+    {
+      "ticker": "2231",
+      "name_zh": "為升"
+    },
+    {
+      "ticker": "2233",
+      "name_zh": "宇隆"
+    },
+    {
+      "ticker": "2236",
+      "name_zh": "百達-KY"
+    },
+    {
+      "ticker": "2239",
+      "name_zh": "英利-KY"
+    },
+    {
+      "ticker": "2241",
+      "name_zh": "艾姆勒"
+    },
+    {
+      "ticker": "2243",
+      "name_zh": "宏旭-KY"
+    },
+    {
+      "ticker": "2247",
+      "name_zh": "汎德永業"
+    },
+    {
+      "ticker": "2248",
+      "name_zh": "華勝-KY"
+    },
+    {
+      "ticker": "2250",
+      "name_zh": "IKKA-KY"
+    },
+    {
+      "ticker": "2254",
+      "name_zh": "巨鎧精密-創"
+    },
+    {
+      "ticker": "2258",
+      "name_zh": "鴻華先進-創"
+    },
+    {
+      "ticker": "2301",
+      "name_zh": "光寶科"
+    },
+    {
+      "ticker": "2302",
+      "name_zh": "麗正"
+    },
+    {
+      "ticker": "2303",
+      "name_zh": "聯電"
+    },
+    {
+      "ticker": "2305",
+      "name_zh": "全友"
+    },
+    {
+      "ticker": "2308",
+      "name_zh": "台達電"
+    },
+    {
+      "ticker": "2312",
+      "name_zh": "金寶"
+    },
+    {
+      "ticker": "2313",
+      "name_zh": "華通"
+    },
+    {
+      "ticker": "2314",
+      "name_zh": "台揚"
+    },
+    {
+      "ticker": "2316",
+      "name_zh": "楠梓電"
+    },
+    {
+      "ticker": "2317",
+      "name_zh": "鴻海"
+    },
+    {
+      "ticker": "2321",
+      "name_zh": "東訊"
+    },
+    {
+      "ticker": "2323",
+      "name_zh": "中環"
+    },
+    {
+      "ticker": "2324",
+      "name_zh": "仁寶"
+    },
+    {
+      "ticker": "2327",
+      "name_zh": "國巨*"
+    },
+    {
+      "ticker": "2328",
+      "name_zh": "廣宇"
+    },
+    {
+      "ticker": "2329",
+      "name_zh": "華泰"
+    },
+    {
+      "ticker": "2330",
+      "name_zh": "台積電"
+    },
+    {
+      "ticker": "2331",
+      "name_zh": "精英"
+    },
+    {
+      "ticker": "2332",
+      "name_zh": "友訊"
+    },
+    {
+      "ticker": "2337",
+      "name_zh": "旺宏"
+    },
+    {
+      "ticker": "2338",
+      "name_zh": "光罩"
+    },
+    {
+      "ticker": "2340",
+      "name_zh": "台亞"
+    },
+    {
+      "ticker": "2342",
+      "name_zh": "茂矽"
+    },
+    {
+      "ticker": "2344",
+      "name_zh": "華邦電"
+    },
+    {
+      "ticker": "2345",
+      "name_zh": "智邦"
+    },
+    {
+      "ticker": "2347",
+      "name_zh": "聯強"
+    },
+    {
+      "ticker": "2348",
+      "name_zh": "海悅"
+    },
+    {
+      "ticker": "2348A",
+      "name_zh": "海悅甲特"
+    },
+    {
+      "ticker": "2349",
+      "name_zh": "錸德"
+    },
+    {
+      "ticker": "2351",
+      "name_zh": "順德"
+    },
+    {
+      "ticker": "2352",
+      "name_zh": "佳世達"
+    },
+    {
+      "ticker": "2353",
+      "name_zh": "宏碁"
+    },
+    {
+      "ticker": "2354",
+      "name_zh": "鴻準"
+    },
+    {
+      "ticker": "2355",
+      "name_zh": "敬鵬"
+    },
+    {
+      "ticker": "2356",
+      "name_zh": "英業達"
+    },
+    {
+      "ticker": "2357",
+      "name_zh": "華碩"
+    },
+    {
+      "ticker": "2359",
+      "name_zh": "所羅門"
+    },
+    {
+      "ticker": "2360",
+      "name_zh": "致茂"
+    },
+    {
+      "ticker": "2362",
+      "name_zh": "藍天"
+    },
+    {
+      "ticker": "2363",
+      "name_zh": "矽統"
+    },
+    {
+      "ticker": "2364",
+      "name_zh": "倫飛"
+    },
+    {
+      "ticker": "2365",
+      "name_zh": "昆盈"
+    },
+    {
+      "ticker": "2367",
+      "name_zh": "燿華"
+    },
+    {
+      "ticker": "2368",
+      "name_zh": "金像電"
+    },
+    {
+      "ticker": "2369",
+      "name_zh": "菱生"
+    },
+    {
+      "ticker": "2371",
+      "name_zh": "大同"
+    },
+    {
+      "ticker": "2373",
+      "name_zh": "震旦行"
+    },
+    {
+      "ticker": "2374",
+      "name_zh": "佳能"
+    },
+    {
+      "ticker": "2375",
+      "name_zh": "凱美"
+    },
+    {
+      "ticker": "2376",
+      "name_zh": "技嘉"
+    },
+    {
+      "ticker": "2377",
+      "name_zh": "微星"
+    },
+    {
+      "ticker": "2379",
+      "name_zh": "瑞昱"
+    },
+    {
+      "ticker": "2380",
+      "name_zh": "虹光"
+    },
+    {
+      "ticker": "2382",
+      "name_zh": "廣達"
+    },
+    {
+      "ticker": "2383",
+      "name_zh": "台光電"
+    },
+    {
+      "ticker": "2385",
+      "name_zh": "群光"
+    },
+    {
+      "ticker": "2387",
+      "name_zh": "精元"
+    },
+    {
+      "ticker": "2388",
+      "name_zh": "威盛"
+    },
+    {
+      "ticker": "2390",
+      "name_zh": "云辰"
+    },
+    {
+      "ticker": "2392",
+      "name_zh": "正崴"
+    },
+    {
+      "ticker": "2393",
+      "name_zh": "億光"
+    },
+    {
+      "ticker": "2395",
+      "name_zh": "研華"
+    },
+    {
+      "ticker": "2397",
+      "name_zh": "友通"
+    },
+    {
+      "ticker": "2399",
+      "name_zh": "映泰"
+    },
+    {
+      "ticker": "2401",
+      "name_zh": "凌陽"
+    },
+    {
+      "ticker": "2402",
+      "name_zh": "毅嘉"
+    },
+    {
+      "ticker": "2404",
+      "name_zh": "漢唐"
+    },
+    {
+      "ticker": "2405",
+      "name_zh": "輔信"
+    },
+    {
+      "ticker": "2406",
+      "name_zh": "國碩"
+    },
+    {
+      "ticker": "2408",
+      "name_zh": "南亞科"
+    },
+    {
+      "ticker": "2409",
+      "name_zh": "友達"
+    },
+    {
+      "ticker": "2412",
+      "name_zh": "中華電"
+    },
+    {
+      "ticker": "2413",
+      "name_zh": "環科"
+    },
+    {
+      "ticker": "2414",
+      "name_zh": "精技"
+    },
+    {
+      "ticker": "2415",
+      "name_zh": "錩新"
+    },
+    {
+      "ticker": "2417",
+      "name_zh": "圓剛"
+    },
+    {
+      "ticker": "2419",
+      "name_zh": "仲琦"
+    },
+    {
+      "ticker": "2420",
+      "name_zh": "新巨"
+    },
+    {
+      "ticker": "2421",
+      "name_zh": "建準"
+    },
+    {
+      "ticker": "2423",
+      "name_zh": "固緯"
+    },
+    {
+      "ticker": "2424",
+      "name_zh": "隴華"
+    },
+    {
+      "ticker": "2425",
+      "name_zh": "承啟"
+    },
+    {
+      "ticker": "2426",
+      "name_zh": "鼎元"
+    },
+    {
+      "ticker": "2427",
+      "name_zh": "三商電"
+    },
+    {
+      "ticker": "2428",
+      "name_zh": "興勤"
+    },
+    {
+      "ticker": "2429",
+      "name_zh": "銘旺科"
+    },
+    {
+      "ticker": "2430",
+      "name_zh": "燦坤"
+    },
+    {
+      "ticker": "2431",
+      "name_zh": "聯昌"
+    },
+    {
+      "ticker": "2432",
+      "name_zh": "倚天酷碁-創"
+    },
+    {
+      "ticker": "2433",
+      "name_zh": "互盛電"
+    },
+    {
+      "ticker": "2434",
+      "name_zh": "統懋"
+    },
+    {
+      "ticker": "2436",
+      "name_zh": "偉詮電"
+    },
+    {
+      "ticker": "2438",
+      "name_zh": "翔耀"
+    },
+    {
+      "ticker": "2439",
+      "name_zh": "美律"
+    },
+    {
+      "ticker": "2440",
+      "name_zh": "太空梭"
+    },
+    {
+      "ticker": "2441",
+      "name_zh": "超豐"
+    },
+    {
+      "ticker": "2442",
+      "name_zh": "新美齊"
+    },
+    {
+      "ticker": "2444",
+      "name_zh": "兆勁"
+    },
+    {
+      "ticker": "2449",
+      "name_zh": "京元電子"
+    },
+    {
+      "ticker": "2450",
+      "name_zh": "神腦"
+    },
+    {
+      "ticker": "2451",
+      "name_zh": "創見"
+    },
+    {
+      "ticker": "2453",
+      "name_zh": "凌群"
+    },
+    {
+      "ticker": "2454",
+      "name_zh": "聯發科"
+    },
+    {
+      "ticker": "2455",
+      "name_zh": "全新"
+    },
+    {
+      "ticker": "2457",
+      "name_zh": "飛宏"
+    },
+    {
+      "ticker": "2458",
+      "name_zh": "義隆"
+    },
+    {
+      "ticker": "2459",
+      "name_zh": "敦吉"
+    },
+    {
+      "ticker": "2460",
+      "name_zh": "建通"
+    },
+    {
+      "ticker": "2461",
+      "name_zh": "光群雷"
+    },
+    {
+      "ticker": "2462",
+      "name_zh": "良得電"
+    },
+    {
+      "ticker": "2464",
+      "name_zh": "盟立"
+    },
+    {
+      "ticker": "2465",
+      "name_zh": "麗臺"
+    },
+    {
+      "ticker": "2466",
+      "name_zh": "冠西電"
+    },
+    {
+      "ticker": "2467",
+      "name_zh": "志聖"
+    },
+    {
+      "ticker": "2468",
+      "name_zh": "華經"
+    },
+    {
+      "ticker": "2471",
+      "name_zh": "資通"
+    },
+    {
+      "ticker": "2472",
+      "name_zh": "立隆電"
+    },
+    {
+      "ticker": "2474",
+      "name_zh": "可成"
+    },
+    {
+      "ticker": "2476",
+      "name_zh": "鉅祥"
+    },
+    {
+      "ticker": "2477",
+      "name_zh": "美隆電"
+    },
+    {
+      "ticker": "2478",
+      "name_zh": "大毅"
+    },
+    {
+      "ticker": "2480",
+      "name_zh": "敦陽科"
+    },
+    {
+      "ticker": "2481",
+      "name_zh": "強茂"
+    },
+    {
+      "ticker": "2482",
+      "name_zh": "連宇"
+    },
+    {
+      "ticker": "2483",
+      "name_zh": "百容"
+    },
+    {
+      "ticker": "2484",
+      "name_zh": "希華"
+    },
+    {
+      "ticker": "2485",
+      "name_zh": "兆赫"
+    },
+    {
+      "ticker": "2486",
+      "name_zh": "一詮"
+    },
+    {
+      "ticker": "2488",
+      "name_zh": "漢平"
+    },
+    {
+      "ticker": "2489",
+      "name_zh": "瑞軒"
+    },
+    {
+      "ticker": "2491",
+      "name_zh": "吉祥全"
+    },
+    {
+      "ticker": "2492",
+      "name_zh": "華新科"
+    },
+    {
+      "ticker": "2493",
+      "name_zh": "揚博"
+    },
+    {
+      "ticker": "2495",
+      "name_zh": "普安"
+    },
+    {
+      "ticker": "2496",
+      "name_zh": "卓越"
+    },
+    {
+      "ticker": "2497",
+      "name_zh": "怡利電"
+    },
+    {
+      "ticker": "2498",
+      "name_zh": "宏達電"
+    },
+    {
+      "ticker": "2501",
+      "name_zh": "國建"
+    },
+    {
+      "ticker": "2504",
+      "name_zh": "國產"
+    },
+    {
+      "ticker": "2505",
+      "name_zh": "國揚"
+    },
+    {
+      "ticker": "2506",
+      "name_zh": "太設"
+    },
+    {
+      "ticker": "2509",
+      "name_zh": "全坤建"
+    },
+    {
+      "ticker": "2511",
+      "name_zh": "太子"
+    },
+    {
+      "ticker": "2514",
+      "name_zh": "龍邦"
+    },
+    {
+      "ticker": "2515",
+      "name_zh": "中工"
+    },
+    {
+      "ticker": "2516",
+      "name_zh": "新建"
+    },
+    {
+      "ticker": "2520",
+      "name_zh": "冠德"
+    },
+    {
+      "ticker": "2524",
+      "name_zh": "京城"
+    },
+    {
+      "ticker": "2527",
+      "name_zh": "宏璟"
+    },
+    {
+      "ticker": "2528",
+      "name_zh": "皇普"
+    },
+    {
+      "ticker": "2530",
+      "name_zh": "華建"
+    },
+    {
+      "ticker": "2534",
+      "name_zh": "宏盛"
+    },
+    {
+      "ticker": "2535",
+      "name_zh": "達欣工"
+    },
+    {
+      "ticker": "2536",
+      "name_zh": "宏普"
+    },
+    {
+      "ticker": "2537",
+      "name_zh": "聯上發"
+    },
+    {
+      "ticker": "2538",
+      "name_zh": "基泰"
+    },
+    {
+      "ticker": "2539",
+      "name_zh": "櫻花建"
+    },
+    {
+      "ticker": "2540",
+      "name_zh": "愛山林"
+    },
+    {
+      "ticker": "2542",
+      "name_zh": "興富發"
+    },
+    {
+      "ticker": "2543",
+      "name_zh": "皇昌"
+    },
+    {
+      "ticker": "2545",
+      "name_zh": "皇翔"
+    },
+    {
+      "ticker": "2546",
+      "name_zh": "根基"
+    },
+    {
+      "ticker": "2547",
+      "name_zh": "日勝生"
+    },
+    {
+      "ticker": "2548",
+      "name_zh": "華固"
+    },
+    {
+      "ticker": "2597",
+      "name_zh": "潤弘"
+    },
+    {
+      "ticker": "2601",
+      "name_zh": "益航"
+    },
+    {
+      "ticker": "2603",
+      "name_zh": "長榮"
+    },
+    {
+      "ticker": "2605",
+      "name_zh": "新興"
+    },
+    {
+      "ticker": "2606",
+      "name_zh": "裕民"
+    },
+    {
+      "ticker": "2607",
+      "name_zh": "榮運"
+    },
+    {
+      "ticker": "2608",
+      "name_zh": "嘉里大榮"
+    },
+    {
+      "ticker": "2609",
+      "name_zh": "陽明"
+    },
+    {
+      "ticker": "2610",
+      "name_zh": "華航"
+    },
+    {
+      "ticker": "2611",
+      "name_zh": "志信"
+    },
+    {
+      "ticker": "2612",
+      "name_zh": "中航"
+    },
+    {
+      "ticker": "2613",
+      "name_zh": "中櫃"
+    },
+    {
+      "ticker": "2614",
+      "name_zh": "東森"
+    },
+    {
+      "ticker": "2615",
+      "name_zh": "萬海"
+    },
+    {
+      "ticker": "2616",
+      "name_zh": "山隆"
+    },
+    {
+      "ticker": "2617",
+      "name_zh": "台航"
+    },
+    {
+      "ticker": "2618",
+      "name_zh": "長榮航"
+    },
+    {
+      "ticker": "2630",
+      "name_zh": "亞航"
+    },
+    {
+      "ticker": "2633",
+      "name_zh": "台灣高鐵"
+    },
+    {
+      "ticker": "2634",
+      "name_zh": "漢翔"
+    },
+    {
+      "ticker": "2636",
+      "name_zh": "台驊控股"
+    },
+    {
+      "ticker": "2637",
+      "name_zh": "慧洋-KY"
+    },
+    {
+      "ticker": "2642",
+      "name_zh": "宅配通"
+    },
+    {
+      "ticker": "2645",
+      "name_zh": "長榮航太"
+    },
+    {
+      "ticker": "2646",
+      "name_zh": "星宇航空"
+    },
+    {
+      "ticker": "2701",
+      "name_zh": "萬企"
+    },
+    {
+      "ticker": "2702",
+      "name_zh": "華園"
+    },
+    {
+      "ticker": "2704",
+      "name_zh": "國賓"
+    },
+    {
+      "ticker": "2705",
+      "name_zh": "六福"
+    },
+    {
+      "ticker": "2706",
+      "name_zh": "第一店"
+    },
+    {
+      "ticker": "2707",
+      "name_zh": "晶華"
+    },
+    {
+      "ticker": "2712",
+      "name_zh": "遠雄來"
+    },
+    {
+      "ticker": "2722",
+      "name_zh": "夏都"
+    },
+    {
+      "ticker": "2723",
+      "name_zh": "美食-KY"
+    },
+    {
+      "ticker": "2727",
+      "name_zh": "王品"
+    },
+    {
+      "ticker": "2731",
+      "name_zh": "雄獅"
+    },
+    {
+      "ticker": "2739",
+      "name_zh": "寒舍"
+    },
+    {
+      "ticker": "2748",
+      "name_zh": "雲品"
+    },
+    {
+      "ticker": "2753",
+      "name_zh": "八方雲集"
+    },
+    {
+      "ticker": "2762",
+      "name_zh": "世界健身-KY"
+    },
+    {
+      "ticker": "2801",
+      "name_zh": "彰銀"
+    },
+    {
+      "ticker": "2812",
+      "name_zh": "台中銀"
+    },
+    {
+      "ticker": "2816",
+      "name_zh": "旺旺保"
+    },
+    {
+      "ticker": "2820",
+      "name_zh": "華票"
+    },
+    {
+      "ticker": "2832",
+      "name_zh": "台產"
+    },
+    {
+      "ticker": "2834",
+      "name_zh": "臺企銀"
+    },
+    {
+      "ticker": "2836",
+      "name_zh": "高雄銀"
+    },
+    {
+      "ticker": "2836A",
+      "name_zh": "高雄銀甲特"
+    },
+    {
+      "ticker": "2838",
+      "name_zh": "聯邦銀"
+    },
+    {
+      "ticker": "2838A",
+      "name_zh": "聯邦銀甲特"
+    },
+    {
+      "ticker": "2845",
+      "name_zh": "遠東銀"
+    },
+    {
+      "ticker": "2849",
+      "name_zh": "安泰銀"
+    },
+    {
+      "ticker": "2850",
+      "name_zh": "新產"
+    },
+    {
+      "ticker": "2851",
+      "name_zh": "中再保"
+    },
+    {
+      "ticker": "2852",
+      "name_zh": "第一保"
+    },
+    {
+      "ticker": "2855",
+      "name_zh": "統一證"
+    },
+    {
+      "ticker": "2867",
+      "name_zh": "三商壽"
+    },
+    {
+      "ticker": "2880",
+      "name_zh": "華南金"
+    },
+    {
+      "ticker": "2881",
+      "name_zh": "富邦金"
+    },
+    {
+      "ticker": "2881A",
+      "name_zh": "富邦特"
+    },
+    {
+      "ticker": "2881B",
+      "name_zh": "富邦金乙特"
+    },
+    {
+      "ticker": "2881C",
+      "name_zh": "富邦金丙特"
+    },
+    {
+      "ticker": "2882",
+      "name_zh": "國泰金"
+    },
+    {
+      "ticker": "2882A",
+      "name_zh": "國泰特"
+    },
+    {
+      "ticker": "2882B",
+      "name_zh": "國泰金乙特"
+    },
+    {
+      "ticker": "2883",
+      "name_zh": "凱基金"
+    },
+    {
+      "ticker": "2883B",
+      "name_zh": "凱基金乙特"
+    },
+    {
+      "ticker": "2884",
+      "name_zh": "玉山金"
+    },
+    {
+      "ticker": "2885",
+      "name_zh": "元大金"
+    },
+    {
+      "ticker": "2886",
+      "name_zh": "兆豐金"
+    },
+    {
+      "ticker": "2887",
+      "name_zh": "台新新光金"
+    },
+    {
+      "ticker": "2887E",
+      "name_zh": "台新新光戊特一"
+    },
+    {
+      "ticker": "2887F",
+      "name_zh": "台新新光戊特二"
+    },
+    {
+      "ticker": "2887G",
+      "name_zh": "台新新光庚特一"
+    },
+    {
+      "ticker": "2887H",
+      "name_zh": "台新新光庚特二"
+    },
+    {
+      "ticker": "2887I",
+      "name_zh": "台新新光辛特"
+    },
+    {
+      "ticker": "2887Z1",
+      "name_zh": "台新新光己特"
+    },
+    {
+      "ticker": "2889",
+      "name_zh": "國票金"
+    },
+    {
+      "ticker": "2890",
+      "name_zh": "永豐金"
+    },
+    {
+      "ticker": "2891",
+      "name_zh": "中信金"
+    },
+    {
+      "ticker": "2891B",
+      "name_zh": "中信金乙特"
+    },
+    {
+      "ticker": "2891C",
+      "name_zh": "中信金丙特"
+    },
+    {
+      "ticker": "2892",
+      "name_zh": "第一金"
+    },
+    {
+      "ticker": "2897",
+      "name_zh": "王道銀行"
+    },
+    {
+      "ticker": "2897B",
+      "name_zh": "王道銀乙特"
+    },
+    {
+      "ticker": "2901",
+      "name_zh": "欣欣"
+    },
+    {
+      "ticker": "2903",
+      "name_zh": "遠百"
+    },
+    {
+      "ticker": "2904",
+      "name_zh": "匯僑"
+    },
+    {
+      "ticker": "2905",
+      "name_zh": "三商"
+    },
+    {
+      "ticker": "2906",
+      "name_zh": "高林"
+    },
+    {
+      "ticker": "2908",
+      "name_zh": "特力"
+    },
+    {
+      "ticker": "2910",
+      "name_zh": "統領"
+    },
+    {
+      "ticker": "2911",
+      "name_zh": "麗嬰房"
+    },
+    {
+      "ticker": "2912",
+      "name_zh": "統一超"
+    },
+    {
+      "ticker": "2913",
+      "name_zh": "農林"
+    },
+    {
+      "ticker": "2915",
+      "name_zh": "潤泰全"
+    },
+    {
+      "ticker": "2923",
+      "name_zh": "鼎固-KY"
+    },
+    {
+      "ticker": "2929",
+      "name_zh": "淘帝-KY"
+    },
+    {
+      "ticker": "2939",
+      "name_zh": "永邑-KY"
+    },
+    {
+      "ticker": "2945",
+      "name_zh": "三商家購"
+    },
+    {
+      "ticker": "3002",
+      "name_zh": "歐格"
+    },
+    {
+      "ticker": "3003",
+      "name_zh": "健和興"
+    },
+    {
+      "ticker": "3004",
+      "name_zh": "豐達科"
+    },
+    {
+      "ticker": "3005",
+      "name_zh": "神基"
+    },
+    {
+      "ticker": "3006",
+      "name_zh": "晶豪科"
+    },
+    {
+      "ticker": "3008",
+      "name_zh": "大立光"
+    },
+    {
+      "ticker": "3010",
+      "name_zh": "華立"
+    },
+    {
+      "ticker": "3011",
+      "name_zh": "今皓"
+    },
+    {
+      "ticker": "3013",
+      "name_zh": "晟銘電"
+    },
+    {
+      "ticker": "3014",
+      "name_zh": "聯陽"
+    },
+    {
+      "ticker": "3015",
+      "name_zh": "全漢"
+    },
+    {
+      "ticker": "3016",
+      "name_zh": "嘉晶"
+    },
+    {
+      "ticker": "3017",
+      "name_zh": "奇鋐"
+    },
+    {
+      "ticker": "3018",
+      "name_zh": "隆銘綠能"
+    },
+    {
+      "ticker": "3019",
+      "name_zh": "亞光"
+    },
+    {
+      "ticker": "3021",
+      "name_zh": "鴻名"
+    },
+    {
+      "ticker": "3022",
+      "name_zh": "威強電"
+    },
+    {
+      "ticker": "3023",
+      "name_zh": "信邦"
+    },
+    {
+      "ticker": "3024",
+      "name_zh": "憶聲"
+    },
+    {
+      "ticker": "3025",
+      "name_zh": "星通"
+    },
+    {
+      "ticker": "3026",
+      "name_zh": "禾伸堂"
+    },
+    {
+      "ticker": "3027",
+      "name_zh": "盛達"
+    },
+    {
+      "ticker": "3028",
+      "name_zh": "增你強"
+    },
+    {
+      "ticker": "3029",
+      "name_zh": "零壹"
+    },
+    {
+      "ticker": "3030",
+      "name_zh": "德律"
+    },
+    {
+      "ticker": "3031",
+      "name_zh": "佰鴻"
+    },
+    {
+      "ticker": "3032",
+      "name_zh": "偉訓"
+    },
+    {
+      "ticker": "3033",
+      "name_zh": "威健"
+    },
+    {
+      "ticker": "3034",
+      "name_zh": "聯詠"
+    },
+    {
+      "ticker": "3035",
+      "name_zh": "智原"
+    },
+    {
+      "ticker": "3036",
+      "name_zh": "文曄"
+    },
+    {
+      "ticker": "3037",
+      "name_zh": "欣興"
+    },
+    {
+      "ticker": "3038",
+      "name_zh": "全台"
+    },
+    {
+      "ticker": "3040",
+      "name_zh": "遠見"
+    },
+    {
+      "ticker": "3041",
+      "name_zh": "揚智"
+    },
+    {
+      "ticker": "3042",
+      "name_zh": "晶技"
+    },
+    {
+      "ticker": "3043",
+      "name_zh": "科風"
+    },
+    {
+      "ticker": "3044",
+      "name_zh": "健鼎"
+    },
+    {
+      "ticker": "3045",
+      "name_zh": "台灣大"
+    },
+    {
+      "ticker": "3046",
+      "name_zh": "建碁"
+    },
+    {
+      "ticker": "3047",
+      "name_zh": "訊舟"
+    },
+    {
+      "ticker": "3048",
+      "name_zh": "益登"
+    },
+    {
+      "ticker": "3049",
+      "name_zh": "精金"
+    },
+    {
+      "ticker": "3050",
+      "name_zh": "鈺德"
+    },
+    {
+      "ticker": "3051",
+      "name_zh": "力特"
+    },
+    {
+      "ticker": "3052",
+      "name_zh": "夆典"
+    },
+    {
+      "ticker": "3054",
+      "name_zh": "立萬利"
+    },
+    {
+      "ticker": "3055",
+      "name_zh": "蔚華科"
+    },
+    {
+      "ticker": "3056",
+      "name_zh": "富華新"
+    },
+    {
+      "ticker": "3057",
+      "name_zh": "喬鼎"
+    },
+    {
+      "ticker": "3058",
+      "name_zh": "立德"
+    },
+    {
+      "ticker": "3059",
+      "name_zh": "華晶科"
+    },
+    {
+      "ticker": "3060",
+      "name_zh": "銘異"
+    },
+    {
+      "ticker": "3062",
+      "name_zh": "建漢"
+    },
+    {
+      "ticker": "3090",
+      "name_zh": "日電貿"
+    },
+    {
+      "ticker": "3092",
+      "name_zh": "鴻碩"
+    },
+    {
+      "ticker": "3094",
+      "name_zh": "聯傑"
+    },
+    {
+      "ticker": "3130",
+      "name_zh": "一零四"
+    },
+    {
+      "ticker": "3135",
+      "name_zh": "凌航"
+    },
+    {
+      "ticker": "3138",
+      "name_zh": "耀登"
+    },
+    {
+      "ticker": "3149",
+      "name_zh": "正達"
+    },
+    {
+      "ticker": "3150",
+      "name_zh": "鈺寶-創"
+    },
+    {
+      "ticker": "3164",
+      "name_zh": "景岳"
+    },
+    {
+      "ticker": "3167",
+      "name_zh": "大量"
+    },
+    {
+      "ticker": "3168",
+      "name_zh": "眾福科"
+    },
+    {
+      "ticker": "3189",
+      "name_zh": "景碩"
+    },
+    {
+      "ticker": "3209",
+      "name_zh": "全科"
+    },
+    {
+      "ticker": "3229",
+      "name_zh": "晟鈦"
+    },
+    {
+      "ticker": "3231",
+      "name_zh": "緯創"
+    },
+    {
+      "ticker": "3257",
+      "name_zh": "虹冠電"
+    },
+    {
+      "ticker": "3266",
+      "name_zh": "昇陽"
+    },
+    {
+      "ticker": "3296",
+      "name_zh": "勝德"
+    },
+    {
+      "ticker": "3305",
+      "name_zh": "昇貿"
+    },
+    {
+      "ticker": "3308",
+      "name_zh": "聯德"
+    },
+    {
+      "ticker": "3311",
+      "name_zh": "閎暉"
+    },
+    {
+      "ticker": "3312",
+      "name_zh": "弘憶股"
+    },
+    {
+      "ticker": "3321",
+      "name_zh": "同泰"
+    },
+    {
+      "ticker": "3338",
+      "name_zh": "泰碩"
+    },
+    {
+      "ticker": "3346",
+      "name_zh": "麗清"
+    },
+    {
+      "ticker": "3356",
+      "name_zh": "奇偶"
+    },
+    {
+      "ticker": "3376",
+      "name_zh": "新日興"
+    },
+    {
+      "ticker": "3380",
+      "name_zh": "明泰"
+    },
+    {
+      "ticker": "3406",
+      "name_zh": "玉晶光"
+    },
+    {
+      "ticker": "3413",
+      "name_zh": "京鼎"
+    },
+    {
+      "ticker": "3416",
+      "name_zh": "融程電"
+    },
+    {
+      "ticker": "3419",
+      "name_zh": "譁裕"
+    },
+    {
+      "ticker": "3432",
+      "name_zh": "台端"
+    },
+    {
+      "ticker": "3437",
+      "name_zh": "榮創"
+    },
+    {
+      "ticker": "3443",
+      "name_zh": "創意"
+    },
+    {
+      "ticker": "3447",
+      "name_zh": "展達"
+    },
+    {
+      "ticker": "3450",
+      "name_zh": "聯鈞"
+    },
+    {
+      "ticker": "3481",
+      "name_zh": "群創"
+    },
+    {
+      "ticker": "3494",
+      "name_zh": "誠研"
+    },
+    {
+      "ticker": "3501",
+      "name_zh": "維熹"
+    },
+    {
+      "ticker": "3504",
+      "name_zh": "揚明光"
+    },
+    {
+      "ticker": "3515",
+      "name_zh": "華擎"
+    },
+    {
+      "ticker": "3518",
+      "name_zh": "柏騰"
+    },
+    {
+      "ticker": "3528",
+      "name_zh": "安馳"
+    },
+    {
+      "ticker": "3530",
+      "name_zh": "晶相光"
+    },
+    {
+      "ticker": "3532",
+      "name_zh": "台勝科"
+    },
+    {
+      "ticker": "3533",
+      "name_zh": "嘉澤"
+    },
+    {
+      "ticker": "3535",
+      "name_zh": "晶彩科"
+    },
+    {
+      "ticker": "3543",
+      "name_zh": "州巧"
+    },
+    {
+      "ticker": "3545",
+      "name_zh": "敦泰"
+    },
+    {
+      "ticker": "3550",
+      "name_zh": "聯穎"
+    },
+    {
+      "ticker": "3557",
+      "name_zh": "嘉威"
+    },
+    {
+      "ticker": "3563",
+      "name_zh": "牧德"
+    },
+    {
+      "ticker": "3576",
+      "name_zh": "聯合再生"
+    },
+    {
+      "ticker": "3583",
+      "name_zh": "辛耘"
+    },
+    {
+      "ticker": "3588",
+      "name_zh": "通嘉"
+    },
+    {
+      "ticker": "3591",
+      "name_zh": "艾笛森"
+    },
+    {
+      "ticker": "3592",
+      "name_zh": "瑞鼎"
+    },
+    {
+      "ticker": "3593",
+      "name_zh": "力銘"
+    },
+    {
+      "ticker": "3596",
+      "name_zh": "智易"
+    },
+    {
+      "ticker": "3605",
+      "name_zh": "宏致"
+    },
+    {
+      "ticker": "3607",
+      "name_zh": "谷崧"
+    },
+    {
+      "ticker": "3617",
+      "name_zh": "碩天"
+    },
+    {
+      "ticker": "3622",
+      "name_zh": "洋華"
+    },
+    {
+      "ticker": "3645",
+      "name_zh": "達邁"
+    },
+    {
+      "ticker": "3652",
+      "name_zh": "精聯"
+    },
+    {
+      "ticker": "3653",
+      "name_zh": "健策"
+    },
+    {
+      "ticker": "3661",
+      "name_zh": "世芯-KY"
+    },
+    {
+      "ticker": "3665",
+      "name_zh": "貿聯-KY"
+    },
+    {
+      "ticker": "3669",
+      "name_zh": "圓展"
+    },
+    {
+      "ticker": "3673",
+      "name_zh": "TPK-KY"
+    },
+    {
+      "ticker": "3679",
+      "name_zh": "新至陞"
+    },
+    {
+      "ticker": "3686",
+      "name_zh": "達能"
+    },
+    {
+      "ticker": "3694",
+      "name_zh": "海華"
+    },
+    {
+      "ticker": "3701",
+      "name_zh": "大眾控"
+    },
+    {
+      "ticker": "3702",
+      "name_zh": "大聯大"
+    },
+    {
+      "ticker": "3703",
+      "name_zh": "欣陸"
+    },
+    {
+      "ticker": "3704",
+      "name_zh": "合勤控"
+    },
+    {
+      "ticker": "3705",
+      "name_zh": "永信"
+    },
+    {
+      "ticker": "3706",
+      "name_zh": "神達"
+    },
+    {
+      "ticker": "3708",
+      "name_zh": "上緯投控"
+    },
+    {
+      "ticker": "3711",
+      "name_zh": "日月光投控"
+    },
+    {
+      "ticker": "3712",
+      "name_zh": "永崴投控"
+    },
+    {
+      "ticker": "3714",
+      "name_zh": "富采"
+    },
+    {
+      "ticker": "3715",
+      "name_zh": "定穎投控"
+    },
+    {
+      "ticker": "3716",
+      "name_zh": "中化控股"
+    },
+    {
+      "ticker": "3717",
+      "name_zh": "聯嘉投控"
+    },
+    {
+      "ticker": "4104",
+      "name_zh": "佳醫"
+    },
+    {
+      "ticker": "4106",
+      "name_zh": "雃博"
+    },
+    {
+      "ticker": "4108",
+      "name_zh": "懷特"
+    },
+    {
+      "ticker": "4119",
+      "name_zh": "旭富"
+    },
+    {
+      "ticker": "4133",
+      "name_zh": "亞諾法"
+    },
+    {
+      "ticker": "4137",
+      "name_zh": "麗豐-KY"
+    },
+    {
+      "ticker": "4142",
+      "name_zh": "國光生"
+    },
+    {
+      "ticker": "4148",
+      "name_zh": "全宇生技-KY"
+    },
+    {
+      "ticker": "4155",
+      "name_zh": "訊映"
+    },
+    {
+      "ticker": "4164",
+      "name_zh": "承業醫"
+    },
+    {
+      "ticker": "4169",
+      "name_zh": "泰宗"
+    },
+    {
+      "ticker": "4178",
+      "name_zh": "永笙-KY"
+    },
+    {
+      "ticker": "4190",
+      "name_zh": "佐登-KY"
+    },
+    {
+      "ticker": "4195",
+      "name_zh": "基米-創"
+    },
+    {
+      "ticker": "4306",
+      "name_zh": "炎洲"
+    },
+    {
+      "ticker": "4414",
+      "name_zh": "如興"
+    },
+    {
+      "ticker": "4426",
+      "name_zh": "利勤"
+    },
+    {
+      "ticker": "4438",
+      "name_zh": "廣越"
+    },
+    {
+      "ticker": "4439",
+      "name_zh": "冠星-KY"
+    },
+    {
+      "ticker": "4440",
+      "name_zh": "宜新實業"
+    },
+    {
+      "ticker": "4441",
+      "name_zh": "振大環球"
+    },
+    {
+      "ticker": "4526",
+      "name_zh": "東台"
+    },
+    {
+      "ticker": "4532",
+      "name_zh": "瑞智"
+    },
+    {
+      "ticker": "4536",
+      "name_zh": "拓凱"
+    },
+    {
+      "ticker": "4540",
+      "name_zh": "全球傳動"
+    },
+    {
+      "ticker": "4545",
+      "name_zh": "銘鈺"
+    },
+    {
+      "ticker": "4551",
+      "name_zh": "智伸科"
+    },
+    {
+      "ticker": "4552",
+      "name_zh": "力達-KY"
+    },
+    {
+      "ticker": "4555",
+      "name_zh": "氣立"
+    },
+    {
+      "ticker": "4557",
+      "name_zh": "永新-KY"
+    },
+    {
+      "ticker": "4560",
+      "name_zh": "強信-KY"
+    },
+    {
+      "ticker": "4562",
+      "name_zh": "穎漢"
+    },
+    {
+      "ticker": "4564",
+      "name_zh": "元翎"
+    },
+    {
+      "ticker": "4566",
+      "name_zh": "時碩工業"
+    },
+    {
+      "ticker": "4569",
+      "name_zh": "六方科-KY"
+    },
+    {
+      "ticker": "4571",
+      "name_zh": "鈞興-KY"
+    },
+    {
+      "ticker": "4572",
+      "name_zh": "駐龍"
+    },
+    {
+      "ticker": "4576",
+      "name_zh": "大銀微系統"
+    },
+    {
+      "ticker": "4581",
+      "name_zh": "光隆精密-KY"
+    },
+    {
+      "ticker": "4582",
+      "name_zh": "聚恆-創"
+    },
+    {
+      "ticker": "4583",
+      "name_zh": "台灣精銳"
+    },
+    {
+      "ticker": "4585",
+      "name_zh": "達明"
+    },
+    {
+      "ticker": "4588",
+      "name_zh": "玖鼎電力"
+    },
+    {
+      "ticker": "4590",
+      "name_zh": "富田-創"
+    },
+    {
+      "ticker": "4720",
+      "name_zh": "德淵"
+    },
+    {
+      "ticker": "4722",
+      "name_zh": "國精化"
+    },
+    {
+      "ticker": "4736",
+      "name_zh": "泰博"
+    },
+    {
+      "ticker": "4737",
+      "name_zh": "華廣"
+    },
+    {
+      "ticker": "4739",
+      "name_zh": "康普"
+    },
+    {
+      "ticker": "4746",
+      "name_zh": "台耀"
+    },
+    {
+      "ticker": "4755",
+      "name_zh": "三福化"
+    },
+    {
+      "ticker": "4763",
+      "name_zh": "材料*-KY"
+    },
+    {
+      "ticker": "4764",
+      "name_zh": "雙鍵"
+    },
+    {
+      "ticker": "4766",
+      "name_zh": "南寶"
+    },
+    {
+      "ticker": "4770",
+      "name_zh": "上品"
+    },
+    {
+      "ticker": "4771",
+      "name_zh": "望隼"
+    },
+    {
+      "ticker": "4807",
+      "name_zh": "日成-KY"
+    },
+    {
+      "ticker": "4904",
+      "name_zh": "遠傳"
+    },
+    {
+      "ticker": "4906",
+      "name_zh": "正文"
+    },
+    {
+      "ticker": "4912",
+      "name_zh": "聯德控股-KY"
+    },
+    {
+      "ticker": "4915",
+      "name_zh": "致伸"
+    },
+    {
+      "ticker": "4916",
+      "name_zh": "事欣科"
+    },
+    {
+      "ticker": "4919",
+      "name_zh": "新唐"
+    },
+    {
+      "ticker": "4927",
+      "name_zh": "泰鼎-KY"
+    },
+    {
+      "ticker": "4930",
+      "name_zh": "燦星網"
+    },
+    {
+      "ticker": "4934",
+      "name_zh": "太極"
+    },
+    {
+      "ticker": "4935",
+      "name_zh": "茂林-KY"
+    },
+    {
+      "ticker": "4938",
+      "name_zh": "和碩"
+    },
+    {
+      "ticker": "4942",
+      "name_zh": "嘉彰"
+    },
+    {
+      "ticker": "4943",
+      "name_zh": "康控-KY"
+    },
+    {
+      "ticker": "4949",
+      "name_zh": "有成精密"
+    },
+    {
+      "ticker": "4952",
+      "name_zh": "凌通"
+    },
+    {
+      "ticker": "4956",
+      "name_zh": "光鋐"
+    },
+    {
+      "ticker": "4958",
+      "name_zh": "臻鼎-KY"
+    },
+    {
+      "ticker": "4960",
+      "name_zh": "誠美材"
+    },
+    {
+      "ticker": "4961",
+      "name_zh": "天鈺"
+    },
+    {
+      "ticker": "4967",
+      "name_zh": "十銓"
+    },
+    {
+      "ticker": "4968",
+      "name_zh": "立積"
+    },
+    {
+      "ticker": "4976",
+      "name_zh": "佳凌"
+    },
+    {
+      "ticker": "4977",
+      "name_zh": "眾達-KY"
+    },
+    {
+      "ticker": "4989",
+      "name_zh": "榮科"
+    },
+    {
+      "ticker": "4994",
+      "name_zh": "傳奇"
+    },
+    {
+      "ticker": "4999",
+      "name_zh": "鑫禾"
+    },
+    {
+      "ticker": "5007",
+      "name_zh": "三星"
+    },
+    {
+      "ticker": "5203",
+      "name_zh": "訊連"
+    },
+    {
+      "ticker": "5215",
+      "name_zh": "科嘉-KY"
+    },
+    {
+      "ticker": "5222",
+      "name_zh": "全訊"
+    },
+    {
+      "ticker": "5225",
+      "name_zh": "東科-KY"
+    },
+    {
+      "ticker": "5234",
+      "name_zh": "達興材料"
+    },
+    {
+      "ticker": "5243",
+      "name_zh": "乙盛-KY"
+    },
+    {
+      "ticker": "5244",
+      "name_zh": "弘凱"
+    },
+    {
+      "ticker": "5258",
+      "name_zh": "虹堡"
+    },
+    {
+      "ticker": "5269",
+      "name_zh": "祥碩"
+    },
+    {
+      "ticker": "5283",
+      "name_zh": "禾聯碩"
+    },
+    {
+      "ticker": "5284",
+      "name_zh": "jpp-KY"
+    },
+    {
+      "ticker": "5285",
+      "name_zh": "界霖"
+    },
+    {
+      "ticker": "5288",
+      "name_zh": "豐祥-KY"
+    },
+    {
+      "ticker": "5292",
+      "name_zh": "華懋"
+    },
+    {
+      "ticker": "5306",
+      "name_zh": "桂盟"
+    },
+    {
+      "ticker": "5388",
+      "name_zh": "中磊"
+    },
+    {
+      "ticker": "5434",
+      "name_zh": "崇越"
+    },
+    {
+      "ticker": "5469",
+      "name_zh": "瀚宇博"
+    },
+    {
+      "ticker": "5471",
+      "name_zh": "松翰"
+    },
+    {
+      "ticker": "5484",
+      "name_zh": "慧友"
+    },
+    {
+      "ticker": "5515",
+      "name_zh": "建國"
+    },
+    {
+      "ticker": "5519",
+      "name_zh": "隆大"
+    },
+    {
+      "ticker": "5521",
+      "name_zh": "工信"
+    },
+    {
+      "ticker": "5522",
+      "name_zh": "遠雄"
+    },
+    {
+      "ticker": "5525",
+      "name_zh": "順天"
+    },
+    {
+      "ticker": "5531",
+      "name_zh": "鄉林"
+    },
+    {
+      "ticker": "5533",
+      "name_zh": "皇鼎"
+    },
+    {
+      "ticker": "5534",
+      "name_zh": "長虹"
+    },
+    {
+      "ticker": "5538",
+      "name_zh": "東明-KY"
+    },
+    {
+      "ticker": "5546",
+      "name_zh": "永固-KY"
+    },
+    {
+      "ticker": "5607",
+      "name_zh": "遠雄港"
+    },
+    {
+      "ticker": "5608",
+      "name_zh": "四維航"
+    },
+    {
+      "ticker": "5706",
+      "name_zh": "鳳凰"
+    },
+    {
+      "ticker": "5871",
+      "name_zh": "中租-KY"
+    },
+    {
+      "ticker": "5871A",
+      "name_zh": "中租-KY甲特"
+    },
+    {
+      "ticker": "5876",
+      "name_zh": "上海商銀"
+    },
+    {
+      "ticker": "5880",
+      "name_zh": "合庫金"
+    },
+    {
+      "ticker": "5906",
+      "name_zh": "台南-KY"
+    },
+    {
+      "ticker": "5907",
+      "name_zh": "大洋-KY"
+    },
+    {
+      "ticker": "6005",
+      "name_zh": "群益證"
+    },
+    {
+      "ticker": "6024",
+      "name_zh": "群益期"
+    },
+    {
+      "ticker": "6108",
+      "name_zh": "競國"
+    },
+    {
+      "ticker": "6112",
+      "name_zh": "邁達特"
+    },
+    {
+      "ticker": "6115",
+      "name_zh": "鎰勝"
+    },
+    {
+      "ticker": "6116",
+      "name_zh": "彩晶"
+    },
+    {
+      "ticker": "6117",
+      "name_zh": "迎廣"
+    },
+    {
+      "ticker": "6120",
+      "name_zh": "達運"
+    },
+    {
+      "ticker": "6128",
+      "name_zh": "上福"
+    },
+    {
+      "ticker": "6133",
+      "name_zh": "金橋"
+    },
+    {
+      "ticker": "6136",
+      "name_zh": "富爾特"
+    },
+    {
+      "ticker": "6139",
+      "name_zh": "亞翔"
+    },
+    {
+      "ticker": "6141",
+      "name_zh": "柏承"
+    },
+    {
+      "ticker": "6142",
+      "name_zh": "友勁"
+    },
+    {
+      "ticker": "6152",
+      "name_zh": "百一"
+    },
+    {
+      "ticker": "6153",
+      "name_zh": "嘉聯益"
+    },
+    {
+      "ticker": "6155",
+      "name_zh": "鈞寶"
+    },
+    {
+      "ticker": "6164",
+      "name_zh": "華興"
+    },
+    {
+      "ticker": "6165",
+      "name_zh": "浪凡"
+    },
+    {
+      "ticker": "6166",
+      "name_zh": "凌華"
+    },
+    {
+      "ticker": "6168",
+      "name_zh": "宏齊"
+    },
+    {
+      "ticker": "6176",
+      "name_zh": "瑞儀"
+    },
+    {
+      "ticker": "6177",
+      "name_zh": "達麗"
+    },
+    {
+      "ticker": "6183",
+      "name_zh": "關貿"
+    },
+    {
+      "ticker": "6184",
+      "name_zh": "大豐電"
+    },
+    {
+      "ticker": "6189",
+      "name_zh": "豐藝"
+    },
+    {
+      "ticker": "6191",
+      "name_zh": "精成科"
+    },
+    {
+      "ticker": "6192",
+      "name_zh": "巨路"
+    },
+    {
+      "ticker": "6196",
+      "name_zh": "帆宣"
+    },
+    {
+      "ticker": "6197",
+      "name_zh": "佳必琪"
+    },
+    {
+      "ticker": "6201",
+      "name_zh": "亞弘電"
+    },
+    {
+      "ticker": "6202",
+      "name_zh": "盛群"
+    },
+    {
+      "ticker": "6205",
+      "name_zh": "詮欣"
+    },
+    {
+      "ticker": "6206",
+      "name_zh": "飛捷"
+    },
+    {
+      "ticker": "6209",
+      "name_zh": "今國光"
+    },
+    {
+      "ticker": "6213",
+      "name_zh": "聯茂"
+    },
+    {
+      "ticker": "6214",
+      "name_zh": "精誠"
+    },
+    {
+      "ticker": "6215",
+      "name_zh": "和椿"
+    },
+    {
+      "ticker": "6216",
+      "name_zh": "居易"
+    },
+    {
+      "ticker": "6224",
+      "name_zh": "聚鼎"
+    },
+    {
+      "ticker": "6225",
+      "name_zh": "天瀚"
+    },
+    {
+      "ticker": "6226",
+      "name_zh": "光鼎"
+    },
+    {
+      "ticker": "6230",
+      "name_zh": "尼得科超眾"
+    },
+    {
+      "ticker": "6235",
+      "name_zh": "華孚"
+    },
+    {
+      "ticker": "6239",
+      "name_zh": "力成"
+    },
+    {
+      "ticker": "6243",
+      "name_zh": "迅杰"
+    },
+    {
+      "ticker": "6257",
+      "name_zh": "矽格"
+    },
+    {
+      "ticker": "6269",
+      "name_zh": "台郡"
+    },
+    {
+      "ticker": "6271",
+      "name_zh": "同欣電"
+    },
+    {
+      "ticker": "6272",
+      "name_zh": "驊陞"
+    },
+    {
+      "ticker": "6277",
+      "name_zh": "宏正"
+    },
+    {
+      "ticker": "6278",
+      "name_zh": "台表科"
+    },
+    {
+      "ticker": "6281",
+      "name_zh": "全國電"
+    },
+    {
+      "ticker": "6282",
+      "name_zh": "康舒"
+    },
+    {
+      "ticker": "6283",
+      "name_zh": "淳安"
+    },
+    {
+      "ticker": "6285",
+      "name_zh": "啟碁"
+    },
+    {
+      "ticker": "6405",
+      "name_zh": "悅城"
+    },
+    {
+      "ticker": "6409",
+      "name_zh": "旭隼"
+    },
+    {
+      "ticker": "6412",
+      "name_zh": "群電"
+    },
+    {
+      "ticker": "6414",
+      "name_zh": "樺漢"
+    },
+    {
+      "ticker": "6415",
+      "name_zh": "矽力*-KY"
+    },
+    {
+      "ticker": "6416",
+      "name_zh": "瑞祺電通"
+    },
+    {
+      "ticker": "6426",
+      "name_zh": "統新"
+    },
+    {
+      "ticker": "6431",
+      "name_zh": "光麗-KY"
+    },
+    {
+      "ticker": "6438",
+      "name_zh": "迅得"
+    },
+    {
+      "ticker": "6442",
+      "name_zh": "光聖"
+    },
+    {
+      "ticker": "6443",
+      "name_zh": "元晶"
+    },
+    {
+      "ticker": "6446",
+      "name_zh": "藥華藥"
+    },
+    {
+      "ticker": "6449",
+      "name_zh": "鈺邦"
+    },
+    {
+      "ticker": "6451",
+      "name_zh": "訊芯-KY"
+    },
+    {
+      "ticker": "6456",
+      "name_zh": "GIS-KY"
+    },
+    {
+      "ticker": "6464",
+      "name_zh": "台數科"
+    },
+    {
+      "ticker": "6472",
+      "name_zh": "保瑞"
+    },
+    {
+      "ticker": "6477",
+      "name_zh": "安集"
+    },
+    {
+      "ticker": "6491",
+      "name_zh": "晶碩"
+    },
+    {
+      "ticker": "6504",
+      "name_zh": "南六"
+    },
+    {
+      "ticker": "6505",
+      "name_zh": "台塑化"
+    },
+    {
+      "ticker": "6515",
+      "name_zh": "穎崴"
+    },
+    {
+      "ticker": "6525",
+      "name_zh": "捷敏-KY"
+    },
+    {
+      "ticker": "6526",
+      "name_zh": "達發"
+    },
+    {
+      "ticker": "6531",
+      "name_zh": "愛普*"
+    },
+    {
+      "ticker": "6533",
+      "name_zh": "晶心科"
+    },
+    {
+      "ticker": "6534",
+      "name_zh": "正瀚-創"
+    },
+    {
+      "ticker": "6541",
+      "name_zh": "泰福-KY"
+    },
+    {
+      "ticker": "6550",
+      "name_zh": "北極星藥業-KY"
+    },
+    {
+      "ticker": "6552",
+      "name_zh": "易華電"
+    },
+    {
+      "ticker": "6558",
+      "name_zh": "興能高"
+    },
+    {
+      "ticker": "6573",
+      "name_zh": "虹揚-KY"
+    },
+    {
+      "ticker": "6579",
+      "name_zh": "研揚"
+    },
+    {
+      "ticker": "6581",
+      "name_zh": "鋼聯"
+    },
+    {
+      "ticker": "6582",
+      "name_zh": "申豐"
+    },
+    {
+      "ticker": "6585",
+      "name_zh": "鼎基"
+    },
+    {
+      "ticker": "6589",
+      "name_zh": "台康生技"
+    },
+    {
+      "ticker": "6591",
+      "name_zh": "動力-KY"
+    },
+    {
+      "ticker": "6592",
+      "name_zh": "和潤企業"
+    },
+    {
+      "ticker": "6592A",
+      "name_zh": "和潤企業甲特"
+    },
+    {
+      "ticker": "6592B",
+      "name_zh": "和潤企業乙特"
+    },
+    {
+      "ticker": "6598",
+      "name_zh": "ABC-KY"
+    },
+    {
+      "ticker": "6605",
+      "name_zh": "帝寶"
+    },
+    {
+      "ticker": "6606",
+      "name_zh": "建德工業"
+    },
+    {
+      "ticker": "6614",
+      "name_zh": "資拓宏宇"
+    },
+    {
+      "ticker": "6625",
+      "name_zh": "必應"
+    },
+    {
+      "ticker": "6641",
+      "name_zh": "基士德-KY"
+    },
+    {
+      "ticker": "6645",
+      "name_zh": "金萬林-創"
+    },
+    {
+      "ticker": "6655",
+      "name_zh": "科定"
+    },
+    {
+      "ticker": "6657",
+      "name_zh": "華安"
+    },
+    {
+      "ticker": "6658",
+      "name_zh": "聯策"
+    },
+    {
+      "ticker": "6666",
+      "name_zh": "羅麗芬-KY"
+    },
+    {
+      "ticker": "6668",
+      "name_zh": "中揚光"
+    },
+    {
+      "ticker": "6669",
+      "name_zh": "緯穎"
+    },
+    {
+      "ticker": "6670",
+      "name_zh": "復盛應用"
+    },
+    {
+      "ticker": "6671",
+      "name_zh": "三能-KY"
+    },
+    {
+      "ticker": "6672",
+      "name_zh": "騰輝電子-KY"
+    },
+    {
+      "ticker": "6674",
+      "name_zh": "鋐寶科技"
+    },
+    {
+      "ticker": "6689",
+      "name_zh": "伊雲谷"
+    },
+    {
+      "ticker": "6691",
+      "name_zh": "洋基工程"
+    },
+    {
+      "ticker": "6695",
+      "name_zh": "芯鼎"
+    },
+    {
+      "ticker": "6698",
+      "name_zh": "旭暉應材"
+    },
+    {
+      "ticker": "6706",
+      "name_zh": "惠特"
+    },
+    {
+      "ticker": "6715",
+      "name_zh": "嘉基"
+    },
+    {
+      "ticker": "6719",
+      "name_zh": "力智"
+    },
+    {
+      "ticker": "6722",
+      "name_zh": "輝創"
+    },
+    {
+      "ticker": "6742",
+      "name_zh": "澤米"
+    },
+    {
+      "ticker": "6743",
+      "name_zh": "安普新"
+    },
+    {
+      "ticker": "6753",
+      "name_zh": "龍德造船"
+    },
+    {
+      "ticker": "6754",
+      "name_zh": "匯僑設計"
+    },
+    {
+      "ticker": "6756",
+      "name_zh": "威鋒電子"
+    },
+    {
+      "ticker": "6757",
+      "name_zh": "台灣虎航"
+    },
+    {
+      "ticker": "6768",
+      "name_zh": "志強-KY"
+    },
+    {
+      "ticker": "6770",
+      "name_zh": "力積電"
+    },
+    {
+      "ticker": "6771",
+      "name_zh": "平和環保-創"
+    },
+    {
+      "ticker": "6776",
+      "name_zh": "展碁國際"
+    },
+    {
+      "ticker": "6781",
+      "name_zh": "AES-KY"
+    },
+    {
+      "ticker": "6782",
+      "name_zh": "視陽"
+    },
+    {
+      "ticker": "6789",
+      "name_zh": "采鈺"
+    },
+    {
+      "ticker": "6790",
+      "name_zh": "永豐實"
+    },
+    {
+      "ticker": "6792",
+      "name_zh": "詠業"
+    },
+    {
+      "ticker": "6794",
+      "name_zh": "向榮生技"
+    },
+    {
+      "ticker": "6796",
+      "name_zh": "晉弘"
+    },
+    {
+      "ticker": "6799",
+      "name_zh": "來頡"
+    },
+    {
+      "ticker": "6805",
+      "name_zh": "富世達"
+    },
+    {
+      "ticker": "6806",
+      "name_zh": "森崴能源"
+    },
+    {
+      "ticker": "6807",
+      "name_zh": "峰源-KY"
+    },
+    {
+      "ticker": "6830",
+      "name_zh": "汎銓"
+    },
+    {
+      "ticker": "6831",
+      "name_zh": "邁科"
+    },
+    {
+      "ticker": "6834",
+      "name_zh": "天二科技"
+    },
+    {
+      "ticker": "6835",
+      "name_zh": "圓裕"
+    },
+    {
+      "ticker": "6838",
+      "name_zh": "台新藥"
+    },
+    {
+      "ticker": "6854",
+      "name_zh": "錼創科技-KY創"
+    },
+    {
+      "ticker": "6861",
+      "name_zh": "睿生光電"
+    },
+    {
+      "ticker": "6862",
+      "name_zh": "三集瑞-KY"
+    },
+    {
+      "ticker": "6863",
+      "name_zh": "永道-KY"
+    },
+    {
+      "ticker": "6869",
+      "name_zh": "雲豹能源"
+    },
+    {
+      "ticker": "6873",
+      "name_zh": "泓德能源"
+    },
+    {
+      "ticker": "6885",
+      "name_zh": "全福生技"
+    },
+    {
+      "ticker": "6887",
+      "name_zh": "寶綠特-KY"
+    },
+    {
+      "ticker": "6890",
+      "name_zh": "來億-KY"
+    },
+    {
+      "ticker": "6901",
+      "name_zh": "鑽石投資"
+    },
+    {
+      "ticker": "6902",
+      "name_zh": "GOGOLOOK"
+    },
+    {
+      "ticker": "6906",
+      "name_zh": "現觀科"
+    },
+    {
+      "ticker": "6908",
+      "name_zh": "宏碁遊戲-創"
+    },
+    {
+      "ticker": "6909",
+      "name_zh": "創控"
+    },
+    {
+      "ticker": "6914",
+      "name_zh": "阜爾運通"
+    },
+    {
+      "ticker": "6916",
+      "name_zh": "華凌"
+    },
+    {
+      "ticker": "6918",
+      "name_zh": "愛派司"
+    },
+    {
+      "ticker": "6919",
+      "name_zh": "康霈*"
+    },
+    {
+      "ticker": "6921",
+      "name_zh": "嘉雨思-創"
+    },
+    {
+      "ticker": "6923",
+      "name_zh": "中台"
+    },
+    {
+      "ticker": "6924",
+      "name_zh": "榮惠-KY創"
+    },
+    {
+      "ticker": "6928",
+      "name_zh": "攸泰科技"
+    },
+    {
+      "ticker": "6931",
+      "name_zh": "青松健康"
+    },
+    {
+      "ticker": "6933",
+      "name_zh": "AMAX-KY"
+    },
+    {
+      "ticker": "6934",
+      "name_zh": "心誠鎂"
+    },
+    {
+      "ticker": "6936",
+      "name_zh": "永鴻生技"
+    },
+    {
+      "ticker": "6937",
+      "name_zh": "天虹"
+    },
+    {
+      "ticker": "6944",
+      "name_zh": "兆聯實業"
+    },
+    {
+      "ticker": "6949",
+      "name_zh": "沛爾生醫-創"
+    },
+    {
+      "ticker": "6951",
+      "name_zh": "青新-創"
+    },
+    {
+      "ticker": "6952",
+      "name_zh": "大武山"
+    },
+    {
+      "ticker": "6955",
+      "name_zh": "邦睿生技-創"
+    },
+    {
+      "ticker": "6957",
+      "name_zh": "裕慶-KY"
+    },
+    {
+      "ticker": "6958",
+      "name_zh": "日盛台駿"
+    },
+    {
+      "ticker": "6958A",
+      "name_zh": "日盛台駿甲特"
+    },
+    {
+      "ticker": "6962",
+      "name_zh": "奕力-KY"
+    },
+    {
+      "ticker": "6965",
+      "name_zh": "中傑-KY"
+    },
+    {
+      "ticker": "6969",
+      "name_zh": "成信實業*-創"
+    },
+    {
+      "ticker": "6988",
+      "name_zh": "威力暘-創"
+    },
+    {
+      "ticker": "6994",
+      "name_zh": "富威電力"
+    },
+    {
+      "ticker": "7610",
+      "name_zh": "聯友金屬-創"
+    },
+    {
+      "ticker": "7631",
+      "name_zh": "聚賢研發-創"
+    },
+    {
+      "ticker": "7705",
+      "name_zh": "三商餐飲"
+    },
+    {
+      "ticker": "7711",
+      "name_zh": "永擎"
+    },
+    {
+      "ticker": "7721",
+      "name_zh": "微程式"
+    },
+    {
+      "ticker": "7722",
+      "name_zh": "LINEPAY"
+    },
+    {
+      "ticker": "7730",
+      "name_zh": "暉盛-創"
+    },
+    {
+      "ticker": "7732",
+      "name_zh": "金興精密"
+    },
+    {
+      "ticker": "7736",
+      "name_zh": "虎山"
+    },
+    {
+      "ticker": "7740",
+      "name_zh": "熙特爾-創"
+    },
+    {
+      "ticker": "7749",
+      "name_zh": "意騰-KY"
+    },
+    {
+      "ticker": "7750",
+      "name_zh": "新代"
+    },
+    {
+      "ticker": "7760",
+      "name_zh": "享溫馨"
+    },
+    {
+      "ticker": "7765",
+      "name_zh": "中華資安"
+    },
+    {
+      "ticker": "7768",
+      "name_zh": "頌勝科技"
+    },
+    {
+      "ticker": "7769",
+      "name_zh": "鴻勁"
+    },
+    {
+      "ticker": "7780",
+      "name_zh": "大研生醫*"
+    },
+    {
+      "ticker": "7786",
+      "name_zh": "東方風能"
+    },
+    {
+      "ticker": "7788",
+      "name_zh": "松川精密"
+    },
+    {
+      "ticker": "7791",
+      "name_zh": "皇家可口"
+    },
+    {
+      "ticker": "7795",
+      "name_zh": "長廣"
+    },
+    {
+      "ticker": "7799",
+      "name_zh": "禾榮科"
+    },
+    {
+      "ticker": "7803",
+      "name_zh": "雲象科技-創"
+    },
+    {
+      "ticker": "7818",
+      "name_zh": "溢泰實業"
+    },
+    {
+      "ticker": "7821",
+      "name_zh": "神數"
+    },
+    {
+      "ticker": "7822",
+      "name_zh": "倍利科"
+    },
+    {
+      "ticker": "7823",
+      "name_zh": "奧義賽博-KY創"
+    },
+    {
+      "ticker": "8011",
+      "name_zh": "台通"
+    },
+    {
+      "ticker": "8016",
+      "name_zh": "矽創"
+    },
+    {
+      "ticker": "8021",
+      "name_zh": "尖點"
+    },
+    {
+      "ticker": "8028",
+      "name_zh": "昇陽半導體"
+    },
+    {
+      "ticker": "8033",
+      "name_zh": "雷虎"
+    },
+    {
+      "ticker": "8039",
+      "name_zh": "台虹"
+    },
+    {
+      "ticker": "8045",
+      "name_zh": "達運光電"
+    },
+    {
+      "ticker": "8046",
+      "name_zh": "南電"
+    },
+    {
+      "ticker": "8070",
+      "name_zh": "長華*"
+    },
+    {
+      "ticker": "8072",
+      "name_zh": "陞泰"
+    },
+    {
+      "ticker": "8081",
+      "name_zh": "致新"
+    },
+    {
+      "ticker": "8101",
+      "name_zh": "華冠"
+    },
+    {
+      "ticker": "8103",
+      "name_zh": "瀚荃"
+    },
+    {
+      "ticker": "8104",
+      "name_zh": "錸寶"
+    },
+    {
+      "ticker": "8105",
+      "name_zh": "凌巨"
+    },
+    {
+      "ticker": "8110",
+      "name_zh": "華東"
+    },
+    {
+      "ticker": "8112",
+      "name_zh": "至上"
+    },
+    {
+      "ticker": "8112A",
+      "name_zh": "至上甲特"
+    },
+    {
+      "ticker": "8114",
+      "name_zh": "振樺電"
+    },
+    {
+      "ticker": "8131",
+      "name_zh": "福懋科"
+    },
+    {
+      "ticker": "8150",
+      "name_zh": "南茂"
+    },
+    {
+      "ticker": "8162",
+      "name_zh": "微矽電子-創"
+    },
+    {
+      "ticker": "8163",
+      "name_zh": "達方"
+    },
+    {
+      "ticker": "8201",
+      "name_zh": "無敵"
+    },
+    {
+      "ticker": "8210",
+      "name_zh": "勤誠"
+    },
+    {
+      "ticker": "8213",
+      "name_zh": "志超"
+    },
+    {
+      "ticker": "8215",
+      "name_zh": "明基材"
+    },
+    {
+      "ticker": "8222",
+      "name_zh": "寶一"
+    },
+    {
+      "ticker": "8249",
+      "name_zh": "菱光"
+    },
+    {
+      "ticker": "8261",
+      "name_zh": "富鼎"
+    },
+    {
+      "ticker": "8271",
+      "name_zh": "宇瞻"
+    },
+    {
+      "ticker": "8341",
+      "name_zh": "日友"
+    },
+    {
+      "ticker": "8367",
+      "name_zh": "建新國際"
+    },
+    {
+      "ticker": "8374",
+      "name_zh": "羅昇"
+    },
+    {
+      "ticker": "8404",
+      "name_zh": "百和興業-KY"
+    },
+    {
+      "ticker": "8411",
+      "name_zh": "福貞-KY"
+    },
+    {
+      "ticker": "8422",
+      "name_zh": "可寧衛*"
+    },
+    {
+      "ticker": "8429",
+      "name_zh": "金麗-KY"
+    },
+    {
+      "ticker": "8438",
+      "name_zh": "昶昕"
+    },
+    {
+      "ticker": "8442",
+      "name_zh": "威宏-KY"
+    },
+    {
+      "ticker": "8443",
+      "name_zh": "阿瘦"
+    },
+    {
+      "ticker": "8454",
+      "name_zh": "富邦媒"
+    },
+    {
+      "ticker": "8462",
+      "name_zh": "柏文"
+    },
+    {
+      "ticker": "8463",
+      "name_zh": "潤泰材"
+    },
+    {
+      "ticker": "8464",
+      "name_zh": "億豐"
+    },
+    {
+      "ticker": "8466",
+      "name_zh": "美吉吉-KY"
+    },
+    {
+      "ticker": "8467",
+      "name_zh": "波力-KY"
+    },
+    {
+      "ticker": "8473",
+      "name_zh": "山林水"
+    },
+    {
+      "ticker": "8476",
+      "name_zh": "台境*"
+    },
+    {
+      "ticker": "8478",
+      "name_zh": "東哥遊艇"
+    },
+    {
+      "ticker": "8481",
+      "name_zh": "政伸"
+    },
+    {
+      "ticker": "8482",
+      "name_zh": "商億-KY"
+    },
+    {
+      "ticker": "8487",
+      "name_zh": "愛爾達-創"
+    },
+    {
+      "ticker": "8488",
+      "name_zh": "吉源-KY"
+    },
+    {
+      "ticker": "8499",
+      "name_zh": "鼎炫-KY"
+    },
+    {
+      "ticker": "8926",
+      "name_zh": "台汽電"
+    },
+    {
+      "ticker": "8940",
+      "name_zh": "新天地"
+    },
+    {
+      "ticker": "8996",
+      "name_zh": "高力"
+    },
+    {
+      "ticker": "9103",
+      "name_zh": "美德醫療-DR"
+    },
+    {
+      "ticker": "910322",
+      "name_zh": "康師傅-DR"
+    },
+    {
+      "ticker": "9105",
+      "name_zh": "泰金寶-DR"
+    },
+    {
+      "ticker": "910861",
+      "name_zh": "神州-DR"
+    },
+    {
+      "ticker": "9110",
+      "name_zh": "越南控-DR"
+    },
+    {
+      "ticker": "911608",
+      "name_zh": "明輝-DR"
+    },
+    {
+      "ticker": "911622",
+      "name_zh": "泰聚亨-DR"
+    },
+    {
+      "ticker": "911868",
+      "name_zh": "同方友友-DR"
+    },
+    {
+      "ticker": "912000",
+      "name_zh": "晨訊科-DR"
+    },
+    {
+      "ticker": "9136",
+      "name_zh": "巨騰-DR"
+    },
+    {
+      "ticker": "9802",
+      "name_zh": "鈺齊-KY"
+    },
+    {
+      "ticker": "9902",
+      "name_zh": "台火"
+    },
+    {
+      "ticker": "9904",
+      "name_zh": "寶成"
+    },
+    {
+      "ticker": "9905",
+      "name_zh": "大華"
+    },
+    {
+      "ticker": "9906",
+      "name_zh": "欣巴巴"
+    },
+    {
+      "ticker": "9907",
+      "name_zh": "統一實"
+    },
+    {
+      "ticker": "9908",
+      "name_zh": "大台北"
+    },
+    {
+      "ticker": "9910",
+      "name_zh": "豐泰"
+    },
+    {
+      "ticker": "9911",
+      "name_zh": "櫻花"
+    },
+    {
+      "ticker": "9912",
+      "name_zh": "偉聯"
+    },
+    {
+      "ticker": "9914",
+      "name_zh": "美利達"
+    },
+    {
+      "ticker": "9917",
+      "name_zh": "中保科"
+    },
+    {
+      "ticker": "9918",
+      "name_zh": "欣天然"
+    },
+    {
+      "ticker": "9919",
+      "name_zh": "康那香"
+    },
+    {
+      "ticker": "9921",
+      "name_zh": "巨大"
+    },
+    {
+      "ticker": "9924",
+      "name_zh": "福興"
+    },
+    {
+      "ticker": "9925",
+      "name_zh": "新保"
+    },
+    {
+      "ticker": "9926",
+      "name_zh": "新海"
+    },
+    {
+      "ticker": "9927",
+      "name_zh": "泰銘"
+    },
+    {
+      "ticker": "9928",
+      "name_zh": "中視"
+    },
+    {
+      "ticker": "9929",
+      "name_zh": "秋雨"
+    },
+    {
+      "ticker": "9930",
+      "name_zh": "中聯資源"
+    },
+    {
+      "ticker": "9931",
+      "name_zh": "欣高"
+    },
+    {
+      "ticker": "9933",
+      "name_zh": "中鼎"
+    },
+    {
+      "ticker": "9934",
+      "name_zh": "成霖"
+    },
+    {
+      "ticker": "9935",
+      "name_zh": "慶豐富"
+    },
+    {
+      "ticker": "9937",
+      "name_zh": "全國"
+    },
+    {
+      "ticker": "9938",
+      "name_zh": "百和"
+    },
+    {
+      "ticker": "9939",
+      "name_zh": "宏全"
+    },
+    {
+      "ticker": "9940",
+      "name_zh": "信義"
+    },
+    {
+      "ticker": "9941",
+      "name_zh": "裕融"
+    },
+    {
+      "ticker": "9941A",
+      "name_zh": "裕融甲特"
+    },
+    {
+      "ticker": "9942",
+      "name_zh": "茂順"
+    },
+    {
+      "ticker": "9943",
+      "name_zh": "好樂迪"
+    },
+    {
+      "ticker": "9944",
+      "name_zh": "新麗"
+    },
+    {
+      "ticker": "9945",
+      "name_zh": "潤泰新"
+    },
+    {
+      "ticker": "9946",
+      "name_zh": "三發地產"
+    },
+    {
+      "ticker": "9955",
+      "name_zh": "佳龍"
+    },
+    {
+      "ticker": "9958",
+      "name_zh": "世紀鋼"
+    }
+  ]
+}
