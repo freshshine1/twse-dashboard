@@ -7,7 +7,7 @@
 <title>市場 · TWSE Watch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <style>
   /* ============================================
      Japanese-inspired serene palette
@@ -38,9 +38,9 @@
     --kincha: #8a6f3a;
     --kincha-bg: rgba(138, 111, 58, 0.12);
 
-    --serif: 'Shippori Mincho', 'Noto Serif TC', Georgia, serif;
-    --display: 'Cormorant Garamond', 'Shippori Mincho', serif;
-    --sans: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --serif: 'Noto Sans TC', -apple-system, system-ui, sans-serif;
+    --display: 'DM Serif Display', Georgia, serif;
+    --sans: 'Inter', 'Noto Sans TC', -apple-system, system-ui, sans-serif;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -982,7 +982,34 @@ const MOCK_DATA = {
   ]
 };
 
-let state = { data: MOCK_DATA, sort: 'default', expanded: new Set() };
+let state = { data: null, sort: 'default', expanded: new Set() };
+
+async function loadData() {
+  try {
+    const r = await fetch('data.json?t=' + Date.now());
+    const d = await r.json();
+    // normalize feeder field names → UI field names
+    d.watchlist = d.watchlist.map(s => ({
+      ...s,
+      ticker:     s.code,
+      name:       s.name_en,
+      price:      s.close,
+      vol_today:  s.volume,
+      vol_5d_avg: null,
+      foreign_net_m: 0,
+    }));
+    state.data = d;
+  } catch(e) {
+    console.warn('data.json load failed, using mock', e);
+    state.data = MOCK_DATA;
+  }
+  renderHeader();
+  renderWatchlist();
+  renderPulse();
+  renderPortfolio();
+}
+
+loadData();
 
 function portfolioMap() {
   const m = {};
@@ -1265,19 +1292,9 @@ document.querySelectorAll('.sort-chip').forEach(chip => {
 document.getElementById('refresh-btn').addEventListener('click', () => {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
-  setTimeout(() => {
-    btn.classList.remove('spinning');
-    renderHeader();
-    renderWatchlist();
-    renderPulse();
-    renderPortfolio();
-  }, 700);
+  loadData().then(() => btn.classList.remove('spinning'));
 });
 
-renderHeader();
-renderWatchlist();
-renderPulse();
-renderPortfolio();
 </script>
 
 </body>
