@@ -1,0 +1,16 @@
+{
+  "updated": "1970-01-01T00:00:00+08:00",
+  "market": {
+    "taiex": 0,
+    "taiex_chg": 0,
+    "taiex_chg_pct": 0,
+    "foreign_net_m": 0,
+    "dealer_net_m": 0,
+    "trust_net_m": 0,
+    "three_inst_total_m": 0,
+    "foreign_5d_cumul_m": 0,
+    "pressure": "Neutral"
+  },
+  "watchlist": [],
+  "portfolio": []
+}
