@@ -1,0 +1,39 @@
+name: Daily TWSE Feeder
+
+on:
+  schedule:
+    - cron: '30 8 * * 1-5'  # 16:30 Taiwan time, weekdays
+  workflow_dispatch:          # manual run button in Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-and-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run feeder
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python feeder.py
+
+      - name: Commit and push updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/data.json docs/analysis.json
+          git diff --quiet && git diff --staged --quiet || \
+            git commit -m "data: auto-update TWSE $(date +'%Y-%m-%d')"
+          git push
