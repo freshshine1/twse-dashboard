@@ -258,12 +258,13 @@ def fetch_history_twse(ticker, months=12):
 def fetch_history_tpex(ticker, months=12):
     """
     TPEx individual stock monthly history.
-    Endpoint: tpex.org.tw/web/stock/aftertrading/daily_trading_info/st43_download.php
-    Date format: YYY/MM (ROC year)
+    Endpoint: POST https://www.tpex.org.tw/www/zh-tw/afterTrading/tradingStock
+    Form data: code=XXXX&date=YYYY/MM/01&response=json  (western year)
     Aborts on first empty month.
     """
     now = datetime.now(TZ)
     all_rows = []
+    url = "https://www.tpex.org.tw/www/zh-tw/afterTrading/tradingStock"
 
     for m in range(months - 1, -1, -1):
         dt = now
@@ -271,33 +272,35 @@ def fetch_history_tpex(ticker, months=12):
             dt = (dt.replace(day=1) - timedelta(days=1)).replace(day=1)
         dt = dt.replace(day=1)
 
-        roc_year = dt.year - 1911
-        date_str = f"{roc_year}/{dt.month:02d}"   # e.g. "114/05"
+        date_str = f"{dt.year}/{dt.month:02d}/01"   # e.g. "2025/04/01"
 
-        url = (
-            f"https://www.tpex.org.tw/web/stock/aftertrading/daily_trading_info/"
-            f"st43_download.php?l=zh-tw&d={date_str}&stkno={ticker}&s=0,asc,0&o=json"
-        )
         time.sleep(REQUEST_DELAY)
         try:
-            r = SESSION.get(url, timeout=20)
+            r = SESSION.post(
+                url,
+                data={"code": ticker, "date": date_str, "response": "json"},
+                timeout=20,
+            )
             r.raise_for_status()
             data = r.json()
         except Exception as exc:
             log.debug("%s TPEx history %s fetch error: %s", ticker, date_str, exc)
             continue
 
-        # TPEx returns {"iTotalRecords": N, "aaData": [...]} or empty
-        aa = data.get("aaData", []) if isinstance(data, dict) else []
-        if not aa:
-            log.debug("%s TPEx history %s — no data, aborting history fetch", ticker, date_str)
+        # Response: {"stat": "ok", "tables": [{"data": [...]}]}
+        stat = data.get("stat", "ok") if isinstance(data, dict) else "ok"
+        tables = data.get("tables", []) if isinstance(data, dict) else []
+        rows = tables[0].get("data", []) if tables else []
+
+        if stat.lower() != "ok" or not rows:
+            log.debug("%s TPEx history %s — stat=%s no data, aborting", ticker, date_str, stat)
             break  # hard abort
 
-        for row in aa:
+        for row in rows:
             try:
-                # columns: 日期, 成交股數, 成交金額, 開盤, 最高, 最低, 收盤, 漲跌, 成交筆數
-                parts = row[0].split("/")
-                western_year = int(parts[0]) + 1911
+                # columns: 日期(ROC YYY/MM/DD), 成交張數, 成交仟元, 開盤, 最高, 最低, 收盤, 漲跌, 筆數
+                parts = row[0].strip().split("/")
+                western_year = int(parts[0]) + 1911  # ROC → western
                 date_obj = datetime(western_year, int(parts[1]), int(parts[2]))
                 all_rows.append({
                     "date":   date_obj,
