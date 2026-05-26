@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-26T15:37:11+08:00",
+  "updated": "2026-05-26T15:55:53+08:00",
   "market": {
     "taiex": 43525.37,
     "taiex_chg": -119.03,
@@ -21,18 +21,26 @@
       "price": 2310.0,
       "chg": 55.0,
       "chg_pct": 2.44,
-      "vol_today": 28250944.0
+      "vol_today": 28250944.0,
+      "ma5": 2250.0,
+      "ma20": 2242.25,
+      "ma60": 2034.25,
+      "vol_ratio": 0.9,
+      "high_52w": 2345.0,
+      "low_52w": 946.0,
+      "pct_from_52w_high": -1.49,
+      "trend": "BULL"
     },
     {
       "ticker": "3324",
-      "name": "3324",
-      "name_zh": "",
+      "name": "雙鴻",
+      "name_zh": "雙鴻",
       "tier": "T2",
-      "exchange": "TWSE",
-      "price": null,
-      "chg": null,
-      "chg_pct": null,
-      "vol_today": null
+      "exchange": "TPEx",
+      "price": 1010.0,
+      "chg": 0.0,
+      "chg_pct": 0.0,
+      "vol_today": 2310307.0
     },
     {
       "ticker": "3653",
@@ -63,14 +71,14 @@
       "chg": 85.0,
       "chg_pct": 1.54,
       "vol_today": 2115890.0,
-      "ma5": 5334.0,
-      "ma20": 5144.75,
-      "ma60": 4295.83,
-      "vol_ratio": 1.22,
-      "high_52w": 5880.0,
+      "ma5": 4354.0,
+      "ma20": 4389.5,
+      "ma60": 4200.92,
+      "vol_ratio": 1.27,
+      "high_52w": 4765.0,
       "low_52w": 2360.0,
-      "pct_from_52w_high": -4.59,
-      "trend": "BULL"
+      "pct_from_52w_high": 17.73,
+      "trend": "MIXED+"
     },
     {
       "ticker": "2317",
@@ -93,14 +101,14 @@
     },
     {
       "ticker": "6223",
-      "name": "6223",
-      "name_zh": "",
+      "name": "旺矽",
+      "name_zh": "旺矽",
       "tier": "T2",
-      "exchange": "TWSE",
-      "price": null,
-      "chg": null,
-      "chg_pct": null,
-      "vol_today": null
+      "exchange": "TPEx",
+      "price": 6200.0,
+      "chg": 165.0,
+      "chg_pct": 2.73,
+      "vol_today": 888376.0
     },
     {
       "ticker": "2454",
@@ -123,14 +131,14 @@
     },
     {
       "ticker": "5274",
-      "name": "5274",
-      "name_zh": "",
+      "name": "信驊",
+      "name_zh": "信驊",
       "tier": "T2",
-      "exchange": "TWSE",
-      "price": null,
-      "chg": null,
-      "chg_pct": null,
-      "vol_today": null
+      "exchange": "TPEx",
+      "price": 17725.0,
+      "chg": -55.0,
+      "chg_pct": -0.31,
+      "vol_today": 242706.0
     },
     {
       "ticker": "3533",
@@ -142,13 +150,13 @@
       "chg": 30.0,
       "chg_pct": 1.17,
       "vol_today": 1266807.0,
-      "ma5": 1457.0,
-      "ma20": 1403.5,
-      "ma60": 1406.17,
-      "vol_ratio": 1.0,
-      "high_52w": 1525.0,
-      "low_52w": 1220.0,
-      "pct_from_52w_high": 69.51,
+      "ma5": 2533.0,
+      "ma20": 2582.75,
+      "ma60": 2243.83,
+      "vol_ratio": 0.51,
+      "high_52w": 2955.0,
+      "low_52w": 1140.0,
+      "pct_from_52w_high": -12.52,
       "trend": "MIXED+"
     },
     {
@@ -210,14 +218,14 @@
     },
     {
       "ticker": "3131",
-      "name": "3131",
-      "name_zh": "",
+      "name": "弘塑",
+      "name_zh": "弘塑",
       "tier": "T2",
-      "exchange": "TWSE",
-      "price": null,
-      "chg": null,
-      "chg_pct": null,
-      "vol_today": null
+      "exchange": "TPEx",
+      "price": 2920.0,
+      "chg": 100.0,
+      "chg_pct": 3.55,
+      "vol_today": 431607.0
     },
     {
       "ticker": "7769",
@@ -280,13 +288,13 @@
       "chg": 1.66,
       "chg_pct": 5.54,
       "vol_today": 324131568.0,
-      "ma5": 13.57,
-      "ma20": 13.53,
-      "ma60": 12.68,
-      "vol_ratio": 0.8,
-      "high_52w": 14.09,
+      "ma5": 29.83,
+      "ma20": 29.12,
+      "ma60": 24.28,
+      "vol_ratio": 0.99,
+      "high_52w": 31.89,
       "low_52w": 9.88,
-      "pct_from_52w_high": 124.34,
+      "pct_from_52w_high": -0.88,
       "trend": "BULL"
     },
     {
@@ -329,25 +337,25 @@
     },
     {
       "ticker": "3163",
-      "name": "3163",
+      "name": "波若威",
       "name_zh": "波若威",
       "tier": "T1",
-      "exchange": "TWSE",
-      "price": null,
-      "chg": null,
-      "chg_pct": null,
-      "vol_today": null
+      "exchange": "TPEx",
+      "price": 1210.0,
+      "chg": 65.0,
+      "chg_pct": 5.68,
+      "vol_today": 7441021.0
     },
     {
       "ticker": "3363",
-      "name": "3363",
+      "name": "上詮",
       "name_zh": "上詮",
       "tier": "T1",
-      "exchange": "TWSE",
-      "price": null,
-      "chg": null,
-      "chg_pct": null,
-      "vol_today": null
+      "exchange": "TPEx",
+      "price": 846.0,
+      "chg": -6.0,
+      "chg_pct": -0.7,
+      "vol_today": 4130457.0
     },
     {
       "ticker": "3711",
@@ -359,29 +367,29 @@
       "chg": 56.0,
       "chg_pct": 9.98,
       "vol_today": 26609382.0,
-      "ma5": 153.2,
-      "ma20": 150.72,
-      "ma60": null,
-      "vol_ratio": 1.3,
-      "high_52w": 155.5,
+      "ma5": 555.0,
+      "ma20": 528.95,
+      "ma60": 430.18,
+      "vol_ratio": 1.39,
+      "high_52w": 636.0,
       "low_52w": 133.0,
-      "pct_from_52w_high": 296.78,
-      "trend": "MIXED-"
+      "pct_from_52w_high": -2.99,
+      "trend": "BULL"
     },
     {
       "ticker": "7810",
-      "name": "7810",
+      "name": "捷創科技",
       "name_zh": "捷創科技",
       "tier": "T1",
-      "exchange": "TWSE",
-      "price": null,
-      "chg": null,
-      "chg_pct": null,
-      "vol_today": null
+      "exchange": "TPEx",
+      "price": 238.0,
+      "chg": 9.0,
+      "chg_pct": 3.93,
+      "vol_today": 200315.0
     }
   ],
   "analysis": {
-    "updated": "2026-05-26T15:37:11+08:00",
+    "updated": "2026-05-26T15:55:53+08:00",
     "summary": "Feeder ran successfully. Claude summary will appear once API credits are added.",
     "callouts": [],
     "sources": [
