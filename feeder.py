@@ -23,7 +23,6 @@ SHEET_ID = "1GuyPvnLtvPY1o7peK4R0tgRAY6nZea20XHEE_-BH9ZY"
 SHEET_T1 = "T1 Inventory"
 SHEET_T2 = "T2 Watchlist Interest"
 
-# Fallback hardcoded tickers used only if Google Sheet is unavailable
 FALLBACK_TICKERS = [
     ("2330", "TSMC",             "台積電",     "SEMI"),
     ("2317", "Hon Hai",          "鴻海",       "ELEC"),
@@ -43,7 +42,7 @@ SESSION = requests.Session()
 SESSION.headers.update({
     "User-Agent": "twse-dashboard-feeder/1.0 (github.com/freshshine1/twse-dashboard)"
 })
-REQUEST_DELAY = 1.0   # seconds between TWSE calls — be polite
+REQUEST_DELAY = 1.0
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 def setup_logging():
@@ -62,167 +61,8 @@ def setup_logging():
 
 log = setup_logging()
 
-# ── Google Sheets reader ──────────────────────────────────────────────────────
-def get_gsheet_token():
-    """
-    Mint a short-lived OAuth2 access token from the service account JSON
-    stored in the GOOGLE_CREDENTIALS environment variable.
-    Returns token string or None on failure.
-    """
-    creds_raw = os.environ.get("GOOGLE_CREDENTIALS")
-    if not creds_raw:
-        log.warning("GOOGLE_CREDENTIALS env var not set — skipping Sheet read")
-        return None
-
-    try:
-        import base64
-        import hashlib
-        import hmac
-        import struct
-        creds = json.loads(creds_raw)
-    except Exception as exc:
-        log.error("Failed to parse GOOGLE_CREDENTIALS: %s", exc)
-        return None
-
-    try:
-        # Use google-auth if available (preferred)
-        from google.oauth2 import service_account
-        import google.auth.transport.requests as ga_requests
-
-        scopes = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-        credentials = service_account.Credentials.from_service_account_info(
-            creds, scopes=scopes
-        )
-        credentials.refresh(ga_requests.Request())
-        return credentials.token
-    except ImportError:
-        pass
-
-    # Fallback: manual JWT mint (no extra deps)
-    try:
-        import base64
-        import json as _json
-        import time as _time
-
-        try:
-            from cryptography.hazmat.primitives import hashes, serialization
-            from cryptography.hazmat.primitives.asymmetric import padding
-        except ImportError:
-            log.error("Neither google-auth nor cryptography available — cannot mint JWT")
-            return None
-
-        now = int(_time.time())
-        header  = {"alg": "RS256", "typ": "JWT"}
-        payload = {
-            "iss":   creds["client_email"],
-            "scope": "https://www.googleapis.com/auth/spreadsheets.readonly",
-            "aud":   "https://oauth2.googleapis.com/token",
-            "iat":   now,
-            "exp":   now + 3600,
-        }
-
-        def b64(data):
-            return base64.urlsafe_b64encode(
-                _json.dumps(data).encode()
-            ).rstrip(b"=").decode()
-
-        signing_input = f"{b64(header)}.{b64(payload)}".encode()
-        private_key = serialization.load_pem_private_key(
-            creds["private_key"].encode(), password=None
-        )
-        signature = private_key.sign(signing_input, padding.PKCS1v15(), hashes.SHA256())
-        jwt_token = signing_input.decode() + "." + base64.urlsafe_b64encode(signature).rstrip(b"=").decode()
-
-        resp = requests.post(
-            "https://oauth2.googleapis.com/token",
-            data={
-                "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
-                "assertion":  jwt_token,
-            },
-            timeout=15,
-        )
-        resp.raise_for_status()
-        return resp.json()["access_token"]
-
-    except Exception as exc:
-        log.error("JWT mint failed: %s", exc)
-        return None
-
-
-def read_sheet_tab(token, sheet_id, tab_name):
-    """
-    Read all values from a sheet tab. Returns list of row lists, or [] on failure.
-    Skips the header row (row 0).
-    """
-    import urllib.parse
-    range_param = urllib.parse.quote(f"{tab_name}!A:Z")
-    url = f"https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}/values/{range_param}"
-    try:
-        r = requests.get(url, headers={"Authorization": f"Bearer {token}"}, timeout=15)
-        r.raise_for_status()
-        data = r.json()
-        rows = data.get("values", [])
-        return rows[1:] if len(rows) > 1 else []   # skip header row
-    except Exception as exc:
-        log.error("Sheet read failed (%s): %s", tab_name, exc)
-        return []
-
-
-def load_tickers_from_sheet(snapshot):
-    """
-    Read T1 Inventory and T2 Watchlist Interest from Google Sheet.
-    Returns list of (code, name_en, name_zh, tier) tuples, or None if Sheet unavailable.
-    snapshot dict used to fill name_zh for any ticker missing it in the sheet.
-    """
-    token = get_gsheet_token()
-    if not token:
-        return None
-
-    tickers = []
-    seen = set()
-
-    # T1 — portfolio holdings
-    # Headers: DATE | TICKER | NAME_ZH | NAME_EN | QTY | AVG_COST
-    t1_rows = read_sheet_tab(token, SHEET_ID, SHEET_T1)
-    for row in t1_rows:
-        if len(row) < 2:
-            continue
-        code = str(row[1]).strip().upper()
-        if not code or code in seen:
-            continue
-        name_zh = row[2].strip() if len(row) > 2 else (snapshot.get(code, {}).get("name_zh", ""))
-        name_en = row[3].strip() if len(row) > 3 else ""
-        if not name_en:
-            name_en = snapshot.get(code, {}).get("name_zh", code)  # fallback to ZH if no EN
-        tickers.append((code, name_en, name_zh, "T1"))
-        seen.add(code)
-
-    log.info("Sheet T1: loaded %d tickers", len(tickers))
-
-    # T2 — watchlist interest
-    # Headers: TICKER | NOTE
-    t2_rows = read_sheet_tab(token, SHEET_ID, SHEET_T2)
-    t2_count = 0
-    for row in t2_rows:
-        if len(row) < 1:
-            continue
-        code = str(row[0]).strip().upper()
-        if not code or code in seen:
-            continue
-        name_zh = snapshot.get(code, {}).get("name_zh", "")
-        name_en = name_zh or code
-        tickers.append((code, name_en, name_zh, "T2"))
-        seen.add(code)
-        t2_count += 1
-
-    log.info("Sheet T2: loaded %d tickers", t2_count)
-    log.info("Total from Sheet: %d tickers", len(tickers))
-    return tickers if tickers else None
-
-
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def safe_float(val, default=None):
-    """Parse a string that may contain commas or dashes."""
     if val is None:
         return default
     s = str(val).replace(",", "").strip()
@@ -237,7 +77,6 @@ def now_iso():
     return datetime.now(TZ).isoformat(timespec="seconds")
 
 def twse_get(url, label="", retries=3, backoff=5):
-    """GET with retry/backoff. Returns parsed JSON or None."""
     for attempt in range(1, retries + 1):
         try:
             time.sleep(REQUEST_DELAY)
@@ -259,78 +98,135 @@ def twse_get(url, label="", retries=3, backoff=5):
     log.error("%s — all retries exhausted", label or url)
     return None
 
-# ── TAIEX ─────────────────────────────────────────────────────────────────────
-def fetch_taiex():
-    """Returns (taiex, taiex_chg, taiex_chg_pct) or (None,None,None)."""
-    url = "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json"
-    data = twse_get(url, "TAIEX", retries=5, backoff=8)
-    if not data:
-        return None, None, None
-    rows = data.get("data", [])
-    if not rows:
-        return None, None, None
-    last = rows[-1]
+# ── Snapshot — TWSE + TPEx ────────────────────────────────────────────────────
+def fetch_snapshot():
+    """
+    Fetches TWSE and TPEx snapshots.
+    Returns (snap_dict, raw_rows, twse_codes, tpex_codes).
+    snap_dict keyed by code → {close, chg, chg_pct, volume, name_zh, exchange}
+    twse_codes / tpex_codes are sets for exchange routing.
+    """
+    snap = {}
+    raw_rows = []
+    twse_codes = set()
+    tpex_codes = set()
+
+    # TWSE
+    twse_url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
     try:
-        taiex     = safe_float(last[4])
-        taiex_chg = safe_float(last[5])
-        taiex_chg_pct = round(taiex_chg / (taiex - taiex_chg) * 100, 2) if taiex and taiex_chg else None
-        return taiex, taiex_chg, taiex_chg_pct
+        time.sleep(REQUEST_DELAY)
+        r = SESSION.get(twse_url, timeout=30)
+        r.raise_for_status()
+        rows = r.json()
+        if isinstance(rows, dict) and rows.get("stat") == "No Data":
+            log.info("TWSE Snapshot: No Data (holiday or off-hours)")
+            return None, [], set(), set()
+        for row in rows:
+            code = row.get("Code", "").strip()
+            if not code:
+                continue
+            close  = safe_float(row.get("ClosingPrice"))
+            change = safe_float(row.get("Change"))
+            chg_pct = None
+            if close is not None and change is not None:
+                base = close - change
+                chg_pct = round(change / base * 100, 2) if base else None
+            snap[code] = {
+                "close":    close,
+                "chg":      change,
+                "chg_pct":  chg_pct,
+                "volume":   safe_float(row.get("TradeVolume")),
+                "name_zh":  row.get("Name", "").strip(),
+                "exchange": "TWSE",
+            }
+            twse_codes.add(code)
+            raw_rows.append(row)
+        log.info("TWSE snapshot: %d tickers", len(twse_codes))
     except Exception as exc:
-        log.warning("TAIEX parse error: %s", exc)
-        return None, None, None
+        log.error("TWSE snapshot failed: %s", exc)
+        return None, [], set(), set()
 
-# ── Institutional flow ────────────────────────────────────────────────────────
-def fetch_institutional_today():
-    """Returns dict with foreign_net_m, dealer_net_m, trust_net_m, three_inst_total_m."""
-    url = "https://www.twse.com.tw/fund/BFI82U?response=json&dayDate=&type=day"
-    data = twse_get(url, "三大法人")
-    result = {"foreign_net_m": 0.0, "dealer_net_m": 0.0, "trust_net_m": 0.0}
-    if not data:
-        return result
-    rows = data.get("data", [])
-    for row in rows:
-        name = row[0].strip()
-        net  = safe_float(row[3], 0.0) / 1_000_000
-        if "外資及陸資" in name and "不含" not in name:
-            result["foreign_net_m"] = round(net, 2)
-        elif "自營商" in name and "避險" not in name and "自行" not in name:
-            result["dealer_net_m"] = round(net, 2)
-        elif "投信" in name:
-            result["trust_net_m"] = round(net, 2)
-    result["three_inst_total_m"] = round(
-        result["foreign_net_m"] + result["dealer_net_m"] + result["trust_net_m"], 2
-    )
-    return result
+    # TPEx
+    tpex_url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes"
+    try:
+        time.sleep(REQUEST_DELAY)
+        r = SESSION.get(tpex_url, timeout=30)
+        r.raise_for_status()
+        tpex_rows = r.json()
+        for row in tpex_rows:
+            code = row.get("SecuritiesCompanyCode", "").strip()
+            if not code or code in snap:
+                continue
+            close  = safe_float(row.get("Close"))
+            change = safe_float(row.get("Change"))
+            chg_pct = None
+            if close is not None and change is not None:
+                base = close - change
+                chg_pct = round(change / base * 100, 2) if base else None
+            snap[code] = {
+                "close":    close,
+                "chg":      change,
+                "chg_pct":  chg_pct,
+                "volume":   safe_float(row.get("TradingShares")),
+                "name_zh":  row.get("CompanyName", "").strip(),
+                "exchange": "TPEx",
+            }
+            tpex_codes.add(code)
+            # add to raw_rows in TWSE-compatible shape for tickers.json
+            raw_rows.append({
+                "Code": code,
+                "Name": row.get("CompanyName", "").strip(),
+            })
+        log.info("TPEx snapshot: %d tickers", len(tpex_codes))
+    except Exception as exc:
+        log.warning("TPEx snapshot failed (non-fatal): %s", exc)
 
-def pressure_label(foreign_net_m):
-    if   foreign_net_m >  20000: return "Strong Buy"
-    elif foreign_net_m >   5000: return "Buy"
-    elif foreign_net_m < -20000: return "Strong Sell"
-    elif foreign_net_m <      0: return "Net Sell"
-    else:                        return "Neutral"
+    log.info("Combined snapshot: %d tickers total", len(snap))
+    return snap, raw_rows, twse_codes, tpex_codes
 
-# ── Historical OHLCV ──────────────────────────────────────────────────────────
-def fetch_history(ticker, months=3):
-    """
-    Fetch OHLCV for `months` months back.
-    Returns list of dicts sorted oldest→newest: {date, open, high, low, close, volume}
-    """
+def build_tickers_json(raw_rows):
+    tickers = []
+    seen = set()
+    for row in raw_rows:
+        code = row.get("Code", "").strip()
+        name = row.get("Name", "").strip()
+        if code and name and code not in seen:
+            tickers.append({"ticker": code, "name_zh": name})
+            seen.add(code)
+    tickers.sort(key=lambda x: x["ticker"])
+    return tickers
+
+# ── History — exchange-aware ──────────────────────────────────────────────────
+def fetch_history_twse(ticker, months=12):
+    """TWSE STOCK_DAY history. Aborts immediately on first empty month."""
     now = datetime.now(TZ)
     all_rows = []
+
     for m in range(months - 1, -1, -1):
         dt = now
         for _ in range(m):
             dt = (dt.replace(day=1) - timedelta(days=1)).replace(day=1)
         dt = dt.replace(day=1)
-
         date_str = dt.strftime("%Y%m01")
+
         url = (
             f"https://www.twse.com.tw/exchangeReport/STOCK_DAY"
             f"?response=json&date={date_str}&stockNo={ticker}"
         )
-        data = twse_get(url, f"{ticker} history {date_str}")
-        if not data:
+        time.sleep(REQUEST_DELAY)
+        try:
+            r = SESSION.get(url, timeout=20)
+            r.raise_for_status()
+            data = r.json()
+        except Exception as exc:
+            log.debug("%s TWSE history %s fetch error: %s", ticker, date_str, exc)
             continue
+
+        stat = data.get("stat", "OK") if isinstance(data, dict) else "OK"
+        if stat not in ("OK", ""):
+            log.debug("%s TWSE history %s — stat=%s, aborting history fetch", ticker, date_str, stat)
+            break  # hard abort — no data means no older data either
+
         rows = data.get("data", [])
         for row in rows:
             try:
@@ -348,16 +244,82 @@ def fetch_history(ticker, months=3):
             except Exception as exc:
                 log.debug("%s row parse skip: %s | %s", ticker, exc, row)
 
+    return _dedup_sort(all_rows)
+
+
+def fetch_history_tpex(ticker, months=12):
+    """
+    TPEx individual stock monthly history.
+    Endpoint: tpex.org.tw/web/stock/aftertrading/daily_trading_info/st43_download.php
+    Date format: YYY/MM (ROC year)
+    Aborts on first empty month.
+    """
+    now = datetime.now(TZ)
+    all_rows = []
+
+    for m in range(months - 1, -1, -1):
+        dt = now
+        for _ in range(m):
+            dt = (dt.replace(day=1) - timedelta(days=1)).replace(day=1)
+        dt = dt.replace(day=1)
+
+        roc_year = dt.year - 1911
+        date_str = f"{roc_year}/{dt.month:02d}"   # e.g. "114/05"
+
+        url = (
+            f"https://www.tpex.org.tw/web/stock/aftertrading/daily_trading_info/"
+            f"st43_download.php?l=zh-tw&d={date_str}&stkno={ticker}&s=0,asc,0&o=json"
+        )
+        time.sleep(REQUEST_DELAY)
+        try:
+            r = SESSION.get(url, timeout=20)
+            r.raise_for_status()
+            data = r.json()
+        except Exception as exc:
+            log.debug("%s TPEx history %s fetch error: %s", ticker, date_str, exc)
+            continue
+
+        # TPEx returns {"iTotalRecords": N, "aaData": [...]} or empty
+        aa = data.get("aaData", []) if isinstance(data, dict) else []
+        if not aa:
+            log.debug("%s TPEx history %s — no data, aborting history fetch", ticker, date_str)
+            break  # hard abort
+
+        for row in aa:
+            try:
+                # columns: 日期, 成交股數, 成交金額, 開盤, 最高, 最低, 收盤, 漲跌, 成交筆數
+                parts = row[0].split("/")
+                western_year = int(parts[0]) + 1911
+                date_obj = datetime(western_year, int(parts[1]), int(parts[2]))
+                all_rows.append({
+                    "date":   date_obj,
+                    "open":   safe_float(row[3]),
+                    "high":   safe_float(row[4]),
+                    "low":    safe_float(row[5]),
+                    "close":  safe_float(row[6]),
+                    "volume": safe_float(row[1]),
+                })
+            except Exception as exc:
+                log.debug("%s TPEx row parse skip: %s | %s", ticker, exc, row)
+
+    return _dedup_sort(all_rows)
+
+
+def _dedup_sort(rows):
     seen = set()
     unique = []
-    for r in sorted(all_rows, key=lambda x: x["date"]):
+    for r in sorted(rows, key=lambda x: x["date"]):
         if r["date"] not in seen:
             seen.add(r["date"])
             unique.append(r)
     return unique
 
-def fetch_history_12m(ticker):
-    return fetch_history(ticker, months=12)
+
+def fetch_history(ticker, exchange, months=12):
+    """Route to correct history endpoint based on exchange."""
+    if exchange == "TPEx":
+        return fetch_history_tpex(ticker, months)
+    return fetch_history_twse(ticker, months)
 
 # ── Technical indicators ──────────────────────────────────────────────────────
 def sma(closes, n):
@@ -406,63 +368,55 @@ def compute_technicals(history, snapshot_close):
         "trend": trend,
     }
 
-# ── Daily snapshot (all tickers) ─────────────────────────────────────────────
-def fetch_snapshot():
-    """
-    Returns (snap_dict, raw_rows).
-    snap_dict keyed by stockNo → {close, chg, chg_pct, volume, name_zh}
-    raw_rows used to build tickers.json
-    """
-    url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
+# ── TAIEX ─────────────────────────────────────────────────────────────────────
+def fetch_taiex():
+    url = "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json"
+    data = twse_get(url, "TAIEX", retries=5, backoff=8)
+    if not data:
+        return None, None, None
+    rows = data.get("data", [])
+    if not rows:
+        return None, None, None
+    last = rows[-1]
     try:
-        time.sleep(REQUEST_DELAY)
-        r = SESSION.get(url, timeout=30)
-        r.raise_for_status()
-        rows = r.json()
+        taiex     = safe_float(last[4])
+        taiex_chg = safe_float(last[5])
+        taiex_chg_pct = round(taiex_chg / (taiex - taiex_chg) * 100, 2) if taiex and taiex_chg else None
+        return taiex, taiex_chg, taiex_chg_pct
     except Exception as exc:
-        log.error("Snapshot fetch failed: %s", exc)
-        return None, []
+        log.warning("TAIEX parse error: %s", exc)
+        return None, None, None
 
-    if isinstance(rows, dict) and rows.get("stat") == "No Data":
-        log.info("Snapshot: No Data (holiday or off-hours)")
-        return None, []
+# ── Institutional flow ────────────────────────────────────────────────────────
+def fetch_institutional_today():
+    url = "https://www.twse.com.tw/fund/BFI82U?response=json&dayDate=&type=day"
+    data = twse_get(url, "三大法人")
+    result = {"foreign_net_m": 0.0, "dealer_net_m": 0.0, "trust_net_m": 0.0}
+    if not data:
+        return result
+    for row in data.get("data", []):
+        name = row[0].strip()
+        net  = safe_float(row[3], 0.0) / 1_000_000
+        if "外資及陸資" in name and "不含" not in name:
+            result["foreign_net_m"] = round(net, 2)
+        elif "自營商" in name and "避險" not in name and "自行" not in name:
+            result["dealer_net_m"] = round(net, 2)
+        elif "投信" in name:
+            result["trust_net_m"] = round(net, 2)
+    result["three_inst_total_m"] = round(
+        result["foreign_net_m"] + result["dealer_net_m"] + result["trust_net_m"], 2
+    )
+    return result
 
-    snap = {}
-    for row in rows:
-        code = row.get("Code", "").strip()
-        if not code:
-            continue
-        close  = safe_float(row.get("ClosingPrice"))
-        change = safe_float(row.get("Change"))
-        if close is not None and change is not None:
-            base    = close - change
-            chg_pct = round(change / base * 100, 2) if base else None
-        else:
-            chg_pct = None
-        snap[code] = {
-            "close":   close,
-            "chg":     change,
-            "chg_pct": chg_pct,
-            "volume":  safe_float(row.get("TradeVolume")),
-            "name_zh": row.get("Name", "").strip(),
-        }
-    log.info("Snapshot: %d tickers loaded", len(snap))
-    return snap, rows
-
-def build_tickers_json(raw_rows):
-    """Build full ticker reference list from STOCK_DAY_ALL rows."""
-    tickers = []
-    for row in raw_rows:
-        code = row.get("Code", "").strip()
-        name = row.get("Name", "").strip()
-        if code and name:
-            tickers.append({"ticker": code, "name_zh": name})
-    tickers.sort(key=lambda x: x["ticker"])
-    return tickers
+def pressure_label(foreign_net_m):
+    if   foreign_net_m >  20000: return "Strong Buy"
+    elif foreign_net_m >   5000: return "Buy"
+    elif foreign_net_m < -20000: return "Strong Sell"
+    elif foreign_net_m <      0: return "Net Sell"
+    else:                        return "Neutral"
 
 # ── 5-day cumulative foreign ──────────────────────────────────────────────────
 def fetch_foreign_5d_cumul():
-    """Fetch institutional flow for last 5 trading days and sum foreign net."""
     total = 0.0
     days_collected = 0
     candidate = datetime.now(TZ).date()
@@ -482,31 +436,138 @@ def fetch_foreign_5d_cumul():
         if not data:
             continue
 
-        matched = False
         for row in data.get("data", []):
             name = row[0].strip()
             if "外資及陸資" in name and "不含" not in name:
                 net = safe_float(row[3], 0.0) / 1_000_000
                 total += net
                 days_collected += 1
-                matched = True
                 log.info("三大法人 %s foreign_net_m=%.1f (day %d/5)", date_str, net, days_collected)
                 break
-
-        if not matched:
-            log.debug("三大法人 %s — no foreign row found, skipping day", date_str)
 
     if days_collected < 5:
         log.warning("三大法人 5d cumul: only collected %d days", days_collected)
 
     return round(total, 2)
 
+# ── Google Sheets reader ──────────────────────────────────────────────────────
+def get_gsheet_token():
+    creds_raw = os.environ.get("GOOGLE_CREDENTIALS")
+    if not creds_raw:
+        log.warning("GOOGLE_CREDENTIALS env var not set — skipping Sheet read")
+        return None
+    try:
+        creds = json.loads(creds_raw)
+    except Exception as exc:
+        log.error("Failed to parse GOOGLE_CREDENTIALS: %s", exc)
+        return None
+
+    try:
+        from google.oauth2 import service_account
+        import google.auth.transport.requests as ga_requests
+        scopes = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+        credentials = service_account.Credentials.from_service_account_info(creds, scopes=scopes)
+        credentials.refresh(ga_requests.Request())
+        return credentials.token
+    except ImportError:
+        pass
+
+    try:
+        import base64
+        import time as _time
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import padding
+
+        now = int(_time.time())
+        header  = {"alg": "RS256", "typ": "JWT"}
+        payload = {
+            "iss":   creds["client_email"],
+            "scope": "https://www.googleapis.com/auth/spreadsheets.readonly",
+            "aud":   "https://oauth2.googleapis.com/token",
+            "iat":   now,
+            "exp":   now + 3600,
+        }
+
+        def b64(data):
+            return base64.urlsafe_b64encode(json.dumps(data).encode()).rstrip(b"=").decode()
+
+        signing_input = f"{b64(header)}.{b64(payload)}".encode()
+        private_key = serialization.load_pem_private_key(creds["private_key"].encode(), password=None)
+        signature = private_key.sign(signing_input, padding.PKCS1v15(), hashes.SHA256())
+        jwt_token = signing_input.decode() + "." + base64.urlsafe_b64encode(signature).rstrip(b"=").decode()
+
+        resp = requests.post(
+            "https://oauth2.googleapis.com/token",
+            data={"grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer", "assertion": jwt_token},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        return resp.json()["access_token"]
+    except Exception as exc:
+        log.error("JWT mint failed: %s", exc)
+        return None
+
+
+def read_sheet_tab(token, sheet_id, tab_name):
+    import urllib.parse
+    range_param = urllib.parse.quote(f"{tab_name}!A:Z")
+    url = f"https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}/values/{range_param}"
+    try:
+        r = requests.get(url, headers={"Authorization": f"Bearer {token}"}, timeout=15)
+        r.raise_for_status()
+        rows = r.json().get("values", [])
+        return rows[1:] if len(rows) > 1 else []
+    except Exception as exc:
+        log.error("Sheet read failed (%s): %s", tab_name, exc)
+        return []
+
+
+def load_tickers_from_sheet(snapshot):
+    token = get_gsheet_token()
+    if not token:
+        return None
+
+    tickers = []
+    seen = set()
+
+    # T1 — DATE | TICKER | NAME_ZH | NAME_EN | QTY | AVG_COST
+    for row in read_sheet_tab(token, SHEET_ID, SHEET_T1):
+        if len(row) < 2:
+            continue
+        code = str(row[1]).strip().upper()
+        if not code or code in seen:
+            continue
+        name_zh = row[2].strip() if len(row) > 2 else snapshot.get(code, {}).get("name_zh", "")
+        name_en = row[3].strip() if len(row) > 3 else ""
+        if not name_en:
+            name_en = snapshot.get(code, {}).get("name_zh", code)
+        tickers.append((code, name_en, name_zh, "T1"))
+        seen.add(code)
+    log.info("Sheet T1: %d tickers", len(tickers))
+
+    # T2 — TICKER | NOTE
+    t2_count = 0
+    for row in read_sheet_tab(token, SHEET_ID, SHEET_T2):
+        if len(row) < 1:
+            continue
+        code = str(row[0]).strip().upper()
+        if not code or code in seen:
+            continue
+        name_zh = snapshot.get(code, {}).get("name_zh", "")
+        tickers.append((code, name_zh or code, name_zh, "T2"))
+        seen.add(code)
+        t2_count += 1
+    log.info("Sheet T2: %d tickers", t2_count)
+    log.info("Total from Sheet: %d tickers", len(tickers))
+
+    return tickers if tickers else None
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
     log.info("=== feeder start %s ===", now_iso())
 
-    # 1. Daily snapshot
-    snapshot, raw_rows = fetch_snapshot()
+    # 1. Snapshots (TWSE + TPEx) — builds exchange routing sets
+    snapshot, raw_rows, twse_codes, tpex_codes = fetch_snapshot()
     if snapshot is None:
         log.info("No market data today — exiting without overwriting data.json")
         sys.exit(0)
@@ -517,19 +578,15 @@ def main():
         json.dump({"updated": now_iso(), "tickers": tickers_list}, f, ensure_ascii=False, indent=2)
     log.info("docs/tickers.json written (%d entries)", len(tickers_list))
 
-    # 3. Load ticker list from Google Sheet (falls back to hardcoded if unavailable)
+    # 3. Load tickers from Google Sheet (fallback to hardcoded)
     tickers = load_tickers_from_sheet(snapshot)
     if tickers is None:
-        log.warning("Sheet unavailable — using fallback hardcoded TICKERS")
+        log.warning("Sheet unavailable — using fallback TICKERS")
         tickers = FALLBACK_TICKERS
 
-    # 4. TAIEX
+    # 4. Market data
     taiex, taiex_chg, taiex_chg_pct = fetch_taiex()
-
-    # 5. Institutional (today)
     inst = fetch_institutional_today()
-
-    # 6. 5-day cumulative foreign
     foreign_5d = fetch_foreign_5d_cumul()
 
     market = {
@@ -544,16 +601,15 @@ def main():
         "pressure":           pressure_label(inst["foreign_net_m"]),
     }
 
-    # 7. Per-ticker (watchlist + portfolio combined from Sheet)
+    # 5. Per-ticker — exchange-aware history routing
     watchlist = []
     portfolio = []
 
     for ticker_entry in tickers:
-        # Support both (code, name_en, name_zh, tier) and legacy (code, name_en, name_zh, sector)
         code    = ticker_entry[0]
         name_en = ticker_entry[1]
         name_zh = ticker_entry[2]
-        tier    = ticker_entry[3]   # "T1", "T2", or legacy sector string
+        tier    = ticker_entry[3]
 
         try:
             snap    = snapshot.get(code, {})
@@ -561,22 +617,30 @@ def main():
             chg     = snap.get("chg")
             chg_pct = snap.get("chg_pct")
             volume  = snap.get("volume")
-
-            # Use name_zh from snapshot if sheet didn't have it
             if not name_zh:
                 name_zh = snap.get("name_zh", "")
 
-            history = fetch_history_12m(code)
+            # Determine exchange from snapshot sets
+            if code in tpex_codes:
+                exchange = "TPEx"
+            elif code in twse_codes:
+                exchange = "TWSE"
+            else:
+                exchange = snap.get("exchange", "TWSE")  # fallback
+
+            log.info("Fetching history %s [%s]", code, exchange)
+            history = fetch_history(code, exchange, months=12)
             techs   = compute_technicals(history, close)
 
             entry = {
-                "ticker":   code,
-                "name":     name_en,
-                "name_zh":  name_zh,
-                "tier":     tier,
-                "price":    close,
-                "chg":      chg,
-                "chg_pct":  chg_pct,
+                "ticker":    code,
+                "name":      name_en,
+                "name_zh":   name_zh,
+                "tier":      tier,
+                "exchange":  exchange,
+                "price":     close,
+                "chg":       chg,
+                "chg_pct":   chg_pct,
                 "vol_today": volume,
                 **techs,
             }
@@ -586,19 +650,20 @@ def main():
             else:
                 watchlist.append(entry)
 
-            log.info("OK %s %s [%s] price=%s trend=%s", code, name_en, tier, close, techs.get("trend"))
+            log.info("OK %s %s [%s/%s] price=%s trend=%s",
+                     code, name_zh or name_en, tier, exchange, close, techs.get("trend"))
         except Exception as exc:
             log.error("SKIP %s: %s", code, exc)
 
-    # 8. Analysis placeholder
+    # 6. Analysis placeholder
     analysis = {
         "updated":  now_iso(),
         "summary":  "Feeder ran successfully. Claude summary will appear once API credits are added.",
         "callouts": [],
-        "sources":  ["TWSE API", "三大法人 BFI82U", "Google Sheets"],
+        "sources":  ["TWSE API", "TPEx API", "三大法人 BFI82U", "Google Sheets"],
     }
 
-    # 9. Write data.json
+    # 7. Write data.json
     data_out = {
         "updated":   now_iso(),
         "market":    market,
