@@ -65,7 +65,7 @@ log = setup_logging()
 def safe_float(val, default=None):
     if val is None:
         return default
-    s = str(val).replace(",", "").strip()
+    s = str(val).replace(",", "").strip().lstrip("+")  # TPEx prefixes gains with "+"
     if s in ("--", "-", ""):
         return default
     try:
@@ -146,19 +146,30 @@ def fetch_snapshot():
         log.error("TWSE snapshot failed: %s", exc)
         return None, [], set(), set()
 
-    # TPEx
+    # TPEx — retry up to 3x, it occasionally drops the connection mid-response
     tpex_url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes"
-    try:
-        time.sleep(REQUEST_DELAY)
-        r = SESSION.get(tpex_url, timeout=30)
-        r.raise_for_status()
-        tpex_rows = r.json()
+    tpex_rows = None
+    for attempt in range(1, 4):
+        try:
+            time.sleep(REQUEST_DELAY)
+            r = SESSION.get(tpex_url, timeout=60)
+            r.raise_for_status()
+            tpex_rows = r.json()
+            log.info("TPEx snapshot fetched on attempt %d", attempt)
+            break
+        except Exception as exc:
+            log.warning("TPEx snapshot attempt %d failed: %s", attempt, exc)
+            if attempt < 3:
+                time.sleep(5 * attempt)
+    if tpex_rows is None:
+        log.warning("TPEx snapshot failed after retries — TPEx tickers will have no price/history")
+    else:
         for row in tpex_rows:
             code = row.get("SecuritiesCompanyCode", "").strip()
             if not code or code in snap:
                 continue
             close  = safe_float(row.get("Close"))
-            change = safe_float(row.get("Change"))
+            change = safe_float(row.get("Change"))   # safe_float strips leading "+"
             chg_pct = None
             if close is not None and change is not None:
                 base = close - change
@@ -172,14 +183,11 @@ def fetch_snapshot():
                 "exchange": "TPEx",
             }
             tpex_codes.add(code)
-            # add to raw_rows in TWSE-compatible shape for tickers.json
             raw_rows.append({
                 "Code": code,
                 "Name": row.get("CompanyName", "").strip(),
             })
         log.info("TPEx snapshot: %d tickers", len(tpex_codes))
-    except Exception as exc:
-        log.warning("TPEx snapshot failed (non-fatal): %s", exc)
 
     log.info("Combined snapshot: %d tickers total", len(snap))
     return snap, raw_rows, twse_codes, tpex_codes
