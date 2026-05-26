@@ -101,13 +101,12 @@ def twse_get(url, label="", retries=3, backoff=5):
 def fetch_taiex():
     """Returns (taiex, taiex_chg, taiex_chg_pct) or (None,None,None)."""
     url = "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json"
-    data = twse_get(url, "TAIEX")
+    data = twse_get(url, "TAIEX", retries=5, backoff=8)
     if not data:
         return None, None, None
     rows = data.get("data", [])
     if not rows:
         return None, None, None
-    # last row = most recent trading day; columns: 日期 成交股數 成交金額 成交筆數 發行量加權股價指數 漲跌點數
     last = rows[-1]
     try:
         taiex     = safe_float(last[4])
@@ -299,35 +298,47 @@ def fetch_snapshot():
 def fetch_foreign_5d_cumul():
     """
     Fetch institutional flow for the last 5 trading days and sum foreign net.
-    We re-use BFI82U with dayDate param — unfortunately TWSE doesn't provide
-    a date range; we iterate recent trading days (skip weekends).
-    Returns total as float (millions).
+    dayDate param must be western YYYYMMDD — TWSE converts internally.
     """
     total = 0.0
     days_collected = 0
-    today = datetime.now(TZ).date()
-    candidate = today
+    candidate = datetime.now(TZ).date()
     attempts = 0
 
-    while days_collected < 5 and attempts < 14:
+    while days_collected < 5 and attempts < 20:
         attempts += 1
-        if candidate.weekday() >= 5:  # skip weekends
+
+        # skip weekends
+        if candidate.weekday() >= 5:
             candidate -= timedelta(days=1)
             continue
+
+        # western date string — TWSE BFI82U accepts YYYYMMDD in western year
         date_str = candidate.strftime("%Y%m%d")
         url = f"https://www.twse.com.tw/fund/BFI82U?response=json&dayDate={date_str}&type=day"
-        data = twse_get(url, f"三大法人 {date_str}")
-        candidate -= timedelta(days=1)
+        data = twse_get(url, f"三大法人 {date_str}", retries=2, backoff=3)
+        candidate -= timedelta(days=1)  # always step back regardless of result
+
         if not data:
             continue
+
         rows = data.get("data", [])
+        matched = False
         for row in rows:
             name = row[0].strip()
             if "外資及陸資" in name and "不含" not in name:
                 net = safe_float(row[3], 0.0) / 1_000_000
                 total += net
                 days_collected += 1
+                matched = True
+                log.info("三大法人 %s foreign_net_m=%.1f (day %d/5)", date_str, net, days_collected)
                 break
+
+        if not matched:
+            log.debug("三大法人 %s — no foreign row found, skipping day", date_str)
+
+    if days_collected < 5:
+        log.warning("三大法人 5d cumul: only collected %d days", days_collected)
 
     return round(total, 2)
 
