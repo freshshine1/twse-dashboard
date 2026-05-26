@@ -100,12 +100,6 @@ def twse_get(url, label="", retries=3, backoff=5):
 
 # ── Snapshot — TWSE + TPEx ────────────────────────────────────────────────────
 def fetch_snapshot():
-    """
-    Fetches TWSE and TPEx snapshots.
-    Returns (snap_dict, raw_rows, twse_codes, tpex_codes).
-    snap_dict keyed by code → {close, chg, chg_pct, volume, name_zh, exchange}
-    twse_codes / tpex_codes are sets for exchange routing.
-    """
     snap = {}
     raw_rows = []
     twse_codes = set()
@@ -146,7 +140,7 @@ def fetch_snapshot():
         log.error("TWSE snapshot failed: %s", exc)
         return None, [], set(), set()
 
-    # TPEx — retry up to 3x, it occasionally drops the connection mid-response
+    # TPEx
     tpex_url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes"
     tpex_rows = None
     for attempt in range(1, 4):
@@ -169,7 +163,7 @@ def fetch_snapshot():
             if not code or code in snap:
                 continue
             close  = safe_float(row.get("Close"))
-            change = safe_float(row.get("Change"))   # safe_float strips leading "+"
+            change = safe_float(row.get("Change"))
             chg_pct = None
             if close is not None and change is not None:
                 base = close - change
@@ -206,7 +200,6 @@ def build_tickers_json(raw_rows):
 
 # ── History — exchange-aware ──────────────────────────────────────────────────
 def fetch_history_twse(ticker, months=12):
-    """TWSE STOCK_DAY history. Aborts immediately on first empty month."""
     now = datetime.now(TZ)
     all_rows = []
 
@@ -232,8 +225,8 @@ def fetch_history_twse(ticker, months=12):
 
         stat = data.get("stat", "OK") if isinstance(data, dict) else "OK"
         if stat not in ("OK", ""):
-            log.debug("%s TWSE history %s — stat=%s, aborting history fetch", ticker, date_str, stat)
-            break  # hard abort — no data means no older data either
+            log.debug("%s TWSE history %s — stat=%s, aborting", ticker, date_str, stat)
+            break
 
         rows = data.get("data", [])
         for row in rows:
@@ -256,12 +249,6 @@ def fetch_history_twse(ticker, months=12):
 
 
 def fetch_history_tpex(ticker, months=12):
-    """
-    TPEx individual stock monthly history.
-    Endpoint: POST https://www.tpex.org.tw/www/zh-tw/afterTrading/tradingStock
-    Form data: code=XXXX&date=YYYY/MM/01&response=json  (western year)
-    Aborts on first empty month.
-    """
     now = datetime.now(TZ)
     all_rows = []
     url = "https://www.tpex.org.tw/www/zh-tw/afterTrading/tradingStock"
@@ -272,7 +259,7 @@ def fetch_history_tpex(ticker, months=12):
             dt = (dt.replace(day=1) - timedelta(days=1)).replace(day=1)
         dt = dt.replace(day=1)
 
-        date_str = f"{dt.year}/{dt.month:02d}/01"   # e.g. "2025/04/01"
+        date_str = f"{dt.year}/{dt.month:02d}/01"
 
         time.sleep(REQUEST_DELAY)
         try:
@@ -287,20 +274,18 @@ def fetch_history_tpex(ticker, months=12):
             log.debug("%s TPEx history %s fetch error: %s", ticker, date_str, exc)
             continue
 
-        # Response: {"stat": "ok", "tables": [{"data": [...]}]}
         stat = data.get("stat", "ok") if isinstance(data, dict) else "ok"
         tables = data.get("tables", []) if isinstance(data, dict) else []
         rows = tables[0].get("data", []) if tables else []
 
         if stat.lower() != "ok" or not rows:
-            log.debug("%s TPEx history %s — stat=%s no data, aborting", ticker, date_str, stat)
-            break  # hard abort
+            log.debug("%s TPEx history %s — no data, aborting", ticker, date_str)
+            break
 
         for row in rows:
             try:
-                # columns: 日期(ROC YYY/MM/DD), 成交張數, 成交仟元, 開盤, 最高, 最低, 收盤, 漲跌, 筆數
                 parts = row[0].strip().split("/")
-                western_year = int(parts[0]) + 1911  # ROC → western
+                western_year = int(parts[0]) + 1911
                 date_obj = datetime(western_year, int(parts[1]), int(parts[2]))
                 all_rows.append({
                     "date":   date_obj,
@@ -327,7 +312,6 @@ def _dedup_sort(rows):
 
 
 def fetch_history(ticker, exchange, months=12):
-    """Route to correct history endpoint based on exchange."""
     if exchange == "TPEx":
         return fetch_history_tpex(ticker, months)
     return fetch_history_twse(ticker, months)
@@ -552,7 +536,9 @@ def load_tickers_from_sheet(snapshot):
         name_en = row[3].strip() if len(row) > 3 else ""
         if not name_en:
             name_en = snapshot.get(code, {}).get("name_zh", code)
-        tickers.append((code, name_en, name_zh, "T1"))
+        qty      = safe_float(row[4]) if len(row) > 4 else None
+        avg_cost = safe_float(row[5]) if len(row) > 5 else None
+        tickers.append((code, name_en, name_zh, "T1", qty, avg_cost))
         seen.add(code)
     log.info("Sheet T1: %d tickers", len(tickers))
 
@@ -617,10 +603,12 @@ def main():
     portfolio = []
 
     for ticker_entry in tickers:
-        code    = ticker_entry[0]
-        name_en = ticker_entry[1]
-        name_zh = ticker_entry[2]
-        tier    = ticker_entry[3]
+        code     = ticker_entry[0]
+        name_en  = ticker_entry[1]
+        name_zh  = ticker_entry[2]
+        tier     = ticker_entry[3]
+        qty      = ticker_entry[4] if len(ticker_entry) > 4 else None
+        avg_cost = ticker_entry[5] if len(ticker_entry) > 5 else None
 
         try:
             snap    = snapshot.get(code, {})
@@ -637,7 +625,7 @@ def main():
             elif code in twse_codes:
                 exchange = "TWSE"
             else:
-                exchange = snap.get("exchange", "TWSE")  # fallback
+                exchange = snap.get("exchange", "TWSE")
 
             log.info("Fetching history %s [%s]", code, exchange)
             history = fetch_history(code, exchange, months=12)
@@ -654,6 +642,7 @@ def main():
                 "chg_pct":   chg_pct,
                 "vol_today": volume,
                 **techs,
+                **{"qty": qty, "avg_cost": avg_cost} if tier == "T1" else {},
             }
 
             if tier == "T1":
