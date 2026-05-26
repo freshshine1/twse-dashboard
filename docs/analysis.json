@@ -1,6 +1,9 @@
 {
-  "updated": "1970-01-01T00:00:00+08:00",
-  "summary": "Feeder script has not run yet. Run feeder.py to populate today's analysis.",
+  "updated": "2026-05-26T10:47:15+08:00",
+  "summary": "Feeder ran successfully. Claude summary will appear once API credits are added.",
   "callouts": [],
-  "sources": []
+  "sources": [
+    "TWSE API",
+    "三大法人 BFI82U"
+  ]
 }
