@@ -1,15 +1,12 @@
-name: Daily TWSE Feeder
+name: Daily TWSE fetch
 
 on:
   schedule:
-    - cron: '30 8 * * 1-5'  # 16:30 Taiwan time, weekdays
-  workflow_dispatch:          # manual run button in Actions tab
-
-permissions:
-  contents: write
+    - cron: '30 8 * * 1-5'   # 16:30 TPE = 08:30 UTC, Mon–Fri
+  workflow_dispatch:           # allow manual trigger from Actions tab
 
 jobs:
-  fetch-and-update:
+  fetch:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,18 +19,17 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install requests google-auth
 
       - name: Run feeder
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         run: python feeder.py
 
-      - name: Commit and push updated data
+      - name: Commit and push data.json + tickers.json
         run: |
-          git config user.name "github-actions[bot]"
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/data.json docs/analysis.json
-          git diff --quiet && git diff --staged --quiet || \
-            git commit -m "data: auto-update TWSE $(date +'%Y-%m-%d')"
+          git add docs/data.json docs/tickers.json
+          git diff --cached --quiet || git commit -m "chore: daily data update $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push
