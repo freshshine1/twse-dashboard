@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-26T11:05:45+08:00",
+  "updated": "2026-05-26T13:24:02+08:00",
   "market": {
     "taiex": 43644.4,
     "taiex_chg": 1376.43,
@@ -229,5 +229,14 @@
       "trend": "BULL"
     }
   ],
-  "portfolio": []
+  "portfolio": [],
+  "analysis": {
+    "updated": "2026-05-26T13:24:02+08:00",
+    "summary": "Feeder ran successfully. Claude summary will appear once API credits are added.",
+    "callouts": [],
+    "sources": [
+      "TWSE API",
+      "三大法人 BFI82U"
+    ]
+  }
 }
