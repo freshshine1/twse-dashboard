@@ -952,9 +952,15 @@ function renderHeader() {
   const ageHours = (Date.now() - dt.getTime()) / 3600000;
   const tpe = dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Taipei' });
   const dateStr = dt.toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' }).replace(/-/g, '.');
-  const stale = ageHours > 24;
+  const dtTPE = new Date(dt.toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  const updHHMM = dtTPE.getHours() * 100 + dtTPE.getMinutes();
+  const nowTPE = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  const sameDay = dtTPE.toDateString() === nowTPE.toDateString();
+  const pre430 = sameDay && updHHMM < 1630;
+  const stale = ageHours > 24 || pre430;
+  const staleMsg = pre430 ? 'PRE-CLOSE' : 'STALE';
   document.getElementById('updated-time').innerHTML =
-    `Updated ${tpe} TPE${stale ? ' <span class="stale">· STALE</span>' : ''}`;
+    `Updated ${tpe} TPE${stale ? ` <span class="stale">· ${staleMsg}</span>` : ''}`;
   document.getElementById('ticker-count').textContent =
     `${state.data.watchlist.length} tickers · ${dateStr}`;
 }
