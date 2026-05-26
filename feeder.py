@@ -414,15 +414,26 @@ def main():
     log.info("docs/data.json written (%d tickers)", len(watchlist))
 
     # 7. Write analysis.json (Claude summary skipped — no credits yet)
-    analysis_out = {
+# 7. Analysis (Claude summary placeholder — no credits yet)
+    analysis = {
         "updated": now_iso(),
         "summary": "Feeder ran successfully. Claude summary will appear once API credits are added.",
         "callouts": [],
-        "sources":  ["TWSE API", "三大法人 BFI82U"],
+        "sources": ["TWSE API", "三大法人 BFI82U"],
     }
-    with open("docs/analysis.json", "w", encoding="utf-8") as f:
-        json.dump(analysis_out, f, ensure_ascii=False, indent=2)
-    log.info("docs/analysis.json written")
+
+    # 8. Write single data.json
+    data_out = {
+        "updated": now_iso(),
+        "market": market,
+        "watchlist": watchlist,
+        "portfolio": [],
+        "analysis": analysis,
+    }
+
+    with open("docs/data.json", "w", encoding="utf-8") as f:
+        json.dump(data_out, f, ensure_ascii=False, indent=2)
+    log.info("docs/data.json written (%d tickers)", len(watchlist))
 
     log.info("=== feeder done %s ===", now_iso())
 
