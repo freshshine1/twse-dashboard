@@ -642,8 +642,10 @@ def main():
                 "chg_pct":   chg_pct,
                 "vol_today": volume,
                 **techs,
-                **{"qty": qty, "avg_cost": avg_cost} if tier == "T1" else {},
             }
+            if tier == "T1":
+                entry["qty"] = qty
+                entry["avg_cost"] = avg_cost
 
             if tier == "T1":
                 portfolio.append(entry)
