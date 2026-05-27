@@ -1118,6 +1118,7 @@ function renderPortfolio() {
   const holdings = state.data.portfolio || [];
   const watchMap = {};
   state.data.watchlist.forEach(s => watchMap[s.ticker] = s);
+  state.data.portfolio.forEach(s => watchMap[s.ticker] = s);
 
   if (holdings.length === 0) {
     root.innerHTML = `
@@ -1132,15 +1133,14 @@ function renderPortfolio() {
 
   let total_cost=0, total_value=0, total_day_chg=0;
   const enriched = holdings.map(h => {
-    const w = watchMap[h.ticker];
-    if (!w || w.price == null) return null;
+    if (h.price == null || h.qty == null || h.avg_cost == null) return null;
     const cost    = h.avg_cost * h.qty;
-    const value   = w.price * h.qty;
+    const value   = h.price * h.qty;
     const pnl     = value - cost;
     const pnl_pct = (pnl / cost) * 100;
-    const day_pnl = (w.chg ?? 0) * h.qty;
+    const day_pnl = (h.chg ?? 0) * h.qty;
     total_cost += cost; total_value += value; total_day_chg += day_pnl;
-    return { ...h, ...w, cost, value, pnl, pnl_pct, day_pnl };
+    return { ...h, cost, value, pnl, pnl_pct, day_pnl };
   }).filter(Boolean);
 
   const total_pnl     = total_value - total_cost;
