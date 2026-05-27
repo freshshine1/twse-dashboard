@@ -1149,8 +1149,16 @@ function renderPortfolio() {
   const heroColor = total_pnl >= 0 ? 'var(--matcha)' : 'var(--benigara)';
   const dayColor  = total_day_chg >= 0 ? 'var(--matcha)' : 'var(--benigara)';
 
+  const TICKER_SECTOR = {
+    '0050':'ETF', '00830':'ETF', '00981A':'ETF',
+    '3017':'ELEC', '3037':'SEMI', '3163':'ELEC',
+    '3363':'SEMI', '3711':'SEMI', '7810':'ELEC',
+  };
   const sectorMap = {};
-  enriched.forEach(e => { sectorMap[e.sector] = (sectorMap[e.sector]||0) + e.value; });
+  enriched.forEach(e => {
+    const sec = e.sector ?? TICKER_SECTOR[e.ticker] ?? e.exchange ?? 'OTHER';
+    sectorMap[sec] = (sectorMap[sec]||0) + e.value;
+  });
   const sectorRows = Object.entries(sectorMap)
     .sort((a,b) => b[1]-a[1])
     .map(([s,v]) => ({ sector:s, value:v, pct:(v/total_value)*100, color:SECTOR_COLORS[s]||SECTOR_COLORS.default }));
