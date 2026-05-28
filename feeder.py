@@ -485,6 +485,8 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
             continue
         day_map = {}
         for row in raw["data"]:
+            if len(row) < 19:          # skip header/summary rows
+                continue
             ticker = row[0].strip()
             if ticker not in twse_codes:
                 continue
