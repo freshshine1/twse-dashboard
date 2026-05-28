@@ -299,8 +299,10 @@
     font-family: var(--sans);
   }
 
-  .trend-BULL { background: rgba(106,128,85,.22); color: var(--matcha); font-weight: 700; }
-  .trend-BEAR { background: rgba(163,85,69,.22); color: var(--benigara); font-weight: 700; }
+  .trend-BULL   { background: rgba(106,128,85,.18); color: var(--matcha);   font-weight: 700; border: 1px solid transparent; }
+  .trend-BEAR   { background: rgba(163,85,69,.18);  color: var(--benigara); font-weight: 700; border: 1px solid transparent; }
+  .trend-MIXED\+ { background: transparent; color: var(--ink-faint); font-weight: 500; border: 1px solid var(--border-strong); }
+  .trend-MIXED-  { background: transparent; color: var(--ink-faint); font-weight: 500; border: 1px solid var(--border-strong); }
   .stock-card.trend-BULL-border { border-left-color: var(--matcha); }
   .stock-card.trend-BEAR-border { border-left-color: var(--benigara); }
   .trend-MIXED\+ { background: var(--kincha-bg); color: var(--kincha); }
@@ -1023,10 +1025,9 @@ function renderWatchlist() {
           </div>
         </div>
         <div class="meta-row">
-          <div class="trend-pill trend-${s.trend ?? 'MIXED-'}">${s.trend === 'BULL' ? '▲ BULL' : s.trend === 'BEAR' ? '▼ BEAR' : s.trend === 'MIXED+' ? '△ MIX+' : '▽ MIX−'}</div>
+          <div class="trend-pill trend-${s.trend ?? 'MIXED-'}">${s.trend === 'BULL' ? '▲ BULL' : s.trend === 'BEAR' ? '▼ BEAR' : s.trend === 'MIXED+' ? '◆ MIX+' : '◆ MIX−'}</div>
           ${showVolBadge ? `<div class="vol-badge">${s.vol_ratio.toFixed(1)}× VOL</div>` : ''}
           <div class="pct52-tag">52W: ${safe(s.pct_from_52w_high, n => n.toFixed(1)+'%')}</div>
-          <div class="ma-inline">MA5 ${safe(s.ma5, fmtPrice)} · MA20 ${safe(s.ma20, fmtPrice)}</div>
         </div>
         <div class="details">
           <div class="details-grid">
