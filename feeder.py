@@ -428,7 +428,7 @@ def fetch_institutional_today():
         for _row in _prev_data.get("data", []):
             _name = _row[0].strip()
             _net  = safe_float(_row[3], 0.0) / 1_000_000
-            if "外資自營商" not in _name and "外資" in _name:
+            if "外資及陸資" in _name and "不含" not in _name:
                 result["foreign_net_m_prev"] = round(_net, 2)
             elif "自營商" in _name and "避險" not in _name and "自行" not in _name:
                 result["dealer_net_m_prev"] = round(_net, 2)
