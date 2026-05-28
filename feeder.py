@@ -401,6 +401,20 @@ def fetch_institutional_today():
     result["three_inst_total_m"] = round(
         result["foreign_net_m"] + result["dealer_net_m"] + result["trust_net_m"], 2
     )
+
+    # Fetch yesterday's foreign + dealer for pre-close fallback display
+    from datetime import date as _date, timedelta as _td
+    _prev = (_date.today() - _td(days=1)).strftime("%Y%m%d")
+    _prev_data = twse_get(f"https://www.twse.com.tw/fund/BFI82U?response=json&dayDate={_prev}&type=day", f"三大法人 prev {_prev}", retries=2, backoff=3)
+    if _prev_data:
+        for _row in _prev_data.get("data", []):
+            _name = _row[0].strip()
+            _net  = safe_float(_row[3], 0.0) / 1_000_000
+            if "外資自營商" not in _name and "外資" in _name:
+                result["foreign_net_m_prev"] = round(_net, 2)
+            elif "自營商" in _name and "避險" not in _name and "自行" not in _name:
+                result["dealer_net_m_prev"] = round(_net, 2)
+
     return result
 
 def pressure_label(foreign_net_m):
@@ -596,6 +610,8 @@ def main():
         "three_inst_total_m": inst["three_inst_total_m"],
         "foreign_5d_cumul_m": foreign_5d,
         "pressure":           pressure_label(inst["foreign_net_m"]),
+        "foreign_net_m_prev": inst.get("foreign_net_m_prev"),
+        "dealer_net_m_prev":  inst.get("dealer_net_m_prev"),
     }
 
     # 5. Per-ticker — exchange-aware history routing
