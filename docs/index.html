@@ -567,7 +567,14 @@
 
     .detail-summary { font-size:11px; color:var(--ink-mid); padding:10px 14px 8px; line-height:1.6; border-bottom:1px solid var(--border); margin-bottom:4px; font-style:italic; }
   .stat-value.breakout { color:var(--matcha); font-weight:600; }
-  .source-chip {
+  .callout-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.callout-item:last-child { border-bottom: none; }
+.callout-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+.callout-ticker { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; color: var(--fg-dim); }
+.callout-label { font-size: 0.88rem; font-weight: 500; color: var(--fg); flex: 1; }
+.callout-note { font-size: 0.82rem; color: var(--fg-dim); line-height: 1.6; margin-bottom: 4px; }
+.callout-action { font-size: 0.82rem; font-weight: 600; color: var(--accent); letter-spacing: 0.01em; }
+.source-chip {
     display: inline-block;
     margin: 3px 4px 0 0;
     padding: 2px 8px;
@@ -1154,7 +1161,20 @@ function renderTake() {
   if (callouts.length > 0) {
     document.getElementById('take-callouts-card').style.display = 'block';
     document.getElementById('take-callout-count').textContent = `${callouts.length} items`;
-    document.getElementById('take-callouts').innerHTML = callouts.map(c => `<div style="margin-bottom:8px;">${c}</div>`).join('');
+    document.getElementById('take-callouts').innerHTML = callouts.map(c => {
+      const flagClass = c.flag === 'bull' ? 'flag-bull' : c.flag === 'bear' ? 'flag-bear' : 'flag-neutral';
+      const flagLabel = c.flag === 'bull' ? '▲ BULL' : c.flag === 'bear' ? '▼ BEAR' : '◆ MIX';
+      const actionLine = c.action ? `<div class="callout-action">→ ${c.action}</div>` : '';
+      return `<div class="callout-item">
+        <div class="callout-top">
+          <span class="callout-ticker">${c.ticker}</span>
+          <span class="signal-badge ${flagClass}">${flagLabel}</span>
+          <span class="callout-label">${c.label}</span>
+        </div>
+        <div class="callout-note">${c.note}</div>
+        ${actionLine}
+      </div>`;
+    }).join('');
   }
 
   const sources = analysis.sources || [];
