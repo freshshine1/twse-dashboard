@@ -443,6 +443,118 @@ def pressure_label(foreign_net_m):
     else:                        return "Neutral"
 
 # ── 5-day cumulative foreign ──────────────────────────────────────────────────
+def fetch_t86_institutional(twse_codes, tpex_codes):
+    """
+    Fetch per-stock institutional flow (外資/投信/自營商) for today + 2 prior
+    trading days from TWSE T86 (TWSE tickers) and TPEx equivalent.
+    Returns dict: { ticker -> {foreign_net, trust_net, dealer_net,
+                               inst_net, foreign_3d, foreign_5d} }
+    All values in shares (not lots). Positive = net buy, negative = net sell.
+    """
+    from datetime import date as _date, timedelta as _td
+
+    def _parse_shares(s):
+        try:
+            return int(str(s).replace(",", "").replace(" ", ""))
+        except:
+            return 0
+
+    def _trading_dates_back(n):
+        """Return last n calendar days excluding today, skipping weekends."""
+        results = []
+        d = _date.today()
+        while len(results) < n:
+            d -= _td(days=1)
+            if d.weekday() < 5:   # Mon-Fri only
+                results.append(d.strftime("%Y%m%d"))
+        return results  # most-recent first
+
+    # Collect up to 5 prior trading days of T86 data
+    prior_dates = _trading_dates_back(5)
+
+    # today's date string (feeder runs after 16:30, so today IS a trading day)
+    today_str = _date.today().strftime("%Y%m%d")
+    fetch_dates = [today_str] + prior_dates[:4]   # today + 4 prior = 5 total
+
+    # --- TWSE T86 ---
+    t86_by_date = {}   # date -> { ticker -> [foreign_net, trust_net, dealer_net, inst_net] }
+    for dt in fetch_dates:
+        url = f"https://www.twse.com.tw/fund/T86?response=json&date={dt}&selectType=ALL"
+        raw = twse_get(url, f"T86 {dt}", retries=2, backoff=3)
+        if not raw or not raw.get("data"):
+            continue
+        day_map = {}
+        for row in raw["data"]:
+            ticker = row[0].strip()
+            if ticker not in twse_codes:
+                continue
+            day_map[ticker] = {
+                "foreign_net": _parse_shares(row[4]),    # 外資 net shares
+                "trust_net":   _parse_shares(row[10]),   # 投信 net shares
+                "dealer_net":  _parse_shares(row[11]),   # 自營商 total net
+                "inst_net":    _parse_shares(row[18]),   # 三大法人 combined
+            }
+        if day_map:
+            t86_by_date[dt] = day_map
+        log.info("T86 %s: %d tickers loaded", dt, len(day_map))
+
+    # --- TPEx institutional (three-party) ---
+    # TPEx publishes daily institutional per-stock as open JSON
+    tpex_by_date = {}
+    for dt in fetch_dates:
+        # TPEx date format: YYYY/MM/DD
+        dt_fmt = f"{dt[:4]}/{dt[4:6]}/{dt[6:]}"
+        url = (f"https://www.tpex.org.tw/openapi/v1/tpex_institutional_trading_daily"
+               f"?date={dt_fmt}&lang=zh-tw")
+        raw = twse_get(url, f"TPEx inst {dt}", retries=2, backoff=3)
+        if not raw or not isinstance(raw, list):
+            continue
+        day_map = {}
+        for row in raw:
+            ticker = str(row.get("SecuritiesCompanyCode","")).strip()
+            if ticker not in tpex_codes:
+                continue
+            day_map[ticker] = {
+                "foreign_net": _parse_shares(row.get("ForeignInvestorNetBuySell", 0)),
+                "trust_net":   _parse_shares(row.get("InvestmentTrustNetBuySell", 0)),
+                "dealer_net":  _parse_shares(row.get("DealerNetBuySell", 0)),
+                "inst_net":    _parse_shares(row.get("TotalNetBuySell", 0)),
+            }
+        if day_map:
+            tpex_by_date[dt] = day_map
+        log.info("TPEx inst %s: %d tickers loaded", dt, len(day_map))
+
+    # ── Combine: build per-ticker result with today + cumulative ──
+    all_codes = twse_codes | tpex_codes
+    result = {}
+    sorted_dates = sorted(t86_by_date.keys() | tpex_by_date.keys(), reverse=True)
+
+    for ticker in all_codes:
+        days = []
+        for dt in sorted_dates:
+            day_map = t86_by_date.get(dt, {}) if ticker in twse_codes else tpex_by_date.get(dt, {})
+            if ticker in day_map:
+                days.append(day_map[ticker])
+
+        if not days:
+            continue
+
+        today_data = days[0]
+        foreign_vals = [d["foreign_net"] for d in days]
+
+        result[ticker] = {
+            "foreign_net":  today_data["foreign_net"],
+            "trust_net":    today_data["trust_net"],
+            "dealer_net":   today_data["dealer_net"],
+            "inst_net":     today_data["inst_net"],
+            "foreign_3d":   sum(foreign_vals[:3]) if len(foreign_vals) >= 3 else None,
+            "foreign_5d":   sum(foreign_vals[:5]) if len(foreign_vals) >= 5 else None,
+        }
+
+    log.info("T86 combined: %d tickers with institutional data", len(result))
+    return result
+
+
 def fetch_foreign_5d_cumul():
     total = 0.0
     days_collected = 0
@@ -677,6 +789,22 @@ def main():
                 "vol_today": volume,
                 **techs,
             }
+            # Merge per-ticker institutional flow if available
+            inst = t86.get(code)
+            if inst:
+                entry["foreign_net"]  = inst["foreign_net"]
+                entry["trust_net"]    = inst["trust_net"]
+                entry["dealer_net"]   = inst["dealer_net"]
+                entry["inst_net"]     = inst["inst_net"]
+                entry["foreign_3d"]   = inst["foreign_3d"]
+                entry["foreign_5d"]   = inst["foreign_5d"]
+            else:
+                entry["foreign_net"]  = None
+                entry["trust_net"]    = None
+                entry["dealer_net"]   = None
+                entry["inst_net"]     = None
+                entry["foreign_3d"]   = None
+                entry["foreign_5d"]   = None
             if tier == "T1":
                 entry["qty"] = qty
                 entry["avg_cost"] = avg_cost
@@ -690,6 +818,10 @@ def main():
                      code, name_zh or name_en, tier, exchange, close, techs.get("trend"))
         except Exception as exc:
             log.error("SKIP %s: %s", code, exc)
+
+    # 5b. Per-ticker institutional flow (T86 + TPEx)
+    log.info("Fetching per-ticker institutional flow (T86)...")
+    t86 = fetch_t86_institutional(twse_codes, tpex_codes)
 
     # 6. Analysis — read from docs/analysis.json if present, else placeholder
     analysis_path = "docs/analysis.json"
