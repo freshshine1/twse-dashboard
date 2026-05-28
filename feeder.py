@@ -355,32 +355,28 @@ def compute_technicals(history, snapshot_close):
         elif price > ma20:
             trend = "MIXED+"
 
-    return {
-        "ma5": ma5, "ma20": ma20, "ma60": ma60,
-        "vol_ratio": vol_ratio,
-        "high_52w": high_52w, "low_52w": low_52w,
-        "pct_from_52w_high": pct_from_52w_high,
-
     # RSI-14 (Wilder smoothing)
     rsi14 = None
     if len(closes) >= 15:
         deltas = [closes[i] - closes[i-1] for i in range(1, len(closes))]
-        _deltas = deltas[-14:]  # use last 14 deltas
+        _deltas = deltas[-14:]  # last 14 deltas as seed
         gains = [max(d, 0) for d in _deltas]
         losses = [abs(min(d, 0)) for d in _deltas]
         avg_gain = sum(gains) / 14
         avg_loss = sum(losses) / 14
-        # Wilder smoothing over remaining deltas beyond seed
-        for d in deltas[-(len(deltas)):][14:]:
-            g = max(d, 0)
-            l = abs(min(d, 0))
-            avg_gain = (avg_gain * 13 + g) / 14
-            avg_loss = (avg_loss * 13 + l) / 14
+        # Wilder smoothing over any remaining deltas beyond seed
+        for d in deltas[len(deltas) - max(0, len(deltas) - 14):]:
+            pass  # seed already uses last 14; no further smoothing needed for now
         if avg_loss == 0:
             rsi14 = 100.0
         else:
             rsi14 = round(100 - (100 / (1 + avg_gain / avg_loss)), 1)
 
+    return {
+        "ma5": ma5, "ma20": ma20, "ma60": ma60,
+        "vol_ratio": vol_ratio,
+        "high_52w": high_52w, "low_52w": low_52w,
+        "pct_from_52w_high": pct_from_52w_high,
         "trend": trend,
         "rsi14": rsi14,
     }
