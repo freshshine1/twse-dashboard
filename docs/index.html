@@ -1060,17 +1060,29 @@ function renderPulse() {
     tc.style.color = m.taiex_chg >= 0 ? 'var(--matcha)' : 'var(--benigara)';
   }
 
-  const setFlow = (id, v) => {
+  const _updStr = state.data.updated || '';
+  const _updDate = _updStr ? new Date(_updStr) : null;
+  const _now = new Date();
+  const _sameDay = _updDate && _updDate.toDateString() === _now.toDateString();
+  const _updHHMM = _updDate ? _updDate.getHours() * 100 + _updDate.getMinutes() : 9999;
+  const isPreClose = _sameDay && _updHHMM < 1630;
+
+  const setFlow = (id, v, pending = false) => {
     const el = document.getElementById(id);
-    if (v != null) {
+    if (pending && v === 0) {
+      el.innerHTML = `<span style="color:var(--ink-faint);font-size:20px">—</span><br><span style="font-size:10px;color:var(--ink-faint);font-family:var(--sans)">after 16:30 TPE</span>`;
+      el.style.color = '';
+    } else if (v != null) {
       el.innerHTML = `${fmtChg(v)}<span class="flow-unit">M NT$</span>`;
       el.style.color = v >= 0 ? 'var(--matcha)' : 'var(--benigara)';
     }
   };
-  setFlow('foreign-net', m.foreign_net_m);
-  setFlow('dealer-net',  m.dealer_net_m);
+  const foreignPending = isPreClose && m.foreign_net_m === 0;
+  const dealerPending  = isPreClose && m.dealer_net_m === 0;
+  setFlow('foreign-net', m.foreign_net_m, foreignPending);
+  setFlow('dealer-net',  m.dealer_net_m,  dealerPending);
   setFlow('trust-net',   m.trust_net_m);
-  setFlow('three-inst',  m.three_inst_total_m);
+  setFlow('three-inst',  m.three_inst_total_m, foreignPending && dealerPending);
 
   const f5 = document.getElementById('foreign-5d');
   if (m.foreign_5d_cumul_m != null) {
