@@ -657,13 +657,24 @@ def main():
         except Exception as exc:
             log.error("SKIP %s: %s", code, exc)
 
-    # 6. Analysis placeholder
+    # 6. Analysis — read from docs/analysis.json if present, else placeholder
+    analysis_path = "docs/analysis.json"
     analysis = {
         "updated":  now_iso(),
         "summary":  "Feeder ran successfully. Claude summary will appear once API credits are added.",
         "callouts": [],
         "sources":  ["TWSE API", "TPEx API", "三大法人 BFI82U", "Google Sheets"],
     }
+    try:
+        with open(analysis_path, "r", encoding="utf-8") as _af:
+            _stored = json.load(_af)
+        if isinstance(_stored, dict) and _stored.get("summary"):
+            analysis = _stored
+            log.info("analysis.json loaded: %s", _stored.get("updated", "?"))
+    except FileNotFoundError:
+        log.info("analysis.json not found — using placeholder")
+    except Exception as _exc:
+        log.warning("analysis.json read error: %s", _exc)
 
     # 7. Write data.json
     data_out = {
