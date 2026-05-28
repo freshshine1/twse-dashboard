@@ -1,13 +1,13 @@
 {
-  "updated": "2026-05-28T17:54:13+08:00",
+  "updated": "2026-05-28T20:03:10+08:00",
   "market": {
     "taiex": 43636.44,
     "taiex_chg": -620.36,
     "taiex_chg_pct": -1.4,
     "foreign_net_m": 0.0,
     "dealer_net_m": 0.0,
-    "trust_net_m": -6759.49,
-    "three_inst_total_m": -6759.49,
+    "trust_net_m": -6206.04,
+    "three_inst_total_m": -6206.04,
     "foreign_5d_cumul_m": 0.0,
     "pressure": "Neutral",
     "foreign_net_m_prev": 38127.9,
