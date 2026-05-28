@@ -7,7 +7,7 @@
 <title>市場 · TWSE Watch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500&family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #f4efe6;
@@ -31,6 +31,7 @@
     --serif: 'Noto Sans TC', -apple-system, system-ui, sans-serif;
     --display: 'DM Serif Display', Georgia, serif;
     --sans: 'Inter', 'Noto Sans TC', -apple-system, system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', 'Courier New', monospace;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -180,8 +181,9 @@
   .stock-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
     border-radius: 4px;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     overflow: hidden;
     transition: border-color 0.2s;
   }
@@ -190,10 +192,10 @@
   .stock-card.in-portfolio { border-left: 3px solid var(--ai); }
 
   .stock-row {
-    padding: 14px 14px 12px;
+    padding: 8px 14px 6px;
     display: grid;
     grid-template-columns: 56px 1fr auto;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
     cursor: pointer;
   }
@@ -201,11 +203,11 @@
   .ticker-block { display: flex; flex-direction: column; align-items: flex-start; }
 
   .ticker {
-    font-family: var(--display);
-    font-size: 16px;
-    font-weight: 500;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
     color: var(--ink);
-    letter-spacing: 0.5px;
+    letter-spacing: 0.04em;
     line-height: 1;
   }
 
@@ -297,8 +299,10 @@
     font-family: var(--sans);
   }
 
-  .trend-BULL { background: var(--matcha-bg); color: var(--matcha); }
-  .trend-BEAR { background: var(--benigara-bg); color: var(--benigara); }
+  .trend-BULL { background: rgba(106,128,85,.22); color: var(--matcha); font-weight: 700; }
+  .trend-BEAR { background: rgba(163,85,69,.22); color: var(--benigara); font-weight: 700; }
+  .stock-card.trend-BULL-border { border-left-color: var(--matcha); }
+  .stock-card.trend-BEAR-border { border-left-color: var(--benigara); }
   .trend-MIXED\+ { background: var(--kincha-bg); color: var(--kincha); }
   .trend-MIXED\- { background: var(--bg-sunken); color: var(--ink-mid); }
 
@@ -312,6 +316,7 @@
     font-weight: 600;
   }
 
+  .ma-inline { font-size:10px; color:var(--ink-faint); margin-left:auto; font-family:var(--mono); letter-spacing:.01em; }
   .pct52-tag {
     margin-left: auto;
     font-size: 10px;
@@ -1001,11 +1006,11 @@ function renderWatchlist() {
     }
 
     return `
-      <div class="stock-card ${isExpanded?'expanded':''} ${inPortfolio?'in-portfolio':''}" data-ticker="${s.ticker}">
+      <div class="stock-card ${isExpanded?'expanded':''} ${inPortfolio?'in-portfolio':''} ${s.trend==='BULL'?'trend-BULL-border':s.trend==='BEAR'?'trend-BEAR-border':''}" data-ticker="${s.ticker}">
         <div class="stock-row">
           <div class="ticker-block">
             <div class="ticker">${s.ticker}</div>
-            <div class="sector-tag">${s.sector}</div>
+            <div class="sector-tag">${s.exchange || (s.sector ?? '')}</div>
           </div>
           <div class="name-block">
             <div class="name-zh">${s.name_zh}${inPortfolio?'<span class="portfolio-mark">· held</span>':''}</div>
@@ -1018,9 +1023,10 @@ function renderWatchlist() {
           </div>
         </div>
         <div class="meta-row">
-          <div class="trend-pill trend-${s.trend}">${s.trend ?? '—'}</div>
+          <div class="trend-pill trend-${s.trend ?? 'MIXED-'}">${s.trend === 'BULL' ? '▲ BULL' : s.trend === 'BEAR' ? '▼ BEAR' : s.trend === 'MIXED+' ? '△ MIX+' : '▽ MIX−'}</div>
           ${showVolBadge ? `<div class="vol-badge">${s.vol_ratio.toFixed(1)}× VOL</div>` : ''}
           <div class="pct52-tag">52W: ${safe(s.pct_from_52w_high, n => n.toFixed(1)+'%')}</div>
+          <div class="ma-inline">MA5 ${safe(s.ma5, fmtPrice)} · MA20 ${safe(s.ma20, fmtPrice)}</div>
         </div>
         <div class="details">
           <div class="details-grid">
