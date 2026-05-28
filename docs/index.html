@@ -565,6 +565,8 @@
     letter-spacing: 0.5px;
   }
 
+    .detail-summary { font-size:11px; color:var(--ink-mid); padding:10px 14px 8px; line-height:1.6; border-bottom:1px solid var(--border); margin-bottom:4px; font-style:italic; }
+  .stat-value.breakout { color:var(--matcha); font-weight:600; }
   .source-chip {
     display: inline-block;
     margin: 3px 4px 0 0;
@@ -1016,7 +1018,7 @@ function renderWatchlist() {
           </div>
           <div class="name-block">
             <div class="name-zh">${s.name_zh}${inPortfolio?'<span class="portfolio-mark">· held</span>':''}</div>
-            <div class="name-en">${s.name ?? ''}</div>
+            ${(s.name && s.name !== s.name_zh) ? `<div class="name-en">${s.name}</div>` : ''}
           </div>
           <div class="price-block">
             <div class="price">${safe(s.price, fmtPrice)}</div>
@@ -1030,17 +1032,49 @@ function renderWatchlist() {
           <div class="pct52-tag">52W: ${safe(s.pct_from_52w_high, n => n.toFixed(1)+'%')}</div>
         </div>
         <div class="details">
-          <div class="details-grid">
-            <div class="stat"><div class="stat-label">MA 5</div><div class="stat-value">${safe(s.ma5, fmtPrice)}</div></div>
-            <div class="stat"><div class="stat-label">MA 20</div><div class="stat-value">${safe(s.ma20, fmtPrice)}</div></div>
-            <div class="stat"><div class="stat-label">MA 60</div><div class="stat-value">${safe(s.ma60, fmtPrice)}</div></div>
-            <div class="stat"><div class="stat-label">52W High</div><div class="stat-value dim">${safe(s.high_52w, fmtPrice)}</div></div>
-            <div class="stat"><div class="stat-label">52W Low</div><div class="stat-value dim">${safe(s.low_52w, fmtPrice)}</div></div>
-            <div class="stat"><div class="stat-label">Vol Today</div><div class="stat-value">${safe(s.vol_today, fmtInt)}</div></div>
-            <div class="stat"><div class="stat-label">Vol 5D Avg</div><div class="stat-value dim">${safe(s.vol_5d_avg, fmtInt)}</div></div>
-            <div class="stat"><div class="stat-label">Vol Ratio</div><div class="stat-value">${safe(s.vol_ratio, n => n.toFixed(2)+'×')}</div></div>
-            <div class="stat"><div class="stat-label">Foreign Net</div><div class="stat-value" style="color:${(s.foreign_net_m??0)>=0?'var(--matcha)':'var(--benigara)'};">${safe(s.foreign_net_m, n => fmtChg(n)+'M')}</div></div>
-          </div>
+          ${(() => {
+            const p = s.price;
+            const maPos = (ma) => (p && ma) ? ((p-ma)/ma*100) : null;
+            const ma5p=maPos(s.ma5), ma20p=maPos(s.ma20), ma60p=maPos(s.ma60);
+            const fmtPos = n => n==null?'—':(n>=0?'+':'')+n.toFixed(1)+'%';
+            const posColor = n => n==null?'':n>=0?'var(--matcha)':'var(--benigara)';
+            const rsi = s.rsi14??null;
+            const rsiLabel = rsi==null?null:rsi.toFixed(0);
+            const rsiColor = rsi==null?'':rsi>=70?'var(--benigara)':rsi<=30?'var(--matcha)':'var(--ink)';
+            const rsiNote = rsi==null?'':rsi>=70?' overbought':rsi<=30?' oversold':'';
+            const near52h = (s.high_52w&&p)?((p/s.high_52w-1)*100):null;
+            const breakout = near52h!=null&&near52h>=-3;
+            const holding = (state.data.portfolio||[]).find(h=>h.ticker===s.ticker);
+            const costDist = (holding&&p&&holding.avg_cost)?((p-holding.avg_cost)/holding.avg_cost*100):null;
+            const parts=[];
+            if(ma5p!=null&&ma20p!=null&&ma60p!=null){
+              if(ma5p>0&&ma20p>0&&ma60p>0) parts.push('Above all MAs');
+              else if(ma5p<0&&ma20p<0&&ma60p<0) parts.push('Below all MAs');
+              else if(ma5p>0&&ma20p>0&&ma60p<0) parts.push('Above MA5/20, below MA60');
+              else if(ma5p>0&&ma20p<0) parts.push('Above MA5, below MA20');
+            }
+            if(rsiLabel) parts.push('RSI '+rsiLabel+rsiNote);
+            if(breakout) parts.push('Near 52W high');
+            if(s.vol_ratio>=2) parts.push(s.vol_ratio.toFixed(1)+'× volume');
+            if(costDist!=null) parts.push('Entry '+(costDist>=0?'+':'')+costDist.toFixed(1)+'% from cost');
+            const summary = parts.join(' · ')||'Insufficient data';
+            return `
+            <div class="detail-summary">${summary}</div>
+            <div class="details-grid">
+              <div class="stat"><div class="stat-label">vs MA5</div><div class="stat-value" style="color:${posColor(ma5p)}">${fmtPos(ma5p)}</div></div>
+              <div class="stat"><div class="stat-label">vs MA20</div><div class="stat-value" style="color:${posColor(ma20p)}">${fmtPos(ma20p)}</div></div>
+              <div class="stat"><div class="stat-label">vs MA60</div><div class="stat-value" style="color:${posColor(ma60p)}">${fmtPos(ma60p)}</div></div>
+              ${rsiLabel?`<div class="stat"><div class="stat-label">RSI 14</div><div class="stat-value" style="color:${rsiColor}">${rsiLabel}${rsiNote}</div></div>`:''}
+              <div class="stat"><div class="stat-label">52W High</div><div class="stat-value ${breakout?'breakout':'dim'}">${safe(s.high_52w,fmtPrice)}${breakout?' ◉':''}</div></div>
+              <div class="stat"><div class="stat-label">52W Low</div><div class="stat-value dim">${safe(s.low_52w,fmtPrice)}</div></div>
+              <div class="stat"><div class="stat-label">MA5</div><div class="stat-value dim">${safe(s.ma5,fmtPrice)}</div></div>
+              <div class="stat"><div class="stat-label">MA20</div><div class="stat-value dim">${safe(s.ma20,fmtPrice)}</div></div>
+              <div class="stat"><div class="stat-label">MA60</div><div class="stat-value dim">${safe(s.ma60,fmtPrice)}</div></div>
+              <div class="stat"><div class="stat-label">Vol Ratio</div><div class="stat-value ${(s.vol_ratio??0)>=2?'':'dim'}">${safe(s.vol_ratio,n=>n.toFixed(1)+'×')}</div></div>
+              <div class="stat"><div class="stat-label">Vol Today</div><div class="stat-value dim">${safe(s.vol_today,fmtInt)}</div></div>
+              ${costDist!=null?`<div class="stat"><div class="stat-label">From Entry</div><div class="stat-value" style="color:${costDist>=0?'var(--matcha)':'var(--benigara)'}">${costDist>=0?'+':''}${costDist.toFixed(1)}%</div></div>`:''}
+            </div>`;
+          })()}
         </div>
       </div>
     `;
@@ -1077,7 +1111,10 @@ function renderPulse() {
   const setFlow = (id, v, pending = false) => {
     const el = document.getElementById(id);
     if (pending && v === 0) {
-      el.innerHTML = `<span style="color:var(--ink-faint);font-size:20px">—</span><br><span style="font-size:10px;color:var(--ink-faint);font-family:var(--sans)">after 16:30 TPE</span>`;
+      const _prevKey = id==='foreign-net'?'foreign_net_m_prev':id==='dealer-net'?'dealer_net_m_prev':null;
+      const _prev = _prevKey ? m[_prevKey] : null;
+      const _prevHtml = (_prev!=null) ? `<div style="font-size:11px;font-family:var(--sans);margin-top:3px;color:var(--ink-mid)">${fmtChg(_prev)}M <span style="color:var(--ink-faint);font-size:10px">prior day *</span></div>` : '';
+      el.innerHTML = `<span style="color:var(--ink-faint);font-size:20px">—</span>${_prevHtml}<div style="font-size:10px;color:var(--ink-faint);font-family:var(--sans);margin-top:2px">* today after 16:30 TPE</div>`;
       el.style.color = '';
     } else if (v != null) {
       el.innerHTML = `${fmtChg(v)}<span class="flow-unit">M NT$</span>`;
