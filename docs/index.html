@@ -1,1325 +1,680 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#f4efe6">
 <title>市場 · TWSE Watch</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500&family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+/* ── Tokens ── */
+:root {
+  --bg:       #f4efe6;
+  --surface:  #faf8f4;
+  --border:   #e2ddd4;
+  --text:     #1a1814;
+  --muted:    #7a7570;
+  --accent:   #1a1814;
+  --bull:     #1a7a4a;
+  --bull-bg:  #e8f5ee;
+  --bear:     #b83232;
+  --bear-bg:  #faeaea;
+  --neutral:  #6b6560;
+  --neutral-bg:#f0ede8;
+  --chip-bg:  #edeae4;
+  --radius:   10px;
+  --radius-sm:6px;
+  --font:     'DM Mono', 'Courier New', monospace;
+  --sans:     'DM Sans', system-ui, sans-serif;
+  --tab-h:    44px;
+  --nav-h:    52px;
+}
+@media (prefers-color-scheme: dark) {
   :root {
-    --bg: #f4efe6;
-    --bg-elev: #faf6ee;
-    --bg-card: #fffdf7;
-    --bg-sunken: #ece5d6;
-    --border: #d9d0bd;
-    --border-strong: #b8ac93;
-    --ink: #2c2620;
-    --ink-mid: #5e564a;
-    --ink-faint: #8f8674;
-    --ai: #3a5570;
-    --ai-soft: #6a85a0;
-    --ai-bg: rgba(58, 85, 112, 0.07);
-    --matcha: #6a8055;
-    --matcha-bg: rgba(106, 128, 85, 0.1);
-    --benigara: #a35545;
-    --benigara-bg: rgba(163, 85, 69, 0.1);
-    --kincha: #8a6f3a;
-    --kincha-bg: rgba(138, 111, 58, 0.12);
-    --serif: 'Noto Sans TC', -apple-system, system-ui, sans-serif;
-    --display: 'DM Serif Display', Georgia, serif;
-    --sans: 'Inter', 'Noto Sans TC', -apple-system, system-ui, sans-serif;
-    --mono: 'IBM Plex Mono', 'Courier New', monospace;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-  html, body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: var(--sans);
-    font-size: 14px;
-    line-height: 1.5;
-    overscroll-behavior: none;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    font-weight: 400;
-  }
-
-  body {
-    min-height: 100vh;
-    padding-bottom: 90px;
-    background-image:
-      radial-gradient(ellipse at top, rgba(255, 255, 240, 0.4), transparent 60%),
-      radial-gradient(ellipse at bottom right, rgba(220, 210, 190, 0.2), transparent 60%);
-  }
-
-  .header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(244, 239, 230, 0.92);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .header-inner {
-    padding: 18px 20px 14px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .logo { display: flex; align-items: baseline; gap: 10px; }
-
-  .logo-kanji {
-    font-family: var(--serif);
-    font-size: 26px;
-    font-weight: 500;
-    color: var(--ink);
-    letter-spacing: 4px;
-  }
-
-  .logo-sub {
-    font-family: var(--display);
-    font-style: italic;
-    font-size: 13px;
-    color: var(--ink-faint);
-    letter-spacing: 1px;
-  }
-
-  .header-meta {
-    font-size: 10px;
-    color: var(--ink-faint);
-    text-align: right;
-    letter-spacing: 1px;
-    font-weight: 300;
-  }
-
-  .header-meta .stale { color: var(--kincha); font-weight: 500; }
-
-  .header-meta .dot {
-    display: inline-block;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--matcha);
-    margin-right: 5px;
-    vertical-align: middle;
-    animation: pulse 2.5s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 0.4; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.2); }
-  }
-
-  .tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    padding: 0 20px;
-    gap: 22px;
-  }
-
-  .tab {
-    padding: 12px 0 14px;
-    color: var(--ink-faint);
-    font-size: 11px;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    font-weight: 500;
-    border-bottom: 1.5px solid transparent;
-    cursor: pointer;
-    user-select: none;
-    transition: color 0.2s, border-color 0.2s;
-  }
-
-  .tab.active { color: var(--ink); border-bottom-color: var(--ink); }
-  .tab:hover:not(.active) { color: var(--ink-mid); }
-
-  .page { display: none; padding: 16px 20px 0; }
-  .page.active { display: block; animation: fadeIn 0.3s ease-out; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .sort-bar {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 14px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding-bottom: 2px;
-  }
-
-  .sort-bar::-webkit-scrollbar { display: none; }
-
-  .sort-chip {
-    padding: 6px 12px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    font-size: 10px;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    font-weight: 500;
-    color: var(--ink-mid);
-    white-space: nowrap;
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.15s;
-  }
-
-  .sort-chip.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-
-  .stock-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--border);
-    border-radius: 4px;
-    margin-bottom: 5px;
-    overflow: hidden;
-    transition: border-color 0.2s;
-  }
-
-  .stock-card.expanded { border-color: var(--border-strong); }
-  .stock-card.in-portfolio { border-left: 3px solid var(--ai); }
-
-  .stock-row {
-    padding: 8px 14px 6px;
-    display: grid;
-    grid-template-columns: 56px 1fr auto;
-    gap: 10px;
-    align-items: center;
-    cursor: pointer;
-  }
-
-  .ticker-block { display: flex; flex-direction: column; align-items: flex-start; }
-
-  .ticker {
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink);
-    letter-spacing: 0.04em;
-    line-height: 1;
-  }
-
-  .sector-tag {
-    font-size: 8px;
-    color: var(--ink-faint);
-    letter-spacing: 1.5px;
-    margin-top: 5px;
-    text-transform: uppercase;
-    font-weight: 500;
-  }
-
-  .name-block { min-width: 0; overflow: hidden; }
-
-  .name-zh {
-    font-family: var(--serif);
-    font-size: 17px;
-    font-weight: 500;
-    color: var(--ink);
-    letter-spacing: 2px;
-    line-height: 1.15;
-  }
-
-  .name-en {
-    font-family: var(--display);
-    font-style: italic;
-    font-size: 11px;
-    color: var(--ink-faint);
-    margin-top: 3px;
-    letter-spacing: 0.3px;
-  }
-
-  .portfolio-mark {
-    display: inline-block;
-    font-size: 9px;
-    color: var(--ai);
-    margin-left: 6px;
-    letter-spacing: 1.5px;
-    font-family: var(--display);
-    font-style: italic;
-    font-weight: 500;
-    vertical-align: middle;
-  }
-
-  .price-block { text-align: right; min-width: 90px; }
-
-  .price {
-    font-family: var(--display);
-    font-size: 19px;
-    font-weight: 500;
-    color: var(--ink);
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .change {
-    font-size: 11px;
-    margin-top: 4px;
-    font-variant-numeric: tabular-nums;
-    font-weight: 500;
-    letter-spacing: 0.3px;
-  }
-
-  .change.up { color: var(--matcha); }
-  .change.down { color: var(--benigara); }
-
-  .pnl-row {
-    margin-top: 5px;
-    font-size: 10px;
-    color: var(--ai);
-    letter-spacing: 0.5px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .meta-row {
-    padding: 0 14px 12px;
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .trend-pill {
-    font-size: 9px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 2px;
-    letter-spacing: 1.2px;
-    font-family: var(--sans);
-  }
-
-  .trend-BULL   { background: rgba(106,128,85,.18); color: var(--matcha);   font-weight: 700; border: 1px solid transparent; }
-  .trend-BEAR   { background: rgba(163,85,69,.18);  color: var(--benigara); font-weight: 700; border: 1px solid transparent; }
-  .trend-MIXED\+ { background: transparent; color: var(--ink-faint); font-weight: 500; border: 1px solid var(--border-strong); }
-  .trend-MIXED-  { background: transparent; color: var(--ink-faint); font-weight: 500; border: 1px solid var(--border-strong); }
-  .stock-card.trend-BULL-border { border-left-color: var(--matcha); }
-  .stock-card.trend-BEAR-border { border-left-color: var(--benigara); }
-  .trend-MIXED\+ { background: var(--kincha-bg); color: var(--kincha); }
-  .trend-MIXED\- { background: var(--bg-sunken); color: var(--ink-mid); }
-
-  .vol-badge {
-    font-size: 9px;
-    padding: 3px 8px;
-    border-radius: 2px;
-    background: var(--kincha-bg);
-    color: var(--kincha);
-    letter-spacing: 0.8px;
-    font-weight: 600;
-  }
-
-  .ma-inline { font-size:10px; color:var(--ink-faint); margin-left:auto; font-family:var(--mono); letter-spacing:.01em; }
-  .pct52-tag {
-    margin-left: auto;
-    font-size: 10px;
-    color: var(--ink-faint);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.3px;
-  }
-
-  .details {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-  }
-
-  .stock-card.expanded .details {
-    max-height: 300px;
-    border-top: 1px solid var(--border);
-  }
-
-  .details-grid {
-    padding: 14px;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 14px 16px;
-    background: var(--bg-elev);
-  }
-
-  .stat { display: flex; flex-direction: column; }
-
-  .stat-label {
-    font-size: 9px;
-    color: var(--ink-faint);
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    font-weight: 500;
-  }
-
-  .stat-value {
-    font-family: var(--display);
-    font-size: 14px;
-    font-weight: 500;
-    margin-top: 3px;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-  }
-
-  .stat-value.dim { color: var(--ink-mid); font-weight: 400; }
-
-  .pulse-hero {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 22px 20px 20px;
-    margin-bottom: 10px;
-    text-align: center;
-    position: relative;
-  }
-
-  .pulse-hero::before {
-    content: '加權';
-    position: absolute;
-    top: 14px;
-    left: 18px;
-    font-family: var(--serif);
-    font-size: 11px;
-    color: var(--ink-faint);
-    letter-spacing: 3px;
-  }
-
-  .pulse-label-en {
-    position: absolute;
-    top: 14px;
-    right: 18px;
-    font-family: var(--display);
-    font-style: italic;
-    font-size: 11px;
-    color: var(--ink-faint);
-    letter-spacing: 1px;
-  }
-
-  .pulse-value {
-    font-family: var(--display);
-    font-size: 52px;
-    font-weight: 400;
-    color: var(--ink);
-    letter-spacing: -1.5px;
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-    margin-top: 6px;
-  }
-
-  .pulse-change {
-    margin-top: 8px;
-    font-size: 14px;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.5px;
-    font-weight: 500;
-  }
-
-  .pressure-pill {
-    display: inline-block;
-    margin-top: 16px;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 10px;
-    letter-spacing: 2px;
-    font-weight: 600;
-    text-transform: uppercase;
-    border: 1px solid;
-  }
-
-  .pressure-strong-sell, .pressure-sell, .pressure-net-sell {
-    color: var(--benigara); background: var(--benigara-bg); border-color: var(--benigara);
-  }
-  .pressure-neutral {
-    color: var(--ink-mid); background: var(--bg-sunken); border-color: var(--border-strong);
-  }
-  .pressure-buy, .pressure-strong-buy, .pressure-net-buy {
-    color: var(--matcha); background: var(--matcha-bg); border-color: var(--matcha);
-  }
-
-  .flow-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .flow-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 14px;
-  }
-
-  .flow-label {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 8px;
-  }
-
-  .flow-label-zh {
-    font-family: var(--serif);
-    font-size: 12px;
-    color: var(--ink-mid);
-    letter-spacing: 2px;
-  }
-
-  .flow-label-en {
-    font-family: var(--display);
-    font-style: italic;
-    font-size: 10px;
-    color: var(--ink-faint);
-    letter-spacing: 0.5px;
-  }
-
-  .flow-value {
-    font-family: var(--display);
-    font-size: 22px;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.3px;
-  }
-
-  .flow-unit {
-    font-size: 9px;
-    color: var(--ink-faint);
-    margin-left: 5px;
-    font-weight: 400;
-    font-family: var(--sans);
-    letter-spacing: 1px;
-  }
-
-  .take-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 20px 18px;
-    margin-bottom: 10px;
-    position: relative;
-  }
-
-  .take-card::before {
-    content: '';
-    position: absolute;
-    top: 14px;
-    bottom: 14px;
-    left: 0;
-    width: 2px;
-    background: var(--ai);
-  }
-
-  .take-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 14px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .take-label {
-    font-family: var(--serif);
-    font-size: 17px;
-    font-weight: 500;
-    color: var(--ink);
-    letter-spacing: 2px;
-  }
-
-  .take-label-en {
-    font-family: var(--display);
-    font-style: italic;
-    font-size: 11px;
-    color: var(--ink-faint);
-    letter-spacing: 0.5px;
-  }
-
-  .take-tag {
-    font-size: 9px;
-    color: var(--ink-faint);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    font-weight: 500;
-  }
-
-  .take-body {
-    font-family: var(--sans);
-    font-size: 13.5px;
-    line-height: 1.85;
-    color: var(--ink);
-    font-weight: 400;
-  }
-
-  .take-body em { font-style: italic; color: var(--ai); font-weight: 500; }
-  .take-body strong { font-weight: 600; color: var(--ink); }
-
-  .sources {
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    font-size: 10px;
-    color: var(--ink-faint);
-    letter-spacing: 0.5px;
-  }
-
-    .detail-summary { font-size:11px; color:var(--ink-mid); padding:10px 14px 8px; line-height:1.6; border-bottom:1px solid var(--border); margin-bottom:4px; font-style:italic; }
-  .stat-value.breakout { color:var(--matcha); font-weight:600; }
-  .callout-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
-.callout-item:last-child { border-bottom: none; }
-.callout-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
-.callout-ticker { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; color: var(--fg-dim); }
-.callout-label { font-size: 0.88rem; font-weight: 500; color: var(--fg); flex: 1; }
-.callout-note { font-size: 0.82rem; color: var(--fg-dim); line-height: 1.6; margin-bottom: 4px; }
-.callout-action { font-size: 0.82rem; font-weight: 600; color: var(--accent); letter-spacing: 0.01em; }
-.source-chip {
-    display: inline-block;
-    margin: 3px 4px 0 0;
-    padding: 2px 8px;
-    background: var(--bg-sunken);
-    border-radius: 12px;
-    font-size: 9px;
-    color: var(--ink-mid);
-  }
-
-  .pnl-hero {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 22px 20px;
-    margin-bottom: 10px;
-    text-align: center;
-  }
-
-  .pnl-hero-label {
-    font-family: var(--serif);
-    font-size: 11px;
-    color: var(--ink-faint);
-    letter-spacing: 3px;
-  }
-
-  .pnl-hero-value {
-    font-family: var(--display);
-    font-size: 44px;
-    font-weight: 400;
-    margin-top: 4px;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -1px;
-  }
-
-  .pnl-hero-sub {
-    font-size: 12px;
-    margin-top: 4px;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.3px;
-  }
-
-  .pnl-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .holding-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 14px;
-    margin-bottom: 6px;
-  }
-
-  .holding-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 10px;
-  }
-
-  .holding-pnl { text-align: right; }
-
-  .holding-pnl-value {
-    font-family: var(--display);
-    font-size: 17px;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .holding-pnl-pct {
-    font-size: 11px;
-    margin-top: 2px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .holding-detail {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    padding-top: 8px;
-    border-top: 1px dashed var(--border);
-  }
-
-  .holding-detail .stat-label { font-size: 8px; }
-  .holding-detail .stat-value { font-size: 12px; margin-top: 2px; }
-
-  .alloc-bar-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 16px;
-    margin-bottom: 10px;
-  }
-
-  .alloc-title {
-    font-family: var(--serif);
-    font-size: 13px;
-    color: var(--ink);
-    letter-spacing: 2px;
-    margin-bottom: 14px;
-  }
-
-  .alloc-bar {
-    display: flex;
-    height: 8px;
-    border-radius: 2px;
-    overflow: hidden;
-    background: var(--bg-sunken);
-    margin-bottom: 12px;
-  }
-
-  .alloc-seg { height: 100%; }
-  .alloc-legend { display: flex; flex-direction: column; gap: 6px; }
-
-  .alloc-row { display: flex; align-items: center; gap: 8px; font-size: 11px; }
-
-  .alloc-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
-  .alloc-name { color: var(--ink); }
-  .alloc-pct { margin-left: auto; font-family: var(--display); font-variant-numeric: tabular-nums; color: var(--ink-mid); }
-
-  .empty-portfolio {
-    text-align: center;
-    padding: 50px 24px;
-    background: var(--bg-card);
-    border: 1px dashed var(--border-strong);
-    border-radius: 4px;
-  }
-
-  .empty-portfolio .ema-kanji {
-    font-family: var(--serif);
-    font-size: 36px;
-    color: var(--ink-faint);
-    letter-spacing: 6px;
-    margin-bottom: 10px;
-  }
-
-  .empty-portfolio p {
-    font-family: var(--serif);
-    font-size: 13px;
-    color: var(--ink-mid);
-    line-height: 1.7;
-    margin-bottom: 16px;
-  }
-
-  .empty-portfolio code {
-    font-family: ui-monospace, monospace;
-    font-size: 11px;
-    background: var(--bg-sunken);
-    padding: 2px 6px;
-    border-radius: 3px;
-    color: var(--ai);
-  }
-
-  .refresh-fab {
-    position: fixed;
-    bottom: 24px;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-    background: var(--ink);
-    color: var(--bg);
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(44, 38, 32, 0.25);
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .refresh-fab:active { transform: scale(0.92); }
-  .refresh-fab svg { width: 20px; height: 20px; }
-  .refresh-fab.spinning svg { animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .section-header {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    margin: 18px 0 10px;
-  }
-
-  .section-header-zh {
-    font-family: var(--serif);
-    font-size: 13px;
-    color: var(--ink);
-    letter-spacing: 3px;
-    font-weight: 500;
-  }
-
-  .section-header-en {
-    font-family: var(--display);
-    font-style: italic;
-    font-size: 11px;
-    color: var(--ink-faint);
-    letter-spacing: 0.5px;
-  }
-
-  .section-header-rule { flex: 1; height: 1px; background: var(--border); }
-
-  @media (max-width: 360px) {
-    .stock-row { grid-template-columns: 50px 1fr auto; gap: 10px; padding: 12px 12px 10px; }
-    .name-zh { font-size: 15px; }
-    .price { font-size: 17px; }
-  }
+    --bg:       #131210;
+    --surface:  #1c1a17;
+    --border:   #2e2b26;
+    --text:     #e8e4dc;
+    --muted:    #7a7570;
+    --accent:   #e8e4dc;
+    --bull-bg:  #0d2318;
+    --bear-bg:  #2a1010;
+    --neutral-bg:#1e1c18;
+    --chip-bg:  #252219;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; }
+a { color: inherit; text-decoration: none; }
+
+/* ── Nav ── */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 16px; height: var(--nav-h); gap: 12px;
+}
+.nav-title { font-family: var(--font); font-size: 13px; font-weight: 700; letter-spacing: .06em; flex: 1; }
+.nav-meta { font-size: 12px; color: var(--muted); font-family: var(--font); }
+
+/* ── Tab bar ── */
+.tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+  background: var(--bg); position: sticky; top: var(--nav-h); z-index: 90;
+  overflow-x: auto; scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex-shrink: 0; height: var(--tab-h); padding: 0 18px;
+  font-family: var(--font); font-size: 12px; font-weight: 600; letter-spacing: .05em;
+  border: none; background: none; color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
+}
+.tab.active { color: var(--text); border-bottom-color: var(--text); }
+
+/* ── Panels ── */
+.panel { display: none; padding-bottom: 80px; }
+.panel.active { display: block; }
+
+/* ── Sort bar ── */
+.sort-bar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 16px; overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
+}
+.sort-bar::-webkit-scrollbar { display: none; }
+.sort-btn {
+  flex-shrink: 0; height: 28px; padding: 0 11px;
+  font-family: var(--font); font-size: 11px; font-weight: 600; letter-spacing: .04em;
+  border: 1px solid var(--border); border-radius: 20px;
+  background: none; color: var(--muted); cursor: pointer; transition: all .15s;
+}
+.sort-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+/* ── Ticker card ── */
+.ticker-list { padding: 0 12px; }
+.ticker-card {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); margin-top: 10px; overflow: hidden;
+  transition: border-color .15s;
+}
+.ticker-card:hover { border-color: var(--muted); }
+.ticker-main {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 8px; padding: 12px 14px; cursor: pointer;
+  align-items: start;
+}
+.ticker-left { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ticker-top { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.ticker-code { font-family: var(--font); font-size: 13px; font-weight: 700; color: var(--text); }
+.ticker-name { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ticker-chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
+
+/* signal badge */
+.badge-signal {
+  font-family: var(--font); font-size: 10px; font-weight: 700; letter-spacing: .05em;
+  padding: 2px 7px; border-radius: 4px; white-space: nowrap;
+}
+.badge-signal.bull   { background: var(--bull-bg);    color: var(--bull); }
+.badge-signal.bear   { background: var(--bear-bg);    color: var(--bear); }
+.badge-signal.neutral{ background: var(--neutral-bg); color: var(--neutral); }
+
+/* small chip */
+.chip {
+  font-family: var(--font); font-size: 10px; font-weight: 600;
+  padding: 2px 6px; border-radius: 4px;
+  background: var(--chip-bg); color: var(--muted);
+  white-space: nowrap;
+}
+.chip.bull  { background: var(--bull-bg);  color: var(--bull); }
+.chip.bear  { background: var(--bear-bg);  color: var(--bear); }
+.chip.amber { background: #fdf3e0; color: #8a5c00; }
+@media (prefers-color-scheme: dark) {
+  .chip.amber { background: #2a1f00; color: #d4a020; }
+}
+
+/* price column */
+.ticker-right { text-align: right; flex-shrink: 0; }
+.price-main { font-family: var(--font); font-size: 16px; font-weight: 700; }
+.price-chg  { font-family: var(--font); font-size: 12px; margin-top: 2px; }
+.price-chg.pos { color: var(--bull); }
+.price-chg.neg { color: var(--bear); }
+.price-chg.flat{ color: var(--muted); }
+
+/* ── Expandable chip detail ── */
+.chip-detail {
+  border-top: 1px solid var(--border);
+  padding: 10px 14px; display: none;
+  background: var(--bg);
+}
+.chip-detail.open { display: block; }
+.chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.chip-section-label {
+  font-family: var(--font); font-size: 10px; font-weight: 700;
+  letter-spacing: .06em; color: var(--muted); margin-top: 10px;
+}
+.chip-section-label:first-child { margin-top: 0; }
+.chip-stat {
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--chip-bg); border-radius: var(--radius-sm);
+  padding: 6px 9px; min-width: 64px;
+}
+.chip-stat-label { font-family: var(--font); font-size: 9px; color: var(--muted); letter-spacing: .04em; }
+.chip-stat-val   { font-family: var(--font); font-size: 13px; font-weight: 700; color: var(--text); }
+.chip-stat-val.pos { color: var(--bull); }
+.chip-stat-val.neg { color: var(--bear); }
+.chip-stat-val.dim { color: var(--muted); }
+
+/* ── Pulse tab ── */
+.pulse-section { padding: 16px; border-bottom: 1px solid var(--border); }
+.pulse-label { font-family: var(--font); font-size: 10px; font-weight: 700; letter-spacing: .07em; color: var(--muted); margin-bottom: 10px; }
+.inst-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.inst-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px;
+}
+.inst-card-label { font-family: var(--font); font-size: 10px; color: var(--muted); letter-spacing: .04em; }
+.inst-card-val { font-family: var(--font); font-size: 18px; font-weight: 700; margin-top: 4px; }
+.inst-card-prev { font-family: var(--font); font-size: 10px; color: var(--muted); margin-top: 3px; }
+.taiex-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.taiex-val { font-family: var(--font); font-size: 28px; font-weight: 700; }
+.taiex-chg { font-family: var(--font); font-size: 15px; }
+
+/* ── Portfolio tab ── */
+.port-card {
+  margin: 10px 12px 0; border: 1px solid var(--border);
+  border-radius: var(--radius); background: var(--surface); overflow: hidden;
+}
+.port-main { padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.port-pnl-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+
+/* ── Take tab ── */
+.take-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.take-summary { font-size: 14px; line-height: 1.65; color: var(--text); white-space: pre-wrap; }
+.callout-card {
+  margin: 0 12px 10px; border: 1px solid var(--border);
+  border-radius: var(--radius); background: var(--surface); overflow: hidden;
+}
+.callout-header { padding: 12px 14px 8px; display: flex; align-items: center; gap: 8px; }
+.callout-flag {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.callout-flag.bull { background: var(--bull); }
+.callout-flag.bear { background: var(--bear); }
+.callout-label { font-size: 14px; font-weight: 600; flex: 1; }
+.callout-note { padding: 0 14px 10px; font-size: 13px; color: var(--muted); line-height: 1.55; }
+.callout-action {
+  padding: 10px 14px; border-top: 1px solid var(--border);
+  font-family: var(--font); font-size: 12px; color: var(--text);
+  background: var(--chip-bg); line-height: 1.5;
+}
+.callout-action::before { content: "→ "; font-weight: 700; }
+
+/* ── Empty state ── */
+.empty {
+  text-align: center; padding: 60px 20px;
+  font-family: var(--font); font-size: 13px; color: var(--muted);
+  line-height: 1.7;
+}
+
+/* ── Footer note ── */
+.footer-note {
+  padding: 16px; font-family: var(--font); font-size: 11px;
+  color: var(--muted); text-align: center; letter-spacing: .03em;
+}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div class="header">
-  <div class="header-inner">
-    <div class="logo">
-      <span class="logo-kanji">市場</span>
-      <span class="logo-sub">watch</span>
-    </div>
-    <div class="header-meta">
-      <div><span class="dot"></span><span id="updated-time">—</span></div>
-      <div style="margin-top: 3px;" id="ticker-count">— tickers · —</div>
-    </div>
-  </div>
-  <div class="tabs">
-    <div class="tab active" data-tab="watchlist">Watch</div>
-    <div class="tab" data-tab="pulse">Pulse</div>
-    <div class="tab" data-tab="portfolio">Portfolio</div>
-    <div class="tab" data-tab="take">Take</div>
-  </div>
+<div class="nav">
+  <div class="nav-title">市場 watch</div>
+  <div class="nav-meta" id="nav-meta">—</div>
 </div>
 
-<div class="page active" id="page-watchlist">
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('watch')">Watch</button>
+  <button class="tab" onclick="switchTab('pulse')">Pulse</button>
+  <button class="tab" onclick="switchTab('portfolio')">Portfolio</button>
+  <button class="tab" onclick="switchTab('take')">Take</button>
+</div>
+
+<!-- ══ WATCH TAB ══ -->
+<div class="panel active" id="panel-watch">
   <div class="sort-bar">
-    <div class="sort-chip active" data-sort="default">Default</div>
-    <div class="sort-chip" data-sort="chg_pct">Day %</div>
-    <div class="sort-chip" data-sort="vol_ratio">Volume</div>
-    <div class="sort-chip" data-sort="trend">Trend</div>
-    <div class="sort-chip" data-sort="portfolio">Holdings First</div>
+    <button class="sort-btn active" onclick="setSort('signal')">Signal</button>
+    <button class="sort-btn" onclick="setSort('chg')">Day %</button>
+    <button class="sort-btn" onclick="setSort('volume')">Volume</button>
+    <button class="sort-btn" onclick="setSort('trend')">Trend</button>
+    <button class="sort-btn" onclick="setSort('default')">Default</button>
   </div>
-  <div id="stock-list"></div>
+  <div class="ticker-list" id="watch-list"></div>
+  <div class="footer-note" id="watch-footer">Updated daily after 16:30 TPE.</div>
 </div>
 
-<div class="page" id="page-pulse">
-  <div class="pulse-hero">
-    <div class="pulse-label-en">TAIEX</div>
-    <div class="pulse-value" id="taiex-value">—</div>
-    <div class="pulse-change" id="taiex-change">—</div>
-    <div class="pressure-pill pressure-neutral" id="pressure-pill">—</div>
-  </div>
-
-  <div class="section-header">
-    <span class="section-header-zh">三大法人</span>
-    <span class="section-header-en">Institutional Flow · Today</span>
-    <span class="section-header-rule"></span>
-  </div>
-  <div class="flow-grid">
-    <div class="flow-card">
-      <div class="flow-label"><span class="flow-label-zh">外資</span><span class="flow-label-en">Foreign</span></div>
-      <div class="flow-value" id="foreign-net">—<span class="flow-unit">M NT$</span></div>
+<!-- ══ PULSE TAB ══ -->
+<div class="panel" id="panel-pulse">
+  <div class="pulse-section">
+    <div class="pulse-label">TAIEX</div>
+    <div class="taiex-row">
+      <div class="taiex-val" id="p-taiex">—</div>
+      <div class="taiex-chg" id="p-taiex-chg"></div>
     </div>
-    <div class="flow-card">
-      <div class="flow-label"><span class="flow-label-zh">自營商</span><span class="flow-label-en">Dealer</span></div>
-      <div class="flow-value" id="dealer-net">—<span class="flow-unit">M NT$</span></div>
-    </div>
-    <div class="flow-card">
-      <div class="flow-label"><span class="flow-label-zh">投信</span><span class="flow-label-en">Trust</span></div>
-      <div class="flow-value" id="trust-net">—<span class="flow-unit">M NT$</span></div>
-    </div>
-    <div class="flow-card">
-      <div class="flow-label"><span class="flow-label-zh">合計</span><span class="flow-label-en">Total</span></div>
-      <div class="flow-value" id="three-inst">—<span class="flow-unit">M NT$</span></div>
-    </div>
-  </div>
-
-  <div class="section-header">
-    <span class="section-header-zh">外資五日累計</span>
-    <span class="section-header-en">Foreign · 5D Cumulative</span>
-    <span class="section-header-rule"></span>
-  </div>
-  <div class="flow-card">
-    <div class="flow-value" id="foreign-5d">—<span class="flow-unit">M NT$</span></div>
-    <div style="font-family: var(--sans); font-size: 12px; color: var(--ink-mid); margin-top: 10px; line-height: 1.7;" id="foreign-5d-note">
-      Updated daily after 16:30 TPE.
-    </div>
-  </div>
-</div>
-
-<div class="page" id="page-portfolio">
-  <div id="portfolio-content"></div>
-</div>
-
-<div class="page" id="page-take">
-  <div class="take-card">
-    <div class="take-header">
-      <div>
-        <div class="take-label">今日觀察</div>
-        <div class="take-label-en">Today's Read</div>
+    <div class="pulse-label">三大法人 Institutional Flow · Today</div>
+    <div class="inst-grid">
+      <div class="inst-card">
+        <div class="inst-card-label">外資 Foreign</div>
+        <div class="inst-card-val" id="p-foreign">—</div>
+        <div class="inst-card-prev" id="p-foreign-prev"></div>
       </div>
-      <div class="take-tag" id="take-updated">Auto</div>
-    </div>
-    <div class="take-body" id="take-summary">
-      Claude summary will appear once API credits are added.
-    </div>
-  </div>
-
-  <div class="take-card" id="take-callouts-card" style="display:none;">
-    <div class="take-header">
-      <div>
-        <div class="take-label">持股觀察</div>
-        <div class="take-label-en">Holdings Callouts</div>
+      <div class="inst-card">
+        <div class="inst-card-label">自營商 Dealer</div>
+        <div class="inst-card-val" id="p-dealer">—</div>
+        <div class="inst-card-prev" id="p-dealer-prev"></div>
       </div>
-      <div class="take-tag" id="take-callout-count">—</div>
+      <div class="inst-card">
+        <div class="inst-card-label">投信 Trust</div>
+        <div class="inst-card-val" id="p-trust">—</div>
+        <div class="inst-card-prev" id="p-trust-prev"></div>
+      </div>
+      <div class="inst-card">
+        <div class="inst-card-label">合計 Total</div>
+        <div class="inst-card-val" id="p-total">—</div>
+        <div class="inst-card-prev" id="p-5d">5d: —</div>
+      </div>
     </div>
-    <div class="take-body" id="take-callouts" style="line-height: 1.95;"></div>
   </div>
-
-  <div class="sources" id="take-sources" style="margin-top:0; padding: 12px 0 0;"></div>
+  <div class="footer-note">Updated daily after 16:30 TPE.</div>
 </div>
 
-<button class="refresh-fab" id="refresh-btn" aria-label="Refresh">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 12a9 9 0 0 1-9 9c-2.97 0-5.62-1.44-7.27-3.66"></path>
-    <path d="M3 12a9 9 0 0 1 9-9c2.97 0 5.62 1.44 7.27 3.66"></path>
-    <polyline points="21 3 21 9 15 9"></polyline>
-    <polyline points="3 21 3 15 9 15"></polyline>
-  </svg>
-</button>
+<!-- ══ PORTFOLIO TAB ══ -->
+<div class="panel" id="panel-portfolio">
+  <div id="portfolio-list"></div>
+  <div class="footer-note">Holdings from T1 Inventory sheet.</div>
+</div>
+
+<!-- ══ TAKE TAB ══ -->
+<div class="panel" id="panel-take">
+  <div class="take-section">
+    <div class="pulse-label">今日觀察</div>
+    <div class="take-summary" id="take-summary">—</div>
+  </div>
+  <div style="padding: 14px 12px 6px">
+    <div class="pulse-label">持股觀察</div>
+  </div>
+  <div id="callout-list"></div>
+  <div class="footer-note" id="take-sources"></div>
+</div>
 
 <script>
-const MOCK_DATA = {
-  updated: "2026-05-25T16:35:00+08:00",
-  market: {
-    taiex: 20123.45, taiex_chg: 123.45, taiex_chg_pct: 0.62,
-    foreign_net_m: -3820, dealer_net_m: 450, trust_net_m: -120,
-    three_inst_total_m: -3490, foreign_5d_cumul_m: 12400, pressure: "Net Sell"
-  },
-  watchlist: [
-    { ticker:"2330", name:"TSMC", name_zh:"台積電", sector:"SEMI", price:2310.0, chg:55.0, chg_pct:2.44, ma5:2237.0, ma20:2242.0, ma60:2030.0, vol_today:28250944, vol_5d_avg:null, vol_ratio:0.86, high_52w:2345.0, low_52w:946.0, pct_from_52w_high:-1.49, trend:"MIXED+", foreign_net_m:0 },
-    { ticker:"2317", name:"Hon Hai", name_zh:"鴻海", sector:"ELEC", price:261.0, chg:11.0, chg_pct:4.40, ma5:245.4, ma20:232.7, ma60:210.5, vol_today:null, vol_5d_avg:null, vol_ratio:null, high_52w:265.0, low_52w:145.0, pct_from_52w_high:-1.5, trend:"BULL", foreign_net_m:0 },
-    { ticker:"2454", name:"MediaTek", name_zh:"聯發科", sector:"SEMI", price:4245.0, chg:385.0, chg_pct:9.97, ma5:null, ma20:null, ma60:null, vol_today:null, vol_5d_avg:null, vol_ratio:null, high_52w:4245.0, low_52w:null, pct_from_52w_high:0.0, trend:"BULL", foreign_net_m:0 }
-  ],
-  portfolio: []
-};
+// ── State ──
+let DATA = null;
+let SORT = 'signal';
+let OPEN = {};   // expanded card state: ticker -> bool
 
-let state = { data: null, sort: 'default', expanded: new Set() };
+// ── Fetch ──
+const DATA_URL = 'data.json';
 
 async function loadData() {
   try {
-    const r = await fetch('data.json?t=' + Date.now());
-    const d = await r.json();
-    d.watchlist = d.watchlist.map(s => ({
-      ...s,
-      ticker:       s.code      ?? s.ticker,
-      name:         s.name_en   ?? s.name,
-      price:        s.close     ?? s.price,
-      vol_today:    s.volume    ?? s.vol_today,
-      vol_5d_avg:   s.vol_5d_avg ?? null,
-      foreign_net_m: s.foreign_net_m ?? 0,
-    }));
-    state.data = d;
+    const r = await fetch(DATA_URL + '?t=' + Date.now());
+    DATA = await r.json();
+    render();
   } catch(e) {
-    console.warn('data.json load failed, using mock:', e);
-    state.data = MOCK_DATA;
+    document.getElementById('nav-meta').textContent = 'offline';
   }
-  renderAll();
 }
 
-function renderAll() {
-  renderHeader();
-  renderWatchlist();
+// ── Helpers ──
+function fmt(v, digits=0, suffix='') {
+  if (v === null || v === undefined) return '—';
+  const n = Number(v);
+  if (isNaN(n)) return '—';
+  return n.toLocaleString('en-US', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }) + suffix;
+}
+
+function fmtM(v) {
+  if (v === null || v === undefined) return '—';
+  const n = Number(v);
+  if (isNaN(n)) return '—';
+  const sign = n >= 0 ? '+' : '';
+  if (Math.abs(n) >= 1000) return sign + (n/1000).toFixed(1) + 'B';
+  return sign + n.toFixed(0) + 'M';
+}
+
+function fmtShares(v) {
+  if (v === null || v === undefined) return '—';
+  const n = Number(v);
+  if (isNaN(n)) return '—';
+  const sign = n >= 0 ? '+' : '';
+  if (Math.abs(n) >= 1000) return sign + (n/1000).toFixed(1) + 'k';
+  return sign + n.toFixed(0);
+}
+
+function colorClass(v) {
+  if (v === null || v === undefined) return '';
+  return Number(v) > 0 ? 'pos' : Number(v) < 0 ? 'neg' : 'dim';
+}
+
+function signalClass(score) {
+  if (score === null || score === undefined) return 'neutral';
+  if (score >= 1) return 'bull';
+  if (score <= -1) return 'bear';
+  return 'neutral';
+}
+
+function streakLabel(v, actor) {
+  if (v === null || v === undefined || v === 0) return null;
+  const days = Math.abs(v);
+  const dir  = v > 0 ? '買' : '賣';
+  return actor + '連' + dir + days + '日';
+}
+
+function trendBadge(trend) {
+  if (!trend) return '';
+  const map = { BULL:'BULL', 'MIXED+':'MIX+', 'MIXED-':'MIX−', BEAR:'BEAR' };
+  const cls  = (trend === 'BULL') ? 'bull' : (trend === 'BEAR') ? 'bear' : '';
+  return `<span class="chip ${cls}">${map[trend] || trend}</span>`;
+}
+
+function rsiChip(rsi) {
+  if (rsi === null || rsi === undefined) return '';
+  const cls = rsi >= 70 ? 'bear' : rsi <= 30 ? 'bull' : '';
+  return `<span class="chip ${cls}">RSI ${rsi}</span>`;
+}
+
+function signalBadge(label, score) {
+  if (!label) return '';
+  const cls = signalClass(score);
+  return `<span class="badge-signal ${cls}">${label}</span>`;
+}
+
+// ── Sort ──
+function setSort(s) {
+  SORT = s;
+  document.querySelectorAll('.sort-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase().replace(' ','') === s ||
+      (s === 'signal' && b.textContent === 'Signal') ||
+      (s === 'chg' && b.textContent === 'Day %') ||
+      (s === 'volume' && b.textContent === 'Volume') ||
+      (s === 'trend' && b.textContent === 'Trend') ||
+      (s === 'default' && b.textContent === 'Default'));
+  });
+  renderWatch();
+}
+
+function sortedWatchlist(items) {
+  const arr = [...items];
+  const trendOrder = { BULL: 0, 'MIXED+': 1, 'MIXED-': 2, BEAR: 3 };
+  if (SORT === 'signal') {
+    arr.sort((a, b) => (b.signal_score ?? -99) - (a.signal_score ?? -99));
+  } else if (SORT === 'chg') {
+    arr.sort((a, b) => (b.chg_pct ?? -999) - (a.chg_pct ?? -999));
+  } else if (SORT === 'volume') {
+    arr.sort((a, b) => (b.vol_today ?? 0) - (a.vol_today ?? 0));
+  } else if (SORT === 'trend') {
+    arr.sort((a, b) => (trendOrder[a.trend] ?? 9) - (trendOrder[b.trend] ?? 9));
+  }
+  return arr;
+}
+
+// ── Toggle expand ──
+function toggleCard(ticker) {
+  OPEN[ticker] = !OPEN[ticker];
+  const el = document.getElementById('detail-' + ticker);
+  if (el) el.classList.toggle('open', OPEN[ticker]);
+  const arrow = document.getElementById('arrow-' + ticker);
+  if (arrow) arrow.textContent = OPEN[ticker] ? '▲' : '▼';
+}
+
+// ── Render Watch ──
+function renderWatch() {
+  if (!DATA) return;
+  const list = document.getElementById('watch-list');
+  const items = DATA.watchlist || [];
+  if (items.length === 0) {
+    list.innerHTML = '<div class="empty">No data yet.<br>Runs weekdays after 16:30 TPE.</div>';
+    return;
+  }
+  const sorted = sortedWatchlist(items);
+  list.innerHTML = sorted.map(t => tickerCard(t, false)).join('');
+}
+
+function tickerCard(t, isPortfolio) {
+  const chgPct = t.chg_pct ?? t.chgPct;
+  const chgCls = (chgPct > 0) ? 'pos' : (chgPct < 0) ? 'neg' : 'flat';
+  const chgStr = chgPct != null ? ((chgPct >= 0 ? '+' : '') + chgPct.toFixed(2) + '%') : '—';
+  const priceStr = t.price != null ? fmt(t.price, t.price >= 100 ? 1 : 2) : '—';
+
+  // Signal badge
+  const sigBadge = signalBadge(t.signal_label, t.signal_score);
+
+  // Streak chips
+  const fStreak = streakLabel(t.foreign_streak, '外資');
+  const tStreak = streakLabel(t.trust_streak, '投信');
+  const streakChips = [
+    fStreak ? `<span class="chip ${t.foreign_streak > 0 ? 'bull' : 'bear'}">${fStreak}</span>` : '',
+    tStreak ? `<span class="chip ${t.trust_streak > 0 ? 'bull' : 'bear'}">${tStreak}</span>` : '',
+  ].join('');
+
+  const chips = [
+    sigBadge,
+    trendBadge(t.trend),
+    streakChips,
+    rsiChip(t.rsi14),
+  ].join('');
+
+  // Expand detail
+  const detail = chipDetailHTML(t, isPortfolio);
+  const hasDetail = t.foreign_net != null || t.l1_score != null;
+  const expandBtn = hasDetail ? `<span id="arrow-${t.ticker}" style="font-size:10px;color:var(--muted);margin-left:6px">▼</span>` : '';
+
+  return `
+<div class="ticker-card">
+  <div class="ticker-main" onclick="toggleCard('${t.ticker}')">
+    <div class="ticker-left">
+      <div class="ticker-top">
+        <span class="ticker-code">${t.ticker}</span>
+        <span class="ticker-name">${t.name_zh || t.name || ''}</span>
+        ${expandBtn}
+      </div>
+      <div class="ticker-chips">${chips}</div>
+    </div>
+    <div class="ticker-right">
+      <div class="price-main">${priceStr}</div>
+      <div class="price-chg ${chgCls}">${chgStr}</div>
+    </div>
+  </div>
+  <div class="chip-detail ${OPEN[t.ticker] ? 'open' : ''}" id="detail-${t.ticker}">
+    ${detail}
+  </div>
+</div>`;
+}
+
+function chipDetailHTML(t, isPortfolio) {
+  const rows = [];
+
+  // Technical section
+  rows.push(`<div class="chip-section-label">TECHNICAL</div>`);
+  rows.push(`<div class="chip-row">`);
+  rows.push(statChip('MA5', t.ma5 != null ? fmt(t.ma5,1) : '—', ''));
+  rows.push(statChip('MA20', t.ma20 != null ? fmt(t.ma20,1) : '—', ''));
+  rows.push(statChip('MA60', t.ma60 != null ? fmt(t.ma60,1) : '—', ''));
+  rows.push(statChip('VOL×', t.vol_ratio != null ? t.vol_ratio.toFixed(1) : '—', t.vol_ratio >= 1.5 ? 'pos' : ''));
+  rows.push(statChip('52W%', t.pct_from_52w_high != null ? (t.pct_from_52w_high >= 0 ? '+' : '') + t.pct_from_52w_high.toFixed(1) : '—', t.pct_from_52w_high >= -5 ? 'pos' : 'neg'));
+  rows.push(`</div>`);
+
+  // Chip / institutional section
+  if (t.foreign_net != null || t.inst_net != null) {
+    rows.push(`<div class="chip-section-label">三大法人 CHIP FLOW (shares, thousands)</div>`);
+    rows.push(`<div class="chip-row">`);
+    rows.push(statChip('外資今', fmtShares(t.foreign_net), colorClass(t.foreign_net)));
+    rows.push(statChip('投信今', fmtShares(t.trust_net), colorClass(t.trust_net)));
+    rows.push(statChip('自營今', fmtShares(t.dealer_net), colorClass(t.dealer_net)));
+    rows.push(statChip('法人今', fmtShares(t.inst_net), colorClass(t.inst_net)));
+    rows.push(`</div>`);
+    rows.push(`<div class="chip-row">`);
+    rows.push(statChip('外資3d', fmtShares(t.foreign_3d), colorClass(t.foreign_3d)));
+    rows.push(statChip('外資5d', fmtShares(t.foreign_5d), colorClass(t.foreign_5d)));
+    rows.push(statChip('投信3d', fmtShares(t.trust_3d), colorClass(t.trust_3d)));
+    rows.push(statChip('投信5d', fmtShares(t.trust_5d), colorClass(t.trust_5d)));
+    rows.push(`</div>`);
+  }
+
+  // L1 score
+  if (t.l1_score != null) {
+    rows.push(`<div class="chip-section-label">L1 COMPOSITE SCORE</div>`);
+    rows.push(`<div class="chip-row">`);
+    const l1Cls = t.l1_score >= 0.15 ? 'pos' : t.l1_score <= -0.15 ? 'neg' : 'dim';
+    rows.push(statChip('L1', t.l1_score.toFixed(3), l1Cls));
+    rows.push(statChip('Signal', (t.signal_score >= 0 ? '+' : '') + (t.signal_score ?? 0), colorClass(t.signal_score)));
+    rows.push(`</div>`);
+    rows.push(`<div style="font-size:10px;color:var(--muted);margin-top:6px;font-family:var(--font)">
+      T86 only · concentration/broker/margin = stubs (BSR not yet wired)
+    </div>`);
+  }
+
+  // Portfolio extras
+  if (isPortfolio && t.avg_cost != null) {
+    rows.push(`<div class="chip-section-label">POSITION</div>`);
+    rows.push(`<div class="chip-row">`);
+    rows.push(statChip('Qty', t.qty != null ? fmt(t.qty, 0) : '—', ''));
+    rows.push(statChip('Avg', fmt(t.avg_cost, 1), ''));
+    if (t.price != null && t.avg_cost != null) {
+      const pnlPct = ((t.price - t.avg_cost) / t.avg_cost * 100).toFixed(1);
+      rows.push(statChip('P&L%', (pnlPct >= 0 ? '+' : '') + pnlPct + '%', pnlPct >= 0 ? 'pos' : 'neg'));
+    }
+    rows.push(`</div>`);
+  }
+
+  return rows.join('');
+}
+
+function statChip(label, val, cls='') {
+  return `<div class="chip-stat">
+    <span class="chip-stat-label">${label}</span>
+    <span class="chip-stat-val ${cls}">${val}</span>
+  </div>`;
+}
+
+// ── Render Pulse ──
+function renderPulse() {
+  if (!DATA) return;
+  const m = DATA.market || {};
+
+  // TAIEX
+  const taiex = m.taiex;
+  const chg   = m.taiex_chg;
+  const chgPct= m.taiex_chg_pct;
+  document.getElementById('p-taiex').textContent = taiex != null ? fmt(taiex, 2) : '—';
+  if (chg != null) {
+    const cls = chg >= 0 ? 'pos' : 'neg';
+    const sign= chg >= 0 ? '+' : '';
+    document.getElementById('p-taiex-chg').innerHTML =
+      `<span class="${cls}">${sign}${fmt(chg,2)} (${sign}${chgPct?.toFixed(2)}%)</span>`;
+  }
+
+  // Institutional
+  function setInst(id, val, prevId, prevVal, suffix='M NT$') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const n = val != null ? Number(val) : null;
+    const cls = n == null ? '' : n >= 0 ? 'pos' : 'neg';
+    const str = n != null ? ((n >= 0 ? '+' : '') + fmt(Math.abs(n), 0, suffix)) : '—';
+    el.innerHTML = `<span class="${cls}">${str}</span>`;
+    if (prevId && prevVal != null) {
+      const pn = Number(prevVal);
+      const pcls = pn >= 0 ? 'pos' : 'neg';
+      document.getElementById(prevId).innerHTML =
+        `prev <span class="${pcls}">${pn >= 0 ? '+' : ''}${fmt(Math.abs(pn),0)}M</span>`;
+    }
+  }
+
+  setInst('p-foreign', m.foreign_net_m, 'p-foreign-prev', m.foreign_net_m_prev);
+  setInst('p-dealer',  m.dealer_net_m,  'p-dealer-prev',  m.dealer_net_m_prev);
+  setInst('p-trust',   m.trust_net_m,   'p-trust-prev',   m.trust_net_m_prev);
+  setInst('p-total',   m.three_inst_total_m, null, null);
+
+  // 5d
+  const f5d = m.foreign_5d_cumul_m;
+  document.getElementById('p-5d').textContent =
+    f5d != null ? '5d: ' + (f5d >= 0 ? '+' : '') + fmt(Math.abs(f5d), 0) + 'M' : '5d: —';
+}
+
+// ── Render Portfolio ──
+function renderPortfolio() {
+  if (!DATA) return;
+  const items = DATA.portfolio || [];
+  const list  = document.getElementById('portfolio-list');
+  if (items.length === 0) {
+    list.innerHTML = '<div class="empty">No holdings found.<br>Add tickers to T1 Inventory sheet.</div>';
+    return;
+  }
+  list.innerHTML = items.map(t => {
+    const card = tickerCard(t, true);
+    return card.replace('ticker-card', 'ticker-card port-card');
+  }).join('');
+}
+
+// ── Render Take ──
+function renderTake() {
+  if (!DATA) return;
+  const a = DATA.analysis || {};
+  document.getElementById('take-summary').textContent = a.summary || '—';
+  const callouts = a.callouts || [];
+  const list = document.getElementById('callout-list');
+  if (callouts.length === 0) {
+    list.innerHTML = '<div class="empty">No callouts today.</div>';
+  } else {
+    list.innerHTML = callouts.map(c => `
+<div class="callout-card">
+  <div class="callout-header">
+    <div class="callout-flag ${c.flag || 'neutral'}"></div>
+    <div class="callout-label">${c.label || c.ticker}</div>
+    <span class="chip">${c.ticker}</span>
+  </div>
+  <div class="callout-note">${c.note || ''}</div>
+  ${c.action ? `<div class="callout-action">${c.action}</div>` : ''}
+</div>`).join('');
+  }
+  const sources = (a.sources || []).join(' · ');
+  document.getElementById('take-sources').textContent = sources;
+}
+
+// ── Nav meta ──
+function renderNav() {
+  if (!DATA) return;
+  const updated = DATA.updated || '';
+  const dt = updated ? new Date(updated) : null;
+  const timeStr = dt ? dt.toLocaleString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+  const wCount  = (DATA.watchlist || []).length;
+  const pCount  = (DATA.portfolio || []).length;
+  document.getElementById('nav-meta').textContent = `${timeStr} · ${wCount + pCount} tickers`;
+}
+
+// ── Tab switching ──
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const tabMap = { watch:'Watch', pulse:'Pulse', portfolio:'Portfolio', take:'Take' };
+  document.querySelectorAll('.tab').forEach(t => {
+    if (t.textContent === tabMap[name]) t.classList.add('active');
+  });
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── Master render ──
+function render() {
+  renderNav();
+  renderWatch();
   renderPulse();
   renderPortfolio();
   renderTake();
 }
 
-function portfolioMap() {
-  const m = {};
-  (state.data.portfolio || []).forEach(h => m[h.ticker] = h);
-  return m;
-}
-
-const safe = (n, fn, fallback='—') => (n != null && !isNaN(n)) ? fn(n) : fallback;
-const fmtPrice = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmtChg   = n => (n >= 0 ? '+' : '') + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmtPct   = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
-const fmtInt   = n => Math.round(n).toLocaleString('en-US');
-
-function renderHeader() {
-  const dt = new Date(state.data.updated);
-  const ageHours = (Date.now() - dt.getTime()) / 3600000;
-  const tpe = dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Taipei' });
-  const dateStr = dt.toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' }).replace(/-/g, '.');
-  const dtTPE = new Date(dt.toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
-  const updHHMM = dtTPE.getHours() * 100 + dtTPE.getMinutes();
-  const nowTPE = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
-  const sameDay = dtTPE.toDateString() === nowTPE.toDateString();
-  const pre430 = sameDay && updHHMM < 1630;
-  const stale = ageHours > 24 || pre430;
-  const staleMsg = pre430 ? 'PRE-CLOSE' : 'STALE';
-  document.getElementById('updated-time').innerHTML =
-    `Updated ${tpe} TPE${stale ? ` <span class="stale">· ${staleMsg}</span>` : ''}`;
-  document.getElementById('ticker-count').textContent =
-    `${state.data.watchlist.length} tickers · ${dateStr}`;
-}
-
-function renderWatchlist() {
-  const list = document.getElementById('stock-list');
-  const pmap = portfolioMap();
-  let stocks = [...state.data.watchlist];
-
-  switch (state.sort) {
-    case 'chg_pct':   stocks.sort((a,b) => (b.chg_pct??-999) - (a.chg_pct??-999)); break;
-    case 'vol_ratio':  stocks.sort((a,b) => (b.vol_ratio??0) - (a.vol_ratio??0)); break;
-    case 'trend': {
-      const order = { 'BULL':0, 'MIXED+':1, 'MIXED-':2, 'BEAR':3 };
-      stocks.sort((a,b) => (order[a.trend]??9) - (order[b.trend]??9));
-      break;
-    }
-    case 'portfolio':
-      stocks.sort((a,b) => (pmap[b.ticker]?1:0) - (pmap[a.ticker]?1:0));
-      break;
-  }
-
-  list.innerHTML = stocks.map(s => {
-    const upClass = (s.chg ?? 0) >= 0 ? 'up' : 'down';
-    const isExpanded = state.expanded.has(s.ticker);
-    const showVolBadge = s.vol_ratio != null && s.vol_ratio >= 2;
-    const holding = pmap[s.ticker];
-    const inPortfolio = !!holding;
-
-    let pnlHtml = '';
-    if (inPortfolio && s.price != null) {
-      const market_value = s.price * holding.qty;
-      const cost_basis   = holding.avg_cost * holding.qty;
-      const pnl          = market_value - cost_basis;
-      const pnl_pct      = (pnl / cost_basis) * 100;
-      const pnlColor     = pnl >= 0 ? 'var(--matcha)' : 'var(--benigara)';
-      pnlHtml = `<div class="pnl-row" style="color:${pnlColor};">${fmtChg(pnl)} (${fmtPct(pnl_pct)})</div>`;
-    }
-
-    return `
-      <div class="stock-card ${isExpanded?'expanded':''} ${inPortfolio?'in-portfolio':''} ${s.trend==='BULL'?'trend-BULL-border':s.trend==='BEAR'?'trend-BEAR-border':''}" data-ticker="${s.ticker}">
-        <div class="stock-row">
-          <div class="ticker-block">
-            <div class="ticker">${s.ticker}</div>
-            <div class="sector-tag">${s.exchange || (s.sector ?? '')}</div>
-          </div>
-          <div class="name-block">
-            <div class="name-zh">${s.name_zh}${inPortfolio?'<span class="portfolio-mark">· held</span>':''}</div>
-            ${(s.name && s.name !== s.name_zh) ? `<div class="name-en">${s.name}</div>` : ''}
-          </div>
-          <div class="price-block">
-            <div class="price">${safe(s.price, fmtPrice)}</div>
-            <div class="change ${upClass}">${safe(s.chg, fmtChg)} ${safe(s.chg_pct, fmtPct)}</div>
-            ${pnlHtml}
-          </div>
-        </div>
-        <div class="meta-row">
-          <div class="trend-pill trend-${s.trend ?? 'MIXED-'}">${s.trend === 'BULL' ? '▲ BULL' : s.trend === 'BEAR' ? '▼ BEAR' : s.trend === 'MIXED+' ? '◆ MIX+' : '◆ MIX−'}</div>
-          ${showVolBadge ? `<div class="vol-badge">${s.vol_ratio.toFixed(1)}× VOL</div>` : ''}
-          <div class="pct52-tag">52W: ${safe(s.pct_from_52w_high, n => n.toFixed(1)+'%')}</div>
-        </div>
-        <div class="details">
-          ${(() => {
-            const p = s.price;
-            const maPos = (ma) => (p && ma) ? ((p-ma)/ma*100) : null;
-            const ma5p=maPos(s.ma5), ma20p=maPos(s.ma20), ma60p=maPos(s.ma60);
-            const fmtPos = n => n==null?'—':(n>=0?'+':'')+n.toFixed(1)+'%';
-            const posColor = n => n==null?'':n>=0?'var(--matcha)':'var(--benigara)';
-            const rsi = s.rsi14??null;
-            const rsiLabel = rsi==null?null:rsi.toFixed(0);
-            const rsiColor = rsi==null?'':rsi>=70?'var(--benigara)':rsi<=30?'var(--matcha)':'var(--ink)';
-            const rsiNote = rsi==null?'':rsi>=70?' overbought':rsi<=30?' oversold':'';
-            const near52h = (s.high_52w&&p)?((p/s.high_52w-1)*100):null;
-            const breakout = near52h!=null&&near52h>=-3;
-            const holding = (state.data.portfolio||[]).find(h=>h.ticker===s.ticker);
-            const costDist = (holding&&p&&holding.avg_cost)?((p-holding.avg_cost)/holding.avg_cost*100):null;
-            const parts=[];
-            if(ma5p!=null&&ma20p!=null&&ma60p!=null){
-              if(ma5p>0&&ma20p>0&&ma60p>0) parts.push('Above all MAs');
-              else if(ma5p<0&&ma20p<0&&ma60p<0) parts.push('Below all MAs');
-              else if(ma5p>0&&ma20p>0&&ma60p<0) parts.push('Above MA5/20, below MA60');
-              else if(ma5p>0&&ma20p<0) parts.push('Above MA5, below MA20');
-            }
-            if(rsiLabel) parts.push('RSI '+rsiLabel+rsiNote);
-            if(breakout) parts.push('Near 52W high');
-            if(s.vol_ratio>=2) parts.push(s.vol_ratio.toFixed(1)+'× volume');
-            if(costDist!=null) parts.push('Entry '+(costDist>=0?'+':'')+costDist.toFixed(1)+'% from cost');
-            const summary = parts.join(' · ')||'Insufficient data';
-            return `
-            <div class="detail-summary">${summary}</div>
-            <div class="details-grid">
-              <div class="stat"><div class="stat-label">vs MA5</div><div class="stat-value" style="color:${posColor(ma5p)}">${fmtPos(ma5p)}</div></div>
-              <div class="stat"><div class="stat-label">vs MA20</div><div class="stat-value" style="color:${posColor(ma20p)}">${fmtPos(ma20p)}</div></div>
-              <div class="stat"><div class="stat-label">vs MA60</div><div class="stat-value" style="color:${posColor(ma60p)}">${fmtPos(ma60p)}</div></div>
-              ${rsiLabel?`<div class="stat"><div class="stat-label">RSI 14</div><div class="stat-value" style="color:${rsiColor}">${rsiLabel}${rsiNote}</div></div>`:''}
-              <div class="stat"><div class="stat-label">52W High</div><div class="stat-value ${breakout?'breakout':'dim'}">${safe(s.high_52w,fmtPrice)}${breakout?' ◉':''}</div></div>
-              <div class="stat"><div class="stat-label">52W Low</div><div class="stat-value dim">${safe(s.low_52w,fmtPrice)}</div></div>
-              <div class="stat"><div class="stat-label">MA5</div><div class="stat-value dim">${safe(s.ma5,fmtPrice)}</div></div>
-              <div class="stat"><div class="stat-label">MA20</div><div class="stat-value dim">${safe(s.ma20,fmtPrice)}</div></div>
-              <div class="stat"><div class="stat-label">MA60</div><div class="stat-value dim">${safe(s.ma60,fmtPrice)}</div></div>
-              <div class="stat"><div class="stat-label">Vol Ratio</div><div class="stat-value ${(s.vol_ratio??0)>=2?'':'dim'}">${safe(s.vol_ratio,n=>n.toFixed(1)+'×')}</div></div>
-              <div class="stat"><div class="stat-label">Vol Today</div><div class="stat-value dim">${safe(s.vol_today,fmtInt)}</div></div>
-              ${costDist!=null?`<div class="stat"><div class="stat-label">From Entry</div><div class="stat-value" style="color:${costDist>=0?'var(--matcha)':'var(--benigara)'}">${costDist>=0?'+':''}${costDist.toFixed(1)}%</div></div>`:''}
-            </div>`;
-          })()}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  document.querySelectorAll('.stock-card').forEach(card => {
-    card.querySelector('.stock-row').addEventListener('click', () => {
-      const t = card.dataset.ticker;
-      if (state.expanded.has(t)) state.expanded.delete(t);
-      else state.expanded.add(t);
-      renderWatchlist();
-    });
-  });
-}
-
-function renderPulse() {
-  const m = state.data.market;
-  if (!m) return;
-
-  document.getElementById('taiex-value').textContent = safe(m.taiex, fmtPrice);
-  const tc = document.getElementById('taiex-change');
-  if (m.taiex_chg != null) {
-    tc.textContent = `${fmtChg(m.taiex_chg)}  (${fmtPct(m.taiex_chg_pct)})`;
-    tc.style.color = m.taiex_chg >= 0 ? 'var(--matcha)' : 'var(--benigara)';
-  }
-
-  const _updStr = state.data.updated || '';
-  const _updDate = _updStr ? new Date(_updStr) : null;
-  const _now = new Date();
-  const _sameDay = _updDate && _updDate.toDateString() === _now.toDateString();
-  const _updHHMM = _updDate ? _updDate.getHours() * 100 + _updDate.getMinutes() : 9999;
-  const isPreClose = _sameDay && _updHHMM < 1630;
-
-  const setFlow = (id, v, pending = false) => {
-    const el = document.getElementById(id);
-    if (pending && v === 0) {
-      const _prevKey = id==='foreign-net'?'foreign_net_m_prev':id==='dealer-net'?'dealer_net_m_prev':null;
-      const _prev = _prevKey ? m[_prevKey] : null;
-      const _prevHtml = (_prev!=null) ? `<div style="font-size:11px;font-family:var(--sans);margin-top:3px;color:var(--ink-mid)">${fmtChg(_prev)}M <span style="color:var(--ink-faint);font-size:10px">prior day *</span></div>` : '';
-      el.innerHTML = `<span style="color:var(--ink-faint);font-size:20px">—</span>${_prevHtml}<div style="font-size:10px;color:var(--ink-faint);font-family:var(--sans);margin-top:2px">* today after 16:30 TPE</div>`;
-      el.style.color = '';
-    } else if (v != null) {
-      el.innerHTML = `${fmtChg(v)}<span class="flow-unit">M NT$</span>`;
-      el.style.color = v >= 0 ? 'var(--matcha)' : 'var(--benigara)';
-    }
-  };
-  const foreignPending = isPreClose && m.foreign_net_m === 0;
-  const dealerPending  = isPreClose && m.dealer_net_m === 0;
-  setFlow('foreign-net', m.foreign_net_m, foreignPending);
-  setFlow('dealer-net',  m.dealer_net_m,  dealerPending);
-  setFlow('trust-net',   m.trust_net_m);
-  setFlow('three-inst',  m.three_inst_total_m, foreignPending && dealerPending);
-
-  const f5 = document.getElementById('foreign-5d');
-  if (m.foreign_5d_cumul_m != null) {
-    f5.innerHTML = `${fmtChg(m.foreign_5d_cumul_m)}<span class="flow-unit">M NT$</span>`;
-    f5.style.color = m.foreign_5d_cumul_m >= 0 ? 'var(--matcha)' : 'var(--benigara)';
-  }
-
-  const pp = document.getElementById('pressure-pill');
-  if (m.pressure) {
-    pp.textContent = m.pressure;
-    pp.className = 'pressure-pill pressure-' + m.pressure.toLowerCase().replace(/\s+/g, '-');
-  }
-}
-
-function renderTake() {
-  const analysis = state.data.analysis;
-  if (!analysis) return;
-
-  const dt = new Date(analysis.updated || state.data.updated);
-  const tpe = dt.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Taipei' });
-  document.getElementById('take-updated').textContent = `Auto · ${tpe}`;
-  document.getElementById('take-summary').textContent = analysis.summary || '—';
-
-  const callouts = analysis.callouts || [];
-  if (callouts.length > 0) {
-    document.getElementById('take-callouts-card').style.display = 'block';
-    document.getElementById('take-callout-count').textContent = `${callouts.length} items`;
-    document.getElementById('take-callouts').innerHTML = callouts.map(c => {
-      const flagClass = c.flag === 'bull' ? 'flag-bull' : c.flag === 'bear' ? 'flag-bear' : 'flag-neutral';
-      const flagLabel = c.flag === 'bull' ? '▲ BULL' : c.flag === 'bear' ? '▼ BEAR' : '◆ MIX';
-      const actionLine = c.action ? `<div class="callout-action">→ ${c.action}</div>` : '';
-      return `<div class="callout-item">
-        <div class="callout-top">
-          <span class="callout-ticker">${c.ticker}</span>
-          <span class="signal-badge ${flagClass}">${flagLabel}</span>
-          <span class="callout-label">${c.label}</span>
-        </div>
-        <div class="callout-note">${c.note}</div>
-        ${actionLine}
-      </div>`;
-    }).join('');
-  }
-
-  const sources = analysis.sources || [];
-  if (sources.length > 0) {
-    document.getElementById('take-sources').innerHTML =
-      'Sources: ' + sources.map(s => `<span class="source-chip">${s}</span>`).join('');
-  }
-}
-
-const SECTOR_COLORS = {
-  SEMI:'#3a5570', ELEC:'#7a8a5e', ETF:'#8a6f3a',
-  FIN:'#6a85a0', PETRO:'#a35545', STEEL:'#6e6258', default:'#8f8674'
-};
-
-function renderPortfolio() {
-  const root = document.getElementById('portfolio-content');
-  const holdings = state.data.portfolio || [];
-  const watchMap = {};
-  state.data.watchlist.forEach(s => watchMap[s.ticker] = s);
-  state.data.portfolio.forEach(s => watchMap[s.ticker] = s);
-
-  if (holdings.length === 0) {
-    root.innerHTML = `
-      <div class="empty-portfolio">
-        <div class="ema-kanji">空</div>
-        <p>持股尚未設定<br><span style="font-family:var(--display);font-style:italic;font-size:12px;">No holdings yet</span></p>
-        <p style="font-size:12px;">Edit the portfolio array in data.json<br>to add your positions.</p>
-        <p style="font-size:11px;color:var(--ink-faint);">Fields: <code>ticker</code> · <code>qty</code> · <code>avg_cost</code> · <code>bought</code></p>
-      </div>`;
-    return;
-  }
-
-  let total_cost=0, total_value=0, total_day_chg=0;
-  const enriched = holdings.map(h => {
-    if (h.price == null || h.qty == null || h.avg_cost == null) return null;
-    const cost    = h.avg_cost * h.qty;
-    const value   = h.price * h.qty;
-    const pnl     = value - cost;
-    const pnl_pct = (pnl / cost) * 100;
-    const day_pnl = (h.chg ?? 0) * h.qty;
-    total_cost += cost; total_value += value; total_day_chg += day_pnl;
-    return { ...h, cost, value, pnl, pnl_pct, day_pnl };
-  }).filter(Boolean);
-
-  const total_pnl     = total_value - total_cost;
-  const total_pnl_pct = (total_pnl / total_cost) * 100;
-  const total_day_pct = (total_day_chg / total_value) * 100;
-  const heroColor = total_pnl >= 0 ? 'var(--matcha)' : 'var(--benigara)';
-  const dayColor  = total_day_chg >= 0 ? 'var(--matcha)' : 'var(--benigara)';
-
-  const TICKER_SECTOR = {
-    '0050':'ETF', '00830':'ETF', '00981A':'ETF',
-    '3017':'ELEC', '3037':'SEMI', '3163':'ELEC',
-    '3363':'SEMI', '3711':'SEMI', '7810':'ELEC',
-  };
-  const sectorMap = {};
-  enriched.forEach(e => {
-    const sec = e.sector ?? TICKER_SECTOR[e.ticker] ?? e.exchange ?? 'OTHER';
-    sectorMap[sec] = (sectorMap[sec]||0) + e.value;
-  });
-  const sectorRows = Object.entries(sectorMap)
-    .sort((a,b) => b[1]-a[1])
-    .map(([s,v]) => ({ sector:s, value:v, pct:(v/total_value)*100, color:SECTOR_COLORS[s]||SECTOR_COLORS.default }));
-
-  enriched.sort((a,b) => b.value - a.value);
-
-  root.innerHTML = `
-    <div class="pnl-hero">
-      <div class="pnl-hero-label">總損益 · TOTAL P&L</div>
-      <div class="pnl-hero-value" style="color:${heroColor};">${fmtChg(total_pnl)}</div>
-      <div class="pnl-hero-sub" style="color:${heroColor};">${fmtPct(total_pnl_pct)}</div>
-    </div>
-    <div class="pnl-grid">
-      <div class="flow-card"><div class="flow-label"><span class="flow-label-zh">市值</span><span class="flow-label-en">Market Value</span></div><div class="flow-value">NT$ ${fmtInt(total_value)}</div></div>
-      <div class="flow-card"><div class="flow-label"><span class="flow-label-zh">成本</span><span class="flow-label-en">Cost Basis</span></div><div class="flow-value">NT$ ${fmtInt(total_cost)}</div></div>
-      <div class="flow-card"><div class="flow-label"><span class="flow-label-zh">今日損益</span><span class="flow-label-en">Day P&L</span></div><div class="flow-value" style="color:${dayColor};">${fmtChg(total_day_chg)}</div></div>
-      <div class="flow-card"><div class="flow-label"><span class="flow-label-zh">今日 %</span><span class="flow-label-en">Day %</span></div><div class="flow-value" style="color:${dayColor};">${fmtPct(total_day_pct)}</div></div>
-    </div>
-    <div class="alloc-bar-card">
-      <div class="alloc-title">配置 · Allocation</div>
-      <div class="alloc-bar">${sectorRows.map(r=>`<div class="alloc-seg" style="width:${r.pct}%;background:${r.color};"></div>`).join('')}</div>
-      <div class="alloc-legend">${sectorRows.map(r=>`
-        <div class="alloc-row">
-          <div class="alloc-dot" style="background:${r.color};"></div>
-          <div class="alloc-name">${r.sector}</div>
-          <div class="alloc-pct">${r.pct.toFixed(1)}%</div>
-        </div>`).join('')}
-      </div>
-    </div>
-    <div class="section-header">
-      <span class="section-header-zh">持股明細</span>
-      <span class="section-header-en">Holdings</span>
-      <span class="section-header-rule"></span>
-    </div>
-    ${enriched.map(h => {
-      const pnlColor = h.pnl >= 0 ? 'var(--matcha)' : 'var(--benigara)';
-      return `
-        <div class="holding-card">
-          <div class="holding-header">
-            <div>
-              <div style="font-family:var(--serif);font-size:16px;font-weight:500;letter-spacing:2px;">${h.name_zh}</div>
-              <div style="font-family:var(--display);font-style:italic;font-size:11px;color:var(--ink-faint);margin-top:2px;">${h.ticker} · ${h.name}</div>
-            </div>
-            <div class="holding-pnl">
-              <div class="holding-pnl-value" style="color:${pnlColor};">${fmtChg(h.pnl)}</div>
-              <div class="holding-pnl-pct" style="color:${pnlColor};">${fmtPct(h.pnl_pct)}</div>
-            </div>
-          </div>
-          <div class="holding-detail">
-            <div class="stat"><div class="stat-label">Qty</div><div class="stat-value">${fmtInt(h.qty)}</div></div>
-            <div class="stat"><div class="stat-label">Avg Cost</div><div class="stat-value">${fmtPrice(h.avg_cost)}</div></div>
-            <div class="stat"><div class="stat-label">Price</div><div class="stat-value">${fmtPrice(h.price)}</div></div>
-            <div class="stat"><div class="stat-label">Value</div><div class="stat-value">${fmtInt(h.value)}</div></div>
-          </div>
-        </div>`;
-    }).join('')}
-  `;
-}
-
-// ── Event listeners ───────────────────────────────────────────────────────────
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('page-' + tab.dataset.tab).classList.add('active');
-  });
-});
-
-document.querySelectorAll('.sort-chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
-    chip.classList.add('active');
-    state.sort = chip.dataset.sort;
-    renderWatchlist();
-  });
-});
-
-document.getElementById('refresh-btn').addEventListener('click', () => {
-  const btn = document.getElementById('refresh-btn');
-  btn.classList.add('spinning');
-  loadData().then(() => btn.classList.remove('spinning'));
-});
-
-// ── Boot ──────────────────────────────────────────────────────────────────────
 loadData();
 </script>
 </body>
