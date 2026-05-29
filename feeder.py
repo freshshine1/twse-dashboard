@@ -41,26 +41,39 @@ TZ = ZoneInfo("Asia/Taipei")
 # bucket: "portfolio" | "watchlist"
 # shares_float_m: approximate free-float shares in millions — used for L1
 #   normalisation. Set to None to skip normalisation (score will be coarser).
-#   Update these when you add/remove positions.
+# ── UPDATE PORTFOLIO to match T1 sheet (add avg_cost, shares when confirmed) ─
 UNIVERSE = [
-    # ── Portfolio (holdings) ──────────────────────────────────────────────────
-    ("2330", "TSMC",              "台積電",   "SEMI",  "portfolio", 25_930),
-    ("2317", "Hon Hai",           "鴻海",     "ELEC",  "portfolio", 138_000),
-    # ── Watchlist ─────────────────────────────────────────────────────────────
-    ("2454", "MediaTek",          "聯發科",   "SEMI",  "watchlist",  15_900),
-    ("2382", "Quanta",            "廣達",     "ELEC",  "watchlist",  13_800),
-    ("2303", "UMC",               "聯電",     "SEMI",  "watchlist",  47_400),
-    ("6505", "Formosa Petro",     "台塑化",   "PETRO", "watchlist",  25_300),
-    ("2002", "China Steel",       "中鋼",     "STEEL", "watchlist",  97_300),
-    ("1301", "Formosa Plastics",  "台塑",     "PETRO", "watchlist",  63_800),
-    ("2881", "Fubon FHC",         "富邦金",   "FIN",   "watchlist",  72_600),
-    ("2882", "Cathay FHC",        "國泰金",   "FIN",   "watchlist", 116_200),
-    ("0050", "Taiwan 50 ETF",     "元大台灣50","ETF",  "watchlist",   6_800),
-    ("0056", "Hi-Div ETF",        "元大高股息","ETF",  "watchlist",  23_000),
+    # ── Portfolio (T1 Inventory) ──────────────────────────────────────────────
+    ("2330", "TSMC",           "台積電",     "SEMI",   "portfolio", 25_930),
+    ("2317", "Hon Hai",        "鴻海",       "ELEC",   "portfolio", 138_000),
+
+    # ── T2 Watchlist Interest ─────────────────────────────────────────────────
+    # TWSE (上市)
+    ("0050", "Taiwan 50 ETF",  "元大台灣50", "ETF",    "watchlist",  6_800),
+    ("3711", "ASE Technology", "日月光投控", "SEMI",   "watchlist", 79_500),
+    ("7810", "Jaeger Tech",    "捷創科技",   "TECH",   "watchlist",    580),
+    ("3017", "Asia Vital",     "奇鋐",       "COOL",   "watchlist",  3_100),
+    ("3653", "Jentech",        "健策",       "SEMI",   "watchlist",  1_400),
+    ("6669", "Wiwynn",         "緯穎",       "SERVER", "watchlist",  1_730),
+    ("2454", "MediaTek",       "聯發科",     "SEMI",   "watchlist", 15_900),
+    ("3363", "Shangdian",      "上詮",       "ELEC",   "watchlist",  2_100),
+    ("3037", "Unimicron",      "欣興",       "PCB",    "watchlist", 18_600),
+    ("3533", "Chia Tung",      "嘉澤",       "CONN",   "watchlist",    770),
+    ("2359", "Solomon",        "所羅門",     "AUTO",   "watchlist",  2_000),
+    ("2049", "HIWIN",          "上銀",       "MACH",   "watchlist",  7_900),
+    ("2308", "Delta Elec",     "台達電",     "POWER",  "watchlist", 25_700),
+    ("3131", "Grand Process",  "弘塑",       "SEMI",   "watchlist",    850),
+    # TPEx (上櫃) — routed to TPEx endpoint, T86 stub until field names confirmed
+    ("3324", "Biwin Storage",  "雙鴻",       "COOL",   "watchlist",  2_500),
+    ("6223", "MPI",            "旺矽",       "SEMI",   "watchlist",  1_100),
+    ("3163", "Browave",        "波若威",     "OPT",    "watchlist",    900),
+    ("5274", "Aspeed",         "信驊",       "SEMI",   "watchlist",    560),
+    ("7769", "Hon Jin",        "鴻勁",       "ELEC",   "watchlist",    420),
 ]
 
-# TPEx tickers — fetched from TPEx openapi instead of TWSE T86
-TPEX_CODES = set()  # e.g. {"3324", "5274", "6223"} — add OTC holdings here
+# TPEx (上櫃) tickers — fetched from TPEx endpoint instead of TWSE T86
+# T86 fields will be null until TPEx field names are confirmed from live response
+TPEX_CODES = {"3324", "6223", "3163", "5274", "7769"}
 
 SESSION = requests.Session()
 SESSION.headers.update({
