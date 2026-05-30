@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#f4efe6">
 <title>市場 · TWSE Watch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ── Tokens ── */
 :root {
@@ -23,8 +26,8 @@
   --chip-bg:  #edeae4;
   --radius:   10px;
   --radius-sm:6px;
-  --font:     'DM Mono', 'Courier New', monospace;
-  --sans:     'DM Sans', system-ui, sans-serif;
+  --font:     'IBM Plex Mono', 'Courier New', monospace;
+  --sans:     'IBM Plex Sans', system-ui, sans-serif;
   --tab-h:    44px;
   --nav-h:    52px;
 }
@@ -462,7 +465,6 @@ function tickerCard(t, isPortfolio) {
 
   const chips = [
     sigBadge,
-    trendBadge(t.trend),
     streakChips,
     rsiChip(t.rsi14),
   ].join('');
