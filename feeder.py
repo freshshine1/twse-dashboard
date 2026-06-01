@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-feeder.py Ã¢ÂÂ TWSE daily data feeder for twse-dashboard
+feeder.py ÃÂ¢ÃÂÃÂ TWSE daily data feeder for twse-dashboard
 Runs via GitHub Actions at 16:30 TPE on weekdays.
 Writes docs/data.json and docs/tickers.json.
 
-Fixes vs previous version (ea1b636 Ã¢ÂÂ this):
+Fixes vs previous version (ea1b636 ÃÂ¢ÃÂÃÂ this):
 BUG1 FIXED: t86 was assigned AFTER the per-ticker loop that referenced it
-            Ã¢ÂÂ NameError crash Ã¢ÂÂ empty watchlist/portfolio every run.
+            ÃÂ¢ÃÂÃÂ NameError crash ÃÂ¢ÃÂÃÂ empty watchlist/portfolio every run.
             Fix: fetch T86 BEFORE the per-ticker loop.
-BUG2 FIXED: T86 row indices wrong Ã¢ÂÂ row[10]/[11] used for trust/dealer.
+BUG2 FIXED: T86 row indices wrong ÃÂ¢ÃÂÃÂ row[10]/[11] used for trust/dealer.
             Correct layout: trust=[7], dealer_total=[16], inst_total=[17].
 BUG3 FIXED: `inst` variable shadowed BFI82U dict in per-ticker loop.
             Renamed T86 lookup var to `t86_entry`.
@@ -26,7 +26,7 @@ BUG5 FIXED: T1 tickers that are also in T2 now appear in BOTH portfolio AND
             watchlist. The `seen` set no longer blocks T2 from including T1
             tickers. Each tab (T1=portfolio, T2=watchlist) is independent.
 BUG6 FIXED: Active ETFs with letter suffixes (e.g. 00981A) are handled as-is
-            Ã¢ÂÂ the code already strips/uppercases the code, matching TWSE
+            ÃÂ¢ÃÂÃÂ the code already strips/uppercases the code, matching TWSE
             snapshot keys exactly.
 
 P1a FIXED (2026-06-01): L1 halving -- L1 was capped at +-0.5 because
@@ -34,9 +34,13 @@ P1a FIXED (2026-06-01): L1 halving -- L1 was capped at +-0.5 because
             rescaling. Fix: l1 = t86_score (rescaled by filled sub-weight
             fraction 0.50/0.50=1.0). When stubs land the formula becomes
             0.50*t86 + 0.20*conc + 0.20*broker + 0.10*margin.
-P1a FIXED (2026-06-01): dealer_5d -- self-營商 term used dealer_net*5 (today only).
+P1a FIXED (2026-06-01): dealer_5d -- self-çå term used dealer_net*5 (today only).
             Now computes real 5-day dealer sum in fetch_t86_institutional and
             passes dealer_5d through to compute_l1_score and entry dict.
+P2 ADDED  (2026-06-01): Radar v1 -- whole-market T86 captured each run.
+            screen_radar_candidates() surfaces trust-accumulating mid-caps
+            not in T1/T2 (volume 1k-10k Zhang, trust_net>0 today).
+            data.json gains a "radar" key for the Radar tab.
 """
 
 import json
@@ -50,7 +54,7 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-# Ã¢ÂÂÃ¢ÂÂ Config Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Config ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 TZ = ZoneInfo("Asia/Taipei")
 
 SHEET_ID = "1GuyPvnLtvPY1o7peK4R0tgRAY6nZea20XHEE_-BH9ZY"
@@ -58,22 +62,22 @@ SHEET_T1 = "T1 Inventory"
 SHEET_T2 = "T2 Watchlist Interest"
 
 FALLBACK_TICKERS = [
-    ("2330", "TSMC", "Ã¥ÂÂ°Ã§Â©ÂÃ©ÂÂ»", "SEMI"),
-    ("2317", "Hon Hai", "Ã©Â´Â»Ã¦ÂµÂ·", "ELEC"),
-    ("2454", "MediaTek", "Ã¨ÂÂ¯Ã§ÂÂ¼Ã§Â§Â", "SEMI"),
-    ("2382", "Quanta", "Ã¥Â»Â£Ã©ÂÂ", "ELEC"),
-    ("2303", "UMC", "Ã¨ÂÂ¯Ã©ÂÂ»", "SEMI"),
-    ("6505", "Formosa Petro", "Ã¥ÂÂ°Ã¥Â¡ÂÃ¥ÂÂ", "PETRO"),
-    ("2002", "China Steel", "Ã¤Â¸Â­Ã©ÂÂ¼", "STEEL"),
-    ("1301", "Formosa Plastics", "Ã¥ÂÂ°Ã¥Â¡Â", "PETRO"),
-    ("2881", "Fubon FHC", "Ã¥Â¯ÂÃ©ÂÂ¦Ã©ÂÂ", "FIN"),
-    ("2882", "Cathay FHC", "Ã¥ÂÂÃ¦Â³Â°Ã©ÂÂ", "FIN"),
-    ("0050", "Taiwan 50 ETF", "Ã¥ÂÂÃ¥Â¤Â§Ã¥ÂÂ°Ã§ÂÂ£50", "ETF"),
-    ("0056", "Hi-Div ETF", "Ã¥ÂÂÃ¥Â¤Â§Ã©Â«ÂÃ¨ÂÂ¡Ã¦ÂÂ¯", "ETF"),
+    ("2330", "TSMC", "ÃÂ¥ÃÂÃÂ°ÃÂ§ÃÂ©ÃÂÃÂ©ÃÂÃÂ»", "SEMI"),
+    ("2317", "Hon Hai", "ÃÂ©ÃÂ´ÃÂ»ÃÂ¦ÃÂµÃÂ·", "ELEC"),
+    ("2454", "MediaTek", "ÃÂ¨ÃÂÃÂ¯ÃÂ§ÃÂÃÂ¼ÃÂ§ÃÂ§ÃÂ", "SEMI"),
+    ("2382", "Quanta", "ÃÂ¥ÃÂ»ÃÂ£ÃÂ©ÃÂÃÂ", "ELEC"),
+    ("2303", "UMC", "ÃÂ¨ÃÂÃÂ¯ÃÂ©ÃÂÃÂ»", "SEMI"),
+    ("6505", "Formosa Petro", "ÃÂ¥ÃÂÃÂ°ÃÂ¥ÃÂ¡ÃÂÃÂ¥ÃÂÃÂ", "PETRO"),
+    ("2002", "China Steel", "ÃÂ¤ÃÂ¸ÃÂ­ÃÂ©ÃÂÃÂ¼", "STEEL"),
+    ("1301", "Formosa Plastics", "ÃÂ¥ÃÂÃÂ°ÃÂ¥ÃÂ¡ÃÂ", "PETRO"),
+    ("2881", "Fubon FHC", "ÃÂ¥ÃÂ¯ÃÂÃÂ©ÃÂÃÂ¦ÃÂ©ÃÂÃÂ", "FIN"),
+    ("2882", "Cathay FHC", "ÃÂ¥ÃÂÃÂÃÂ¦ÃÂ³ÃÂ°ÃÂ©ÃÂÃÂ", "FIN"),
+    ("0050", "Taiwan 50 ETF", "ÃÂ¥ÃÂÃÂÃÂ¥ÃÂ¤ÃÂ§ÃÂ¥ÃÂÃÂ°ÃÂ§ÃÂÃÂ£50", "ETF"),
+    ("0056", "Hi-Div ETF", "ÃÂ¥ÃÂÃÂÃÂ¥ÃÂ¤ÃÂ§ÃÂ©ÃÂ«ÃÂÃÂ¨ÃÂÃÂ¡ÃÂ¦ÃÂÃÂ¯", "ETF"),
 ]
 
-# Approximate free-float shares in millions Ã¢ÂÂ for L1 normalisation.
-# Missing entries use raw-clip fallback (ÃÂ±10,000 thousand shares).
+# Approximate free-float shares in millions ÃÂ¢ÃÂÃÂ for L1 normalisation.
+# Missing entries use raw-clip fallback (ÃÂÃÂ±10,000 thousand shares).
 FLOAT_M = {
     "2330": 25930, "2317": 138000, "2454": 15900, "2382": 13800,
     "2303": 47400, "6505": 25300, "2002": 97300, "1301": 63800,
@@ -91,7 +95,7 @@ SESSION.headers.update({
 })
 REQUEST_DELAY = 1.0
 
-# Ã¢ÂÂÃ¢ÂÂ Logging Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Logging ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def setup_logging():
     logger = logging.getLogger("feeder")
     logger.setLevel(logging.DEBUG)
@@ -108,7 +112,7 @@ def setup_logging():
 
 log = setup_logging()
 
-# Ã¢ÂÂÃ¢ÂÂ Helpers Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Helpers ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def safe_float(val, default=None):
     if val is None:
         return default
@@ -132,19 +136,19 @@ def twse_get(url, label="", retries=3, backoff=5):
             data = r.json()
             stat = data.get("stat", "OK") if isinstance(data, dict) else "OK"
             if stat not in ("OK", ""):
-                log.warning("%s Ã¢ÂÂ stat=%s (attempt %d)", label or url, stat, attempt)
+                log.warning("%s ÃÂ¢ÃÂÃÂ stat=%s (attempt %d)", label or url, stat, attempt)
                 if attempt < retries:
                     time.sleep(backoff * attempt)
                 continue
             return data
         except Exception as exc:
-            log.warning("%s Ã¢ÂÂ attempt %d failed: %s", label or url, attempt, exc)
+            log.warning("%s ÃÂ¢ÃÂÃÂ attempt %d failed: %s", label or url, attempt, exc)
             if attempt < retries:
                 time.sleep(backoff * attempt)
-    log.error("%s Ã¢ÂÂ all retries exhausted", label or url)
+    log.error("%s ÃÂ¢ÃÂÃÂ all retries exhausted", label or url)
     return None
 
-# Ã¢ÂÂÃ¢ÂÂ Snapshot Ã¢ÂÂ TWSE + TPEx Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Snapshot ÃÂ¢ÃÂÃÂ TWSE + TPEx ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def fetch_snapshot():
     snap = {}
     raw_rows = []
@@ -203,7 +207,7 @@ def fetch_snapshot():
                 time.sleep(5 * attempt)
 
     if tpex_rows is None:
-        log.warning("TPEx snapshot failed Ã¢ÂÂ TPEx tickers will have no price/history")
+        log.warning("TPEx snapshot failed ÃÂ¢ÃÂÃÂ TPEx tickers will have no price/history")
     else:
         for row in tpex_rows:
             code = row.get("SecuritiesCompanyCode", "").strip()
@@ -242,7 +246,7 @@ def build_tickers_json(raw_rows):
     tickers.sort(key=lambda x: x["ticker"])
     return tickers
 
-# Ã¢ÂÂÃ¢ÂÂ History Ã¢ÂÂ exchange-aware Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ History ÃÂ¢ÃÂÃÂ exchange-aware ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def fetch_history_twse(ticker, months=12):
     now = datetime.now(TZ)
     all_rows = []
@@ -344,7 +348,7 @@ def fetch_history(ticker, exchange, months=12):
         return fetch_history_tpex(ticker, months)
     return fetch_history_twse(ticker, months)
 
-# Ã¢ÂÂÃ¢ÂÂ Technical indicators Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Technical indicators ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def sma(closes, n):
     if len(closes) < n:
         return None
@@ -397,7 +401,7 @@ def compute_technicals(history, snapshot_close):
         "rsi14": rsi14,
     }
 
-# Ã¢ÂÂÃ¢ÂÂ TAIEX Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ TAIEX ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def fetch_taiex():
     url = "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json"
     data = twse_get(url, "TAIEX", retries=5, backoff=8)
@@ -419,17 +423,17 @@ def fetch_taiex():
         log.warning("TAIEX parse error: %s", exc)
         return None, None, None
 
-# Ã¢ÂÂÃ¢ÂÂ BFI82U Ã¢ÂÂ market-level institutional flow Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ BFI82U ÃÂ¢ÃÂÃÂ market-level institutional flow ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def _parse_bfi82u(rows):
     r = {"foreign": 0.0, "dealer": 0.0, "trust": 0.0}
     for row in rows:
         name = row[0].strip()
         net = safe_float(row[3], 0.0) / 1_000_000
-        if "Ã¥Â¤ÂÃ¨Â³ÂÃ¥ÂÂÃ©ÂÂ¸Ã¨Â³Â" in name and "Ã¤Â¸ÂÃ¥ÂÂ«" not in name:
+        if "ÃÂ¥ÃÂ¤ÃÂÃÂ¨ÃÂ³ÃÂÃÂ¥ÃÂÃÂÃÂ©ÃÂÃÂ¸ÃÂ¨ÃÂ³ÃÂ" in name and "ÃÂ¤ÃÂ¸ÃÂÃÂ¥ÃÂÃÂ«" not in name:
             r["foreign"] = round(net, 2)
-        elif "Ã¨ÂÂªÃ§ÂÂÃ¥ÂÂ" in name and "Ã©ÂÂ¿Ã©ÂÂª" not in name and "Ã¨ÂÂªÃ¨Â¡Â" not in name:
+        elif "ÃÂ¨ÃÂÃÂªÃÂ§ÃÂÃÂÃÂ¥ÃÂÃÂ" in name and "ÃÂ©ÃÂÃÂ¿ÃÂ©ÃÂÃÂª" not in name and "ÃÂ¨ÃÂÃÂªÃÂ¨ÃÂ¡ÃÂ" not in name:
             r["dealer"] = round(net, 2)
-        elif "Ã¦ÂÂÃ¤Â¿Â¡" in name:
+        elif "ÃÂ¦ÃÂÃÂÃÂ¤ÃÂ¿ÃÂ¡" in name:
             r["trust"] = round(net, 2)
     return r
 
@@ -487,7 +491,7 @@ def fetch_foreign_5d_cumul():
             continue
         for row in data.get("data", []):
             name = row[0].strip()
-            if "Ã¥Â¤ÂÃ¨Â³ÂÃ¥ÂÂÃ©ÂÂ¸Ã¨Â³Â" in name and "Ã¤Â¸ÂÃ¥ÂÂ«" not in name:
+            if "ÃÂ¥ÃÂ¤ÃÂÃÂ¨ÃÂ³ÃÂÃÂ¥ÃÂÃÂÃÂ©ÃÂÃÂ¸ÃÂ¨ÃÂ³ÃÂ" in name and "ÃÂ¤ÃÂ¸ÃÂÃÂ¥ÃÂÃÂ«" not in name:
                 net = safe_float(row[3], 0.0) / 1_000_000
                 total += net
                 days_collected += 1
@@ -497,7 +501,7 @@ def fetch_foreign_5d_cumul():
         log.warning("BFI82U 5d cumul: only %d days collected", days_collected)
     return round(total, 2)
 
-# Ã¢ÂÂÃ¢ÂÂ T86 per-ticker institutional flow Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ T86 per-ticker institutional flow ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def _parse_int(s):
     try:
         return int(str(s).replace(",", "").replace(" ", ""))
@@ -530,22 +534,23 @@ def _streak(daily_nets_oldest_first):
 
 def fetch_t86_institutional(twse_codes, tpex_codes):
     """
-    Fetch per-stock Ã¤Â¸ÂÃ¥Â¤Â§Ã¦Â³ÂÃ¤ÂºÂº for today + 4 prior trading days.
+    Fetch per-stock ÃÂ¤ÃÂ¸ÃÂÃÂ¥ÃÂ¤ÃÂ§ÃÂ¦ÃÂ³ÃÂÃÂ¤ÃÂºÃÂº for today + 4 prior trading days.
     Returns dict: code -> {foreign_net, trust_net, dealer_net, inst_net,
                            foreign_3d, foreign_5d, trust_3d, trust_5d,
                            foreign_streak, trust_streak}
 
-    BUG2 FIX Ã¢ÂÂ correct T86 column indices:
-      row[4]  Ã¥Â¤ÂÃ¨Â³ÂÃ¦Â·Â¨Ã¨Â²Â·Ã¨Â³Â£Ã¨Â¶Â
-      row[7]  Ã¦ÂÂÃ¤Â¿Â¡Ã¦Â·Â¨Ã¨Â²Â·Ã¨Â³Â£Ã¨Â¶Â (was row[10])
-      row[16] Ã¨ÂÂªÃ§ÂÂÃ¥ÂÂÃ¦Â·Â¨Ã¥ÂÂÃ¨Â¨Â (was row[11])
-      row[17] Ã¤Â¸ÂÃ¥Â¤Â§Ã¦Â³ÂÃ¤ÂºÂºÃ¥ÂÂÃ¨Â¨Â (was row[18])
+    BUG2 FIX ÃÂ¢ÃÂÃÂ correct T86 column indices:
+      row[4]  ÃÂ¥ÃÂ¤ÃÂÃÂ¨ÃÂ³ÃÂÃÂ¦ÃÂ·ÃÂ¨ÃÂ¨ÃÂ²ÃÂ·ÃÂ¨ÃÂ³ÃÂ£ÃÂ¨ÃÂ¶ÃÂ
+      row[7]  ÃÂ¦ÃÂÃÂÃÂ¤ÃÂ¿ÃÂ¡ÃÂ¦ÃÂ·ÃÂ¨ÃÂ¨ÃÂ²ÃÂ·ÃÂ¨ÃÂ³ÃÂ£ÃÂ¨ÃÂ¶ÃÂ (was row[10])
+      row[16] ÃÂ¨ÃÂÃÂªÃÂ§ÃÂÃÂÃÂ¥ÃÂÃÂÃÂ¦ÃÂ·ÃÂ¨ÃÂ¥ÃÂÃÂÃÂ¨ÃÂ¨ÃÂ (was row[11])
+      row[17] ÃÂ¤ÃÂ¸ÃÂÃÂ¥ÃÂ¤ÃÂ§ÃÂ¦ÃÂ³ÃÂÃÂ¤ÃÂºÃÂºÃÂ¥ÃÂÃÂÃÂ¨ÃÂ¨ÃÂ (was row[18])
     """
     today_str = _date.today().strftime("%Y%m%d")
     prior_dates = _trading_dates_back(4)
     fetch_dates = [today_str] + prior_dates  # newest first
 
     # TWSE T86
+    market_t86_today = {}   # P2: whole-market today snapshot for Radar
     t86_by_date = {}
     for dt in fetch_dates:
         url = f"https://www.twse.com.tw/fund/T86?response=json&date={dt}&selectType=ALL"
@@ -557,6 +562,16 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
             if len(row) < 18:
                 continue
             code = row[0].strip()
+            # P2: capture whole-market T86 snapshot for Radar (today's date only)
+            if dt == fetch_dates[0]:
+                market_t86_today[code] = {
+                    "foreign_net": _parse_int(row[4]),
+                    "trust_net":   _parse_int(row[7]),
+                    "dealer_net":  _parse_int(row[16]),
+                    "inst_net":    _parse_int(row[17]),
+                    "volume_k":    _parse_int(row[2]),
+                    "name_zh":     row[1].strip(),
+                }
             if code not in twse_codes:
                 continue
             day_map[code] = {
@@ -609,7 +624,7 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
             continue
 
         today_d = days[0]
-        # For streak we need oldestÃ¢ÂÂnewest, so reverse the newest-first list
+        # For streak we need oldestÃÂ¢ÃÂÃÂnewest, so reverse the newest-first list
         foreign_vals = list(reversed([d["foreign_net"] for d in days]))
         trust_vals   = list(reversed([d["trust_net"]   for d in days]))
 
@@ -627,13 +642,97 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
             "trust_streak":   _streak(trust_vals),
         }
 
-    log.info("T86 combined: %d tickers with data", len(result))
-    return result
+    log.info("T86 combined: %d tickers with data (market_today=%d)", len(result), len(market_t86_today))
+    return result, market_t86_today  # P2: return full market snapshot for Radar
 
-# Ã¢ÂÂÃ¢ÂÂ L1 chip score & signal score Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ L1 chip score & signal score ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def _sgn(x):
     if not x: return 0
     return 1 if x > 0 else -1
+
+
+# ── Radar / discovery screen (P2) ──────────────────────────────────────────────────
+def screen_radar_candidates(market_t86_today, universe_codes, snapshot, float_m_map, top_n=40):
+    """
+    P2 Radar v1: surface under-radar mid-caps with newly-started trust accumulation.
+    Coverage filter (all Tier-1 clean sources):
+      - Not in T1/T2 universe (exclude already-tracked names)
+      - Trust newly-started net-buy (trust_net > 0 = fresh accumulation today)
+      - Volume band 1,000-10,000 Zhang (1,000,000-10,000,000 shares in K units: 1000-10000)
+      - No 隔日沖 broker detection (deferred until broker_score lands; noted in log)
+    Ranks by trust_net descending (strongest accumulation first).
+    Returns list of dicts for data.json radar key.
+    """
+    if not market_t86_today:
+        log.info("Radar: no market_t86_today data, skipping screen")
+        return []
+
+    candidates = []
+    skipped_universe = 0
+    skipped_volume = 0
+    skipped_no_trust = 0
+
+    for code, row in market_t86_today.items():
+        # Exclude T1/T2 already-tracked universe
+        if code in universe_codes:
+            skipped_universe += 1
+            continue
+
+        trust_net = row.get("trust_net", 0) or 0
+        volume_k  = row.get("volume_k", 0) or 0   # in thousand shares
+
+        # Trust must be net positive today (newly-started accumulation signal)
+        if trust_net <= 0:
+            skipped_no_trust += 1
+            continue
+
+        # Volume band: 1,000-10,000 Zhang (1 Zhang = 1,000 shares)
+        # volume_k is in thousand-share units from T86 row[2]
+        # 1,000 Zhang = 1,000,000 shares = 1,000 K-shares
+        # 10,000 Zhang = 10,000,000 shares = 10,000 K-shares
+        if not (1000 <= volume_k <= 10000):
+            skipped_volume += 1
+            continue
+
+        snap = snapshot.get(code, {})
+        close = snap.get("close")
+        name_zh = row.get("name_zh") or snap.get("name_zh", code)
+        float_m = float_m_map.get(code)
+
+        # Compute a lightweight L1 using trust_net only (no 5d history for radar v1)
+        # Normalize: trust_net / (float_m * 1000 * 0.02) capped at 1.0
+        if float_m and float_m > 0:
+            cap = float_m * 1000 * 0.02
+            trust_norm = max(-1.0, min(1.0, trust_net / cap)) if cap else 0.0
+        else:
+            trust_norm = max(-1.0, min(1.0, trust_net / 10000))
+
+        candidates.append({
+            "ticker":      code,
+            "name_zh":     name_zh,
+            "tier":        "T3",
+            "bucket":      "under_radar",
+            "price":       close,
+            "chg_pct":     snap.get("chg_pct"),
+            "volume_k":    volume_k,
+            "trust_net":   trust_net,
+            "foreign_net": row.get("foreign_net", 0),
+            "dealer_net":  row.get("dealer_net", 0),
+            "inst_net":    row.get("inst_net", 0),
+            "l1_score":    round(trust_norm * 0.5, 3),  # trust-only, weight 0.5 of T86
+            "radar_note":  "投信 net-buy + vol 1k-10k Zhang",
+        })
+
+    # Rank by trust_net descending
+    candidates.sort(key=lambda x: x["trust_net"], reverse=True)
+    result = candidates[:top_n]
+
+    log.info(
+        "Radar screen: %d candidates (skipped: universe=%d vol=%d no_trust=%d) -> top %d",
+        len(candidates), skipped_universe, skipped_volume, skipped_no_trust, len(result)
+    )
+    return result
+
 
 def compute_l1_score(t86_entry, float_m):
     if not t86_entry:
@@ -684,11 +783,11 @@ def signal_label(score):
     elif score >= -2: return "Bear"
     else:            return "Strong Bear"
 
-# Ã¢ÂÂÃ¢ÂÂ Google Sheets reader Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Google Sheets reader ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def get_gsheet_token():
     creds_raw = os.environ.get("GOOGLE_CREDENTIALS")
     if not creds_raw:
-        log.warning("GOOGLE_CREDENTIALS not set Ã¢ÂÂ skipping Sheet read")
+        log.warning("GOOGLE_CREDENTIALS not set ÃÂ¢ÃÂÃÂ skipping Sheet read")
         return None
     try:
         creds = json.loads(creds_raw)
@@ -749,10 +848,10 @@ def load_tickers_from_sheet(snapshot):
     """
     Load tickers from T1 Inventory and T2 Watchlist Interest.
 
-    BUG5 FIX: A ticker in BOTH T1 and T2 (e.g. 3163 Ã¦Â³Â¢Ã¨ÂÂ¥Ã¥Â¨Â) now appears in
+    BUG5 FIX: A ticker in BOTH T1 and T2 (e.g. 3163 ÃÂ¦ÃÂ³ÃÂ¢ÃÂ¨ÃÂÃÂ¥ÃÂ¥ÃÂ¨ÃÂ) now appears in
     BOTH portfolio AND watchlist. Previously the `seen` set blocked T2 from
     including any T1 ticker. Now T1 and T2 are loaded independently with
-    separate seen sets Ã¢ÂÂ cross-listing is allowed and expected.
+    separate seen sets ÃÂ¢ÃÂÃÂ cross-listing is allowed and expected.
 
     Return value: list of tuples, may contain the same code twice with
     different tiers ("T1" and "T2").
@@ -783,7 +882,7 @@ def load_tickers_from_sheet(snapshot):
     log.info("Sheet T1: %d tickers", len(t1_entries))
 
     # T2 Watchlist Interest: TICKER | COMPANY_ZH | NOTE
-    # No dedup against T1 Ã¢ÂÂ cross-listing is intentional.
+    # No dedup against T1 ÃÂ¢ÃÂÃÂ cross-listing is intentional.
     t2_seen = set()
     for row in read_sheet_tab(token, SHEET_ID, SHEET_T2):
         if len(row) < 1:
@@ -800,14 +899,14 @@ def load_tickers_from_sheet(snapshot):
     log.info("Total ticker entries (T1+T2, cross-list allowed): %d", len(tickers))
     return tickers if tickers else None
 
-# Ã¢ÂÂÃ¢ÂÂ Main Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Main ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def main():
     log.info("=== feeder start %s ===", now_iso())
 
     # 1. Snapshots (TWSE + TPEx)
     snapshot, raw_rows, twse_codes, tpex_codes = fetch_snapshot()
     if snapshot is None:
-        log.info("No market data today Ã¢ÂÂ exiting without overwriting data.json")
+        log.info("No market data today ÃÂ¢ÃÂÃÂ exiting without overwriting data.json")
         sys.exit(0)
 
     # 2. Write tickers.json
@@ -820,7 +919,7 @@ def main():
     # 3. Load tickers from Google Sheet (fallback to hardcoded)
     tickers = load_tickers_from_sheet(snapshot)
     if tickers is None:
-        log.warning("Sheet unavailable Ã¢ÂÂ using FALLBACK_TICKERS")
+        log.warning("Sheet unavailable ÃÂ¢ÃÂÃÂ using FALLBACK_TICKERS")
         tickers = FALLBACK_TICKERS
 
     # 4. Market-level institutional data
@@ -843,18 +942,23 @@ def main():
         "trust_net_m_prev":   inst_market.get("trust_net_m_prev"),
     }
 
-    # 5. Per-ticker T86 Ã¢ÂÂ BEFORE the per-ticker loop (BUG1 FIX)
+    # 5. Per-ticker T86 ÃÂ¢ÃÂÃÂ BEFORE the per-ticker loop (BUG1 FIX)
     # Collect unique codes across T1+T2 for T86 fetch
     all_unique_codes = {t[0] for t in tickers}
     t86_twse = all_unique_codes & twse_codes
     t86_tpex = all_unique_codes & tpex_codes
     log.info("Fetching T86: %d TWSE + %d TPEx tickers", len(t86_twse), len(t86_tpex))
-    t86 = fetch_t86_institutional(t86_twse, t86_tpex)
+    t86, market_t86_today = fetch_t86_institutional(t86_twse, t86_tpex)  # P2: unpack radar snapshot
+
+    # P2: Radar screen — discover under-radar names with fresh trust accumulation
+    universe_codes = {t[0] for t in tickers}
+    radar = screen_radar_candidates(market_t86_today, universe_codes, snapshot, FLOAT_M)
 
     # 6. Per-ticker loop
     # history_cache avoids re-fetching OHLCV for tickers that appear in both T1 and T2
     watchlist  = []
     portfolio  = []
+    radar      = []   # P2: populated by screen_radar_candidates before loop
     history_cache = {}
 
     for ticker_entry in tickers:
@@ -937,7 +1041,7 @@ def main():
         "updated":  now_iso(),
         "summary":  "Feeder ran successfully. Claude summary pending API credits.",
         "callouts": [],
-        "sources":  ["TWSE API", "TPEx API", "Ã¤Â¸ÂÃ¥Â¤Â§Ã¦Â³ÂÃ¤ÂºÂ² BFI82U", "Google Sheets"],
+        "sources":  ["TWSE API", "TPEx API", "ÃÂ¤ÃÂ¸ÃÂÃÂ¥ÃÂ¤ÃÂ§ÃÂ¦ÃÂ³ÃÂÃÂ¤ÃÂºÃÂ² BFI82U", "Google Sheets"],
     }
     try:
         with open("docs/analysis.json", "r", encoding="utf-8") as f:
@@ -946,7 +1050,7 @@ def main():
             analysis = stored
             log.info("analysis.json loaded (%s)", stored.get("updated", "?"))
     except FileNotFoundError:
-        log.info("analysis.json not found Ã¢ÂÂ using placeholder")
+        log.info("analysis.json not found ÃÂ¢ÃÂÃÂ using placeholder")
     except Exception as exc:
         log.warning("analysis.json read error: %s", exc)
 
@@ -956,12 +1060,13 @@ def main():
         "market":    market,
         "watchlist": watchlist,
         "portfolio": portfolio,
+        "radar":     radar,      # P2: under-radar Radar tab
         "analysis":  analysis,
     }
     with open("docs/data.json", "w", encoding="utf-8") as f:
         json.dump(data_out, f, ensure_ascii=False, indent=2)
     log.info(
-        "docs/data.json written Ã¢ÂÂ portfolio:%d watchlist:%d",
+        "docs/data.json written ÃÂ¢ÃÂÃÂ portfolio:%d watchlist:%d",
         len(portfolio), len(watchlist)
     )
     log.info("=== feeder done %s ===", now_iso())
