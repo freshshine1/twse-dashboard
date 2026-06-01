@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-feeder.py â TWSE daily data feeder for twse-dashboard
+feeder.py Ã¢ÂÂ TWSE daily data feeder for twse-dashboard
 Runs via GitHub Actions at 16:30 TPE on weekdays.
 Writes docs/data.json and docs/tickers.json.
 
-Fixes vs previous version (ea1b636 â this):
+Fixes vs previous version (ea1b636 Ã¢ÂÂ this):
 BUG1 FIXED: t86 was assigned AFTER the per-ticker loop that referenced it
-            â NameError crash â empty watchlist/portfolio every run.
+            Ã¢ÂÂ NameError crash Ã¢ÂÂ empty watchlist/portfolio every run.
             Fix: fetch T86 BEFORE the per-ticker loop.
-BUG2 FIXED: T86 row indices wrong â row[10]/[11] used for trust/dealer.
+BUG2 FIXED: T86 row indices wrong Ã¢ÂÂ row[10]/[11] used for trust/dealer.
             Correct layout: trust=[7], dealer_total=[16], inst_total=[17].
 BUG3 FIXED: `inst` variable shadowed BFI82U dict in per-ticker loop.
             Renamed T86 lookup var to `t86_entry`.
@@ -26,8 +26,17 @@ BUG5 FIXED: T1 tickers that are also in T2 now appear in BOTH portfolio AND
             watchlist. The `seen` set no longer blocks T2 from including T1
             tickers. Each tab (T1=portfolio, T2=watchlist) is independent.
 BUG6 FIXED: Active ETFs with letter suffixes (e.g. 00981A) are handled as-is
-            â the code already strips/uppercases the code, matching TWSE
+            Ã¢ÂÂ the code already strips/uppercases the code, matching TWSE
             snapshot keys exactly.
+
+P1a FIXED (2026-06-01): L1 halving -- L1 was capped at +-0.5 because
+            concentration/broker/margin sub-scores were hard-zeroed without
+            rescaling. Fix: l1 = t86_score (rescaled by filled sub-weight
+            fraction 0.50/0.50=1.0). When stubs land the formula becomes
+            0.50*t86 + 0.20*conc + 0.20*broker + 0.10*margin.
+P1a FIXED (2026-06-01): dealer_5d -- self-營商 term used dealer_net*5 (today only).
+            Now computes real 5-day dealer sum in fetch_t86_institutional and
+            passes dealer_5d through to compute_l1_score and entry dict.
 """
 
 import json
@@ -41,7 +50,7 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-# ââ Config ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+# Ã¢ÂÂÃ¢ÂÂ Config Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 TZ = ZoneInfo("Asia/Taipei")
 
 SHEET_ID = "1GuyPvnLtvPY1o7peK4R0tgRAY6nZea20XHEE_-BH9ZY"
@@ -49,22 +58,22 @@ SHEET_T1 = "T1 Inventory"
 SHEET_T2 = "T2 Watchlist Interest"
 
 FALLBACK_TICKERS = [
-    ("2330", "TSMC", "å°ç©é»", "SEMI"),
-    ("2317", "Hon Hai", "é´»æµ·", "ELEC"),
-    ("2454", "MediaTek", "è¯ç¼ç§", "SEMI"),
-    ("2382", "Quanta", "å»£é", "ELEC"),
-    ("2303", "UMC", "è¯é»", "SEMI"),
-    ("6505", "Formosa Petro", "å°å¡å", "PETRO"),
-    ("2002", "China Steel", "ä¸­é¼", "STEEL"),
-    ("1301", "Formosa Plastics", "å°å¡", "PETRO"),
-    ("2881", "Fubon FHC", "å¯é¦é", "FIN"),
-    ("2882", "Cathay FHC", "åæ³°é", "FIN"),
-    ("0050", "Taiwan 50 ETF", "åå¤§å°ç£50", "ETF"),
-    ("0056", "Hi-Div ETF", "åå¤§é«è¡æ¯", "ETF"),
+    ("2330", "TSMC", "Ã¥ÂÂ°Ã§Â©ÂÃ©ÂÂ»", "SEMI"),
+    ("2317", "Hon Hai", "Ã©Â´Â»Ã¦ÂµÂ·", "ELEC"),
+    ("2454", "MediaTek", "Ã¨ÂÂ¯Ã§ÂÂ¼Ã§Â§Â", "SEMI"),
+    ("2382", "Quanta", "Ã¥Â»Â£Ã©ÂÂ", "ELEC"),
+    ("2303", "UMC", "Ã¨ÂÂ¯Ã©ÂÂ»", "SEMI"),
+    ("6505", "Formosa Petro", "Ã¥ÂÂ°Ã¥Â¡ÂÃ¥ÂÂ", "PETRO"),
+    ("2002", "China Steel", "Ã¤Â¸Â­Ã©ÂÂ¼", "STEEL"),
+    ("1301", "Formosa Plastics", "Ã¥ÂÂ°Ã¥Â¡Â", "PETRO"),
+    ("2881", "Fubon FHC", "Ã¥Â¯ÂÃ©ÂÂ¦Ã©ÂÂ", "FIN"),
+    ("2882", "Cathay FHC", "Ã¥ÂÂÃ¦Â³Â°Ã©ÂÂ", "FIN"),
+    ("0050", "Taiwan 50 ETF", "Ã¥ÂÂÃ¥Â¤Â§Ã¥ÂÂ°Ã§ÂÂ£50", "ETF"),
+    ("0056", "Hi-Div ETF", "Ã¥ÂÂÃ¥Â¤Â§Ã©Â«ÂÃ¨ÂÂ¡Ã¦ÂÂ¯", "ETF"),
 ]
 
-# Approximate free-float shares in millions â for L1 normalisation.
-# Missing entries use raw-clip fallback (Â±10,000 thousand shares).
+# Approximate free-float shares in millions Ã¢ÂÂ for L1 normalisation.
+# Missing entries use raw-clip fallback (ÃÂ±10,000 thousand shares).
 FLOAT_M = {
     "2330": 25930, "2317": 138000, "2454": 15900, "2382": 13800,
     "2303": 47400, "6505": 25300, "2002": 97300, "1301": 63800,
@@ -82,7 +91,7 @@ SESSION.headers.update({
 })
 REQUEST_DELAY = 1.0
 
-# ââ Logging âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+# Ã¢ÂÂÃ¢ÂÂ Logging Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 def setup_logging():
     logger = logging.getLogger("feeder")
     logger.setLevel(logging.DEBUG)
@@ -99,7 +108,7 @@ def setup_logging():
 
 log = setup_logging()
 
-# ââ Helpers âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+# Ã¢ÂÂÃ¢ÂÂ Helpers Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 def safe_float(val, default=None):
     if val is None:
         return default
@@ -123,19 +132,19 @@ def twse_get(url, label="", retries=3, backoff=5):
             data = r.json()
             stat = data.get("stat", "OK") if isinstance(data, dict) else "OK"
             if stat not in ("OK", ""):
-                log.warning("%s â stat=%s (attempt %d)", label or url, stat, attempt)
+                log.warning("%s Ã¢ÂÂ stat=%s (attempt %d)", label or url, stat, attempt)
                 if attempt < retries:
                     time.sleep(backoff * attempt)
                 continue
             return data
         except Exception as exc:
-            log.warning("%s â attempt %d failed: %s", label or url, attempt, exc)
+            log.warning("%s Ã¢ÂÂ attempt %d failed: %s", label or url, attempt, exc)
             if attempt < retries:
                 time.sleep(backoff * attempt)
-    log.error("%s â all retries exhausted", label or url)
+    log.error("%s Ã¢ÂÂ all retries exhausted", label or url)
     return None
 
-# ââ Snapshot â TWSE + TPEx ââââââââââââââââââââââââââââââââââââââââââââââââââââ
+# Ã¢ÂÂÃ¢ÂÂ Snapshot Ã¢ÂÂ TWSE + TPEx Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 def fetch_snapshot():
     snap = {}
     raw_rows = []
@@ -194,7 +203,7 @@ def fetch_snapshot():
                 time.sleep(5 * attempt)
 
     if tpex_rows is None:
-        log.warning("TPEx snapshot failed â TPEx tickers will have no price/history")
+        log.warning("TPEx snapshot failed Ã¢ÂÂ TPEx tickers will have no price/history")
     else:
         for row in tpex_rows:
             code = row.get("SecuritiesCompanyCode", "").strip()
@@ -233,7 +242,7 @@ def build_tickers_json(raw_rows):
     tickers.sort(key=lambda x: x["ticker"])
     return tickers
 
-# ââ History â exchange-aware ââââââââââââââââââââââââââââââââââââââââââââââââââ
+# Ã¢ÂÂÃ¢ÂÂ History Ã¢ÂÂ exchange-aware Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 def fetch_history_twse(ticker, months=12):
     now = datetime.now(TZ)
     all_rows = []
@@ -335,7 +344,7 @@ def fetch_history(ticker, exchange, months=12):
         return fetch_history_tpex(ticker, months)
     return fetch_history_twse(ticker, months)
 
-# ââ Technical indicators ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+# Ã¢ÂÂÃ¢ÂÂ Technical indicators Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 def sma(closes, n):
     if len(closes) < n:
         return None
@@ -388,7 +397,7 @@ def compute_technicals(history, snapshot_close):
         "rsi14": rsi14,
     }
 
-# ââ TAIEX âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+# Ã¢ÂÂÃ¢ÂÂ TAIEX Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 def fetch_taiex():
     url = "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json"
     data = twse_get(url, "TAIEX", retries=5, backoff=8)
@@ -410,17 +419,17 @@ def fetch_taiex():
         log.warning("TAIEX parse error: %s", exc)
         return None, None, None
 
-# ââ BFI82U â market-level institutional flow ââââââââââââââââââââââââââââââââââ
+# Ã¢ÂÂÃ¢ÂÂ BFI82U Ã¢ÂÂ market-level institutional flow Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 def _parse_bfi82u(rows):
     r = {"foreign": 0.0, "dealer": 0.0, "trust": 0.0}
     for row in rows:
         name = row[0].strip()
         net = safe_float(row[3], 0.0) / 1_000_000
-        if "å¤è³åé¸è³" in name and "ä¸å«" not in name:
+        if "Ã¥Â¤ÂÃ¨Â³ÂÃ¥ÂÂÃ©ÂÂ¸Ã¨Â³Â" in name and "Ã¤Â¸ÂÃ¥ÂÂ«" not in name:
             r["foreign"] = round(net, 2)
-        elif "èªçå" in name and "é¿éª" not in name and "èªè¡" not in name:
+        elif "Ã¨ÂÂªÃ§ÂÂÃ¥ÂÂ" in name and "Ã©ÂÂ¿Ã©ÂÂª" not in name and "Ã¨ÂÂªÃ¨Â¡Â" not in name:
             r["dealer"] = round(net, 2)
-        elif "æä¿¡" in name:
+        elif "Ã¦ÂÂÃ¤Â¿Â¡" in name:
             r["trust"] = round(net, 2)
     return r
 
@@ -478,7 +487,7 @@ def fetch_foreign_5d_cumul():
             continue
         for row in data.get("data", []):
             name = row[0].strip()
-            if "å¤è³åé¸è³" in name and "ä¸å«" not in name:
+            if "Ã¥Â¤ÂÃ¨Â³ÂÃ¥ÂÂÃ©ÂÂ¸Ã¨Â³Â" in name and "Ã¤Â¸ÂÃ¥ÂÂ«" not in name:
                 net = safe_float(row[3], 0.0) / 1_000_000
                 total += net
                 days_collected += 1
@@ -488,7 +497,7 @@ def fetch_foreign_5d_cumul():
         log.warning("BFI82U 5d cumul: only %d days collected", days_collected)
     return round(total, 2)
 
-# ââ T86 per-ticker institutional flow âââââââââââââââââââââââââââââââââââââââââ
+# Ã¢ÂÂÃ¢ÂÂ T86 per-ticker institutional flow Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 def _parse_int(s):
     try:
         return int(str(s).replace(",", "").replace(" ", ""))
@@ -521,16 +530,16 @@ def _streak(daily_nets_oldest_first):
 
 def fetch_t86_institutional(twse_codes, tpex_codes):
     """
-    Fetch per-stock ä¸å¤§æ³äºº for today + 4 prior trading days.
+    Fetch per-stock Ã¤Â¸ÂÃ¥Â¤Â§Ã¦Â³ÂÃ¤ÂºÂº for today + 4 prior trading days.
     Returns dict: code -> {foreign_net, trust_net, dealer_net, inst_net,
                            foreign_3d, foreign_5d, trust_3d, trust_5d,
                            foreign_streak, trust_streak}
 
-    BUG2 FIX â correct T86 column indices:
-      row[4]  å¤è³æ·¨è²·è³£è¶
-      row[7]  æä¿¡æ·¨è²·è³£è¶ (was row[10])
-      row[16] èªçåæ·¨åè¨ (was row[11])
-      row[17] ä¸å¤§æ³äººåè¨ (was row[18])
+    BUG2 FIX Ã¢ÂÂ correct T86 column indices:
+      row[4]  Ã¥Â¤ÂÃ¨Â³ÂÃ¦Â·Â¨Ã¨Â²Â·Ã¨Â³Â£Ã¨Â¶Â
+      row[7]  Ã¦ÂÂÃ¤Â¿Â¡Ã¦Â·Â¨Ã¨Â²Â·Ã¨Â³Â£Ã¨Â¶Â (was row[10])
+      row[16] Ã¨ÂÂªÃ§ÂÂÃ¥ÂÂÃ¦Â·Â¨Ã¥ÂÂÃ¨Â¨Â (was row[11])
+      row[17] Ã¤Â¸ÂÃ¥Â¤Â§Ã¦Â³ÂÃ¤ÂºÂºÃ¥ÂÂÃ¨Â¨Â (was row[18])
     """
     today_str = _date.today().strftime("%Y%m%d")
     prior_dates = _trading_dates_back(4)
@@ -600,7 +609,7 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
             continue
 
         today_d = days[0]
-        # For streak we need oldestânewest, so reverse the newest-first list
+        # For streak we need oldestÃ¢ÂÂnewest, so reverse the newest-first list
         foreign_vals = list(reversed([d["foreign_net"] for d in days]))
         trust_vals   = list(reversed([d["trust_net"]   for d in days]))
 
@@ -613,6 +622,7 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
             "foreign_5d":     sum(d["foreign_net"] for d in days)     if len(days) >= 5 else None,
             "trust_3d":       sum(d["trust_net"]   for d in days[:3]) if len(days) >= 3 else None,
             "trust_5d":       sum(d["trust_net"]   for d in days)     if len(days) >= 5 else None,
+            "dealer_5d":      sum(d["dealer_net"]  for d in days)     if len(days) >= 5 else None,
             "foreign_streak": _streak(foreign_vals),
             "trust_streak":   _streak(trust_vals),
         }
@@ -620,7 +630,7 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
     log.info("T86 combined: %d tickers with data", len(result))
     return result
 
-# ââ L1 chip score & signal score ââââââââââââââââââââââââââââââââââââââââââââââ
+# Ã¢ÂÂÃ¢ÂÂ L1 chip score & signal score Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 def _sgn(x):
     if not x: return 0
     return 1 if x > 0 else -1
@@ -637,7 +647,7 @@ def compute_l1_score(t86_entry, float_m):
 
     f5  = t86_entry.get("foreign_5d") or 0.0
     tr5 = t86_entry.get("trust_5d")  or 0.0
-    d5  = (t86_entry.get("dealer_net") or 0.0) * 5  # approx
+    d5  = t86_entry.get("dealer_5d")  or 0.0        # real 5d sum (P1a fix)
 
     t86_score = (
         0.50 * _sgn(tr5) * abs(norm(tr5, 0.02))
@@ -645,8 +655,13 @@ def compute_l1_score(t86_entry, float_m):
         + 0.20 * _sgn(d5) * abs(norm(d5, 0.01))
     )
     t86_score = max(-1.0, min(1.0, t86_score))
-    # concentration/broker/margin stubs â 0 until BSR wired
-    l1 = 0.50 * t86_score
+    # P1a FIX: rescale L1 by filled sub-weight fraction so observe-only data
+    # stays valid when concentration/broker/margin stubs are zeroed.
+    # T86 sub-weight = 0.50 of L1; other three stubs = 0.
+    # filled_fraction = 0.50 / (0.50+0.20+0.20+0.10) = 0.50
+    # rescaled: l1 = t86_score * (0.50/0.50) = t86_score
+    # (when stubs land, this line becomes: l1 = 0.50*t86_score + 0.20*conc + 0.20*broker + 0.10*margin)
+    l1 = t86_score  # rescaled: T86 fills 100% of current sub-weights
     return round(max(-1.0, min(1.0, l1)), 3)
 
 def compute_signal_score(l1, trend):
@@ -669,11 +684,11 @@ def signal_label(score):
     elif score >= -2: return "Bear"
     else:            return "Strong Bear"
 
-# ââ Google Sheets reader ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+# Ã¢ÂÂÃ¢ÂÂ Google Sheets reader Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 def get_gsheet_token():
     creds_raw = os.environ.get("GOOGLE_CREDENTIALS")
     if not creds_raw:
-        log.warning("GOOGLE_CREDENTIALS not set â skipping Sheet read")
+        log.warning("GOOGLE_CREDENTIALS not set Ã¢ÂÂ skipping Sheet read")
         return None
     try:
         creds = json.loads(creds_raw)
@@ -734,10 +749,10 @@ def load_tickers_from_sheet(snapshot):
     """
     Load tickers from T1 Inventory and T2 Watchlist Interest.
 
-    BUG5 FIX: A ticker in BOTH T1 and T2 (e.g. 3163 æ³¢è¥å¨) now appears in
+    BUG5 FIX: A ticker in BOTH T1 and T2 (e.g. 3163 Ã¦Â³Â¢Ã¨ÂÂ¥Ã¥Â¨Â) now appears in
     BOTH portfolio AND watchlist. Previously the `seen` set blocked T2 from
     including any T1 ticker. Now T1 and T2 are loaded independently with
-    separate seen sets â cross-listing is allowed and expected.
+    separate seen sets Ã¢ÂÂ cross-listing is allowed and expected.
 
     Return value: list of tuples, may contain the same code twice with
     different tiers ("T1" and "T2").
@@ -768,7 +783,7 @@ def load_tickers_from_sheet(snapshot):
     log.info("Sheet T1: %d tickers", len(t1_entries))
 
     # T2 Watchlist Interest: TICKER | COMPANY_ZH | NOTE
-    # No dedup against T1 â cross-listing is intentional.
+    # No dedup against T1 Ã¢ÂÂ cross-listing is intentional.
     t2_seen = set()
     for row in read_sheet_tab(token, SHEET_ID, SHEET_T2):
         if len(row) < 1:
@@ -785,14 +800,14 @@ def load_tickers_from_sheet(snapshot):
     log.info("Total ticker entries (T1+T2, cross-list allowed): %d", len(tickers))
     return tickers if tickers else None
 
-# ââ Main ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+# Ã¢ÂÂÃ¢ÂÂ Main Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 def main():
     log.info("=== feeder start %s ===", now_iso())
 
     # 1. Snapshots (TWSE + TPEx)
     snapshot, raw_rows, twse_codes, tpex_codes = fetch_snapshot()
     if snapshot is None:
-        log.info("No market data today â exiting without overwriting data.json")
+        log.info("No market data today Ã¢ÂÂ exiting without overwriting data.json")
         sys.exit(0)
 
     # 2. Write tickers.json
@@ -805,7 +820,7 @@ def main():
     # 3. Load tickers from Google Sheet (fallback to hardcoded)
     tickers = load_tickers_from_sheet(snapshot)
     if tickers is None:
-        log.warning("Sheet unavailable â using FALLBACK_TICKERS")
+        log.warning("Sheet unavailable Ã¢ÂÂ using FALLBACK_TICKERS")
         tickers = FALLBACK_TICKERS
 
     # 4. Market-level institutional data
@@ -828,7 +843,7 @@ def main():
         "trust_net_m_prev":   inst_market.get("trust_net_m_prev"),
     }
 
-    # 5. Per-ticker T86 â BEFORE the per-ticker loop (BUG1 FIX)
+    # 5. Per-ticker T86 Ã¢ÂÂ BEFORE the per-ticker loop (BUG1 FIX)
     # Collect unique codes across T1+T2 for T86 fetch
     all_unique_codes = {t[0] for t in tickers}
     t86_twse = all_unique_codes & twse_codes
@@ -893,6 +908,7 @@ def main():
                 "foreign_5d":     t86_entry["foreign_5d"]          if t86_entry else None,
                 "trust_3d":       t86_entry.get("trust_3d")        if t86_entry else None,
                 "trust_5d":       t86_entry.get("trust_5d")        if t86_entry else None,
+                "dealer_5d":      t86_entry.get("dealer_5d")       if t86_entry else None,
                 "foreign_streak": t86_entry.get("foreign_streak")  if t86_entry else None,
                 "trust_streak":   t86_entry.get("trust_streak")    if t86_entry else None,
                 "l1_score":       l1,
@@ -921,7 +937,7 @@ def main():
         "updated":  now_iso(),
         "summary":  "Feeder ran successfully. Claude summary pending API credits.",
         "callouts": [],
-        "sources":  ["TWSE API", "TPEx API", "ä¸å¤§æ³äº² BFI82U", "Google Sheets"],
+        "sources":  ["TWSE API", "TPEx API", "Ã¤Â¸ÂÃ¥Â¤Â§Ã¦Â³ÂÃ¤ÂºÂ² BFI82U", "Google Sheets"],
     }
     try:
         with open("docs/analysis.json", "r", encoding="utf-8") as f:
@@ -930,7 +946,7 @@ def main():
             analysis = stored
             log.info("analysis.json loaded (%s)", stored.get("updated", "?"))
     except FileNotFoundError:
-        log.info("analysis.json not found â using placeholder")
+        log.info("analysis.json not found Ã¢ÂÂ using placeholder")
     except Exception as exc:
         log.warning("analysis.json read error: %s", exc)
 
@@ -945,7 +961,7 @@ def main():
     with open("docs/data.json", "w", encoding="utf-8") as f:
         json.dump(data_out, f, ensure_ascii=False, indent=2)
     log.info(
-        "docs/data.json written â portfolio:%d watchlist:%d",
+        "docs/data.json written Ã¢ÂÂ portfolio:%d watchlist:%d",
         len(portfolio), len(watchlist)
     )
     log.info("=== feeder done %s ===", now_iso())
