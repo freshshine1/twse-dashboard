@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#f4efe6">
-<title>市場 · TWSE Watch</title>
+<title>å¸å ´ Â· TWSE Watch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ── Tokens ── */
+/* ââ Tokens ââ */
 :root {
   --bg:       #f4efe6;
   --surface:  #faf8f4;
@@ -49,7 +49,7 @@
 html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; }
 a { color: inherit; text-decoration: none; }
 
-/* ── Nav ── */
+/* ââ Nav ââ */
 .nav {
   position: sticky; top: 0; z-index: 100;
   background: var(--bg); border-bottom: 1px solid var(--border);
@@ -59,7 +59,7 @@ a { color: inherit; text-decoration: none; }
 .nav-title { font-family: var(--font); font-size: 13px; font-weight: 700; letter-spacing: .06em; flex: 1; }
 .nav-meta { font-size: 12px; color: var(--muted); font-family: var(--font); }
 
-/* ── Tab bar ── */
+/* ââ Tab bar ââ */
 .tabs {
   display: flex; border-bottom: 1px solid var(--border);
   background: var(--bg); position: sticky; top: var(--nav-h); z-index: 90;
@@ -74,11 +74,11 @@ a { color: inherit; text-decoration: none; }
 }
 .tab.active { color: var(--text); border-bottom-color: var(--text); }
 
-/* ── Panels ── */
+/* ââ Panels ââ */
 .panel { display: none; padding-bottom: 80px; }
 .panel.active { display: block; }
 
-/* ── Sort bar ── */
+/* ââ Sort bar ââ */
 .sort-bar {
   display: flex; align-items: center; gap: 6px;
   padding: 10px 16px; overflow-x: auto; scrollbar-width: none;
@@ -93,7 +93,7 @@ a { color: inherit; text-decoration: none; }
 }
 .sort-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
 
-/* ── Ticker card ── */
+/* ââ Ticker card ââ */
 .ticker-list { padding: 0 12px; }
 .ticker-card {
   border: 1px solid var(--border); border-radius: var(--radius);
@@ -143,7 +143,7 @@ a { color: inherit; text-decoration: none; }
 .price-chg.neg { color: var(--bear); }
 .price-chg.flat{ color: var(--muted); }
 
-/* ── Expandable chip detail ── */
+/* ââ Expandable chip detail ââ */
 .chip-detail {
   border-top: 1px solid var(--border);
   padding: 10px 14px; display: none;
@@ -167,7 +167,7 @@ a { color: inherit; text-decoration: none; }
 .chip-stat-val.neg { color: var(--bear); }
 .chip-stat-val.dim { color: var(--muted); }
 
-/* ── Pulse tab ── */
+/* ââ Pulse tab ââ */
 .pulse-section { padding: 16px; border-bottom: 1px solid var(--border); }
 .pulse-label { font-family: var(--font); font-size: 10px; font-weight: 700; letter-spacing: .07em; color: var(--muted); margin-bottom: 10px; }
 .inst-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
@@ -182,7 +182,7 @@ a { color: inherit; text-decoration: none; }
 .taiex-val { font-family: var(--font); font-size: 28px; font-weight: 700; }
 .taiex-chg { font-family: var(--font); font-size: 15px; }
 
-/* ── Portfolio tab ── */
+/* ââ Portfolio tab ââ */
 .port-card {
   margin: 10px 12px 0; border: 1px solid var(--border);
   border-radius: var(--radius); background: var(--surface); overflow: hidden;
@@ -190,7 +190,7 @@ a { color: inherit; text-decoration: none; }
 .port-main { padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 8px; }
 .port-pnl-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
 
-/* ── Take tab ── */
+/* ââ Take tab ââ */
 .take-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
 .take-summary { font-size: 14px; line-height: 1.65; color: var(--text); white-space: pre-wrap; }
 .callout-card {
@@ -210,20 +210,33 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--font); font-size: 12px; color: var(--text);
   background: var(--chip-bg); line-height: 1.5;
 }
-.callout-action::before { content: "→ "; font-weight: 700; }
+.callout-action::before { content: "â "; font-weight: 700; }
 
-/* ── Empty state ── */
+/* ââ Empty state ââ */
 .empty {
   text-align: center; padding: 60px 20px;
   font-family: var(--font); font-size: 13px; color: var(--muted);
   line-height: 1.7;
 }
 
-/* ── Footer note ── */
+/* ââ Footer note ââ */
 .footer-note {
   padding: 16px; font-family: var(--font); font-size: 11px;
   color: var(--muted); text-align: center; letter-spacing: .03em;
 }
+
+    /* --- Radar tab --- */
+    .radar-section { padding: 1rem 0; }
+    .radar-desc { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem; line-height: 1.5; }
+    .radar-tier-badge { background: var(--border); border-radius: 4px; padding: 1px 5px; font-size: 0.75rem; color: var(--text); }
+    .radar-footer { font-size: 0.78rem; color: var(--muted); margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 0.5rem; }
+    #radar-list { width: 100%; }
+    .radar-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .radar-table th { text-align: left; padding: 6px 8px; border-bottom: 2px solid var(--border); color: var(--muted); font-weight: 500; font-size: 0.75rem; text-transform: uppercase; }
+    .radar-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .radar-table tr:hover td { background: var(--surface); }
+    .radar-trust-bar { display: inline-block; height: 8px; background: var(--bull); border-radius: 3px; min-width: 2px; }
+    .radar-empty { color: var(--muted); text-align: center; padding: 2rem; font-size: 0.85rem; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -231,18 +244,19 @@ a { color: inherit; text-decoration: none; }
 <body>
 
 <div class="nav">
-  <div class="nav-title">市場 watch</div>
-  <div class="nav-meta" id="nav-meta">—</div>
+  <div class="nav-title">å¸å ´ watch</div>
+  <div class="nav-meta" id="nav-meta">â</div>
 </div>
 
 <div class="tabs">
   <button class="tab active" onclick="switchTab('watch')">Watch</button>
   <button class="tab" onclick="switchTab('pulse')">Pulse</button>
   <button class="tab" onclick="switchTab('portfolio')">Portfolio</button>
+  <button class="tab" onclick="switchTab('radar')">雷達</button>
   <button class="tab" onclick="switchTab('take')">Take</button>
 </div>
 
-<!-- ══ WATCH TAB ══ -->
+<!-- ââ WATCH TAB ââ -->
 <div class="panel active" id="panel-watch">
   <div class="sort-bar">
     <button class="sort-btn active" onclick="setSort('signal')">Signal</button>
@@ -255,67 +269,85 @@ a { color: inherit; text-decoration: none; }
   <div class="footer-note" id="watch-footer">Updated daily after 16:30 TPE.</div>
 </div>
 
-<!-- ══ PULSE TAB ══ -->
+<!-- ââ PULSE TAB ââ -->
 <div class="panel" id="panel-pulse">
   <div class="pulse-section">
     <div class="pulse-label">TAIEX</div>
     <div class="taiex-row">
-      <div class="taiex-val" id="p-taiex">—</div>
+      <div class="taiex-val" id="p-taiex">â</div>
       <div class="taiex-chg" id="p-taiex-chg"></div>
     </div>
-    <div class="pulse-label">三大法人 Institutional Flow · Today</div>
+    <div class="pulse-label">ä¸å¤§æ³äºº Institutional Flow Â· Today</div>
     <div class="inst-grid">
       <div class="inst-card">
-        <div class="inst-card-label">外資 Foreign</div>
-        <div class="inst-card-val" id="p-foreign">—</div>
+        <div class="inst-card-label">å¤è³ Foreign</div>
+        <div class="inst-card-val" id="p-foreign">â</div>
         <div class="inst-card-prev" id="p-foreign-prev"></div>
       </div>
       <div class="inst-card">
-        <div class="inst-card-label">自營商 Dealer</div>
-        <div class="inst-card-val" id="p-dealer">—</div>
+        <div class="inst-card-label">èªçå Dealer</div>
+        <div class="inst-card-val" id="p-dealer">â</div>
         <div class="inst-card-prev" id="p-dealer-prev"></div>
       </div>
       <div class="inst-card">
-        <div class="inst-card-label">投信 Trust</div>
-        <div class="inst-card-val" id="p-trust">—</div>
+        <div class="inst-card-label">æä¿¡ Trust</div>
+        <div class="inst-card-val" id="p-trust">â</div>
         <div class="inst-card-prev" id="p-trust-prev"></div>
       </div>
       <div class="inst-card">
-        <div class="inst-card-label">合計 Total</div>
-        <div class="inst-card-val" id="p-total">—</div>
-        <div class="inst-card-prev" id="p-5d">5d: —</div>
+        <div class="inst-card-label">åè¨ Total</div>
+        <div class="inst-card-val" id="p-total">â</div>
+        <div class="inst-card-prev" id="p-5d">5d: â</div>
       </div>
     </div>
   </div>
   <div class="footer-note">Updated daily after 16:30 TPE.</div>
 </div>
 
-<!-- ══ PORTFOLIO TAB ══ -->
+<!-- ââ PORTFOLIO TAB ââ -->
 <div class="panel" id="panel-portfolio">
   <div id="portfolio-list"></div>
   <div class="footer-note">Holdings from T1 Inventory sheet.</div>
 </div>
 
-<!-- ══ TAKE TAB ══ -->
+<!-- ââ TAKE TAB ââ -->
+<div class="panel" id="panel-radar">
+  <div class="radar-section">
+    <div class="pulse-label">雷達 · 投信新買掃描</div>
+    <p class="radar-desc">
+      自動篩選：今日投信淨買 &gt; 0、成交量 1,000–10,000 張、非 T1/T2 持股。
+      以投信淨買量排序。
+      <span class="radar-tier-badge">Tier-1 資料</span>
+      ｜促進手動加入 T2 觀察清單；Python 不寫入清單。
+    </p>
+    <div id="radar-hint" style="color:var(--muted);font-size:0.8rem;margin-bottom:0.5rem;"></div>
+    <div id="radar-list"></div>
+    <p class="radar-footer">
+      📋 <strong>方舟 (Tier-3 輔助)</strong>：若候選出現 <em>價值</em> 標籤且無 <em>升溫</em> → 進一步評估。
+      詳見 <code>config/ark_crosscheck.md</code>。
+    </p>
+  </div>
+</div>
+
 <div class="panel" id="panel-take">
   <div class="take-section">
-    <div class="pulse-label">今日觀察</div>
-    <div class="take-summary" id="take-summary">—</div>
+    <div class="pulse-label">ä»æ¥è§å¯</div>
+    <div class="take-summary" id="take-summary">â</div>
   </div>
   <div style="padding: 14px 12px 6px">
-    <div class="pulse-label">持股觀察</div>
+    <div class="pulse-label">æè¡è§å¯</div>
   </div>
   <div id="callout-list"></div>
   <div class="footer-note" id="take-sources"></div>
 </div>
 
 <script>
-// ── State ──
+// ââ State ââ
 let DATA = null;
 let SORT = 'signal';
 let OPEN = {};   // expanded card state: ticker -> bool
 
-// ── Fetch ──
+// ââ Fetch ââ
 const DATA_URL = 'data.json';
 
 async function loadData() {
@@ -328,11 +360,11 @@ async function loadData() {
   }
 }
 
-// ── Helpers ──
+// ââ Helpers ââ
 function fmt(v, digits=0, suffix='') {
-  if (v === null || v === undefined) return '—';
+  if (v === null || v === undefined) return 'â';
   const n = Number(v);
-  if (isNaN(n)) return '—';
+  if (isNaN(n)) return 'â';
   return n.toLocaleString('en-US', {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
@@ -340,18 +372,18 @@ function fmt(v, digits=0, suffix='') {
 }
 
 function fmtM(v) {
-  if (v === null || v === undefined) return '—';
+  if (v === null || v === undefined) return 'â';
   const n = Number(v);
-  if (isNaN(n)) return '—';
+  if (isNaN(n)) return 'â';
   const sign = n >= 0 ? '+' : '';
   if (Math.abs(n) >= 1000) return sign + (n/1000).toFixed(1) + 'B';
   return sign + n.toFixed(0) + 'M';
 }
 
 function fmtShares(v) {
-  if (v === null || v === undefined) return '—';
+  if (v === null || v === undefined) return 'â';
   const n = Number(v);
-  if (isNaN(n)) return '—';
+  if (isNaN(n)) return 'â';
   const sign = n >= 0 ? '+' : '';
   if (Math.abs(n) >= 1000) return sign + (n/1000).toFixed(1) + 'k';
   return sign + n.toFixed(0);
@@ -372,13 +404,13 @@ function signalClass(score) {
 function streakLabel(v, actor) {
   if (v === null || v === undefined || v === 0) return null;
   const days = Math.abs(v);
-  const dir  = v > 0 ? '買' : '賣';
-  return actor + '連' + dir + days + '日';
+  const dir  = v > 0 ? 'è²·' : 'è³£';
+  return actor + 'é£' + dir + days + 'æ¥';
 }
 
 function trendBadge(trend) {
   if (!trend) return '';
-  const map = { BULL:'BULL', 'MIXED+':'MIX+', 'MIXED-':'MIX−', BEAR:'BEAR' };
+  const map = { BULL:'BULL', 'MIXED+':'MIX+', 'MIXED-':'MIXâ', BEAR:'BEAR' };
   const cls  = (trend === 'BULL') ? 'bull' : (trend === 'BEAR') ? 'bear' : '';
   return `<span class="chip ${cls}">${map[trend] || trend}</span>`;
 }
@@ -395,7 +427,7 @@ function signalBadge(label, score) {
   return `<span class="badge-signal ${cls}">${label}</span>`;
 }
 
-// ── Sort ──
+// ââ Sort ââ
 function setSort(s) {
   SORT = s;
   document.querySelectorAll('.sort-btn').forEach(b => {
@@ -424,16 +456,16 @@ function sortedWatchlist(items) {
   return arr;
 }
 
-// ── Toggle expand ──
+// ââ Toggle expand ââ
 function toggleCard(ticker) {
   OPEN[ticker] = !OPEN[ticker];
   const el = document.getElementById('detail-' + ticker);
   if (el) el.classList.toggle('open', OPEN[ticker]);
   const arrow = document.getElementById('arrow-' + ticker);
-  if (arrow) arrow.textContent = OPEN[ticker] ? '▲' : '▼';
+  if (arrow) arrow.textContent = OPEN[ticker] ? 'â²' : 'â¼';
 }
 
-// ── Render Watch ──
+// ââ Render Watch ââ
 function renderWatch() {
   if (!DATA) return;
   const list = document.getElementById('watch-list');
@@ -449,15 +481,15 @@ function renderWatch() {
 function tickerCard(t, isPortfolio) {
   const chgPct = t.chg_pct ?? t.chgPct;
   const chgCls = (chgPct > 0) ? 'pos' : (chgPct < 0) ? 'neg' : 'flat';
-  const chgStr = chgPct != null ? ((chgPct >= 0 ? '+' : '') + chgPct.toFixed(2) + '%') : '—';
-  const priceStr = t.price != null ? fmt(t.price, t.price >= 100 ? 1 : 2) : '—';
+  const chgStr = chgPct != null ? ((chgPct >= 0 ? '+' : '') + chgPct.toFixed(2) + '%') : 'â';
+  const priceStr = t.price != null ? fmt(t.price, t.price >= 100 ? 1 : 2) : 'â';
 
   // Signal badge
   const sigBadge = signalBadge(t.signal_label, t.signal_score);
 
   // Streak chips
-  const fStreak = streakLabel(t.foreign_streak, '外資');
-  const tStreak = streakLabel(t.trust_streak, '投信');
+  const fStreak = streakLabel(t.foreign_streak, 'å¤è³');
+  const tStreak = streakLabel(t.trust_streak, 'æä¿¡');
   const streakChips = [
     fStreak ? `<span class="chip ${t.foreign_streak > 0 ? 'bull' : 'bear'}">${fStreak}</span>` : '',
     tStreak ? `<span class="chip ${t.trust_streak > 0 ? 'bull' : 'bear'}">${tStreak}</span>` : '',
@@ -472,7 +504,7 @@ function tickerCard(t, isPortfolio) {
   // Expand detail
   const detail = chipDetailHTML(t, isPortfolio);
   const hasDetail = t.foreign_net != null || t.l1_score != null;
-  const expandBtn = hasDetail ? `<span id="arrow-${t.ticker}" style="font-size:10px;color:var(--muted);margin-left:6px">▼</span>` : '';
+  const expandBtn = hasDetail ? `<span id="arrow-${t.ticker}" style="font-size:10px;color:var(--muted);margin-left:6px">â¼</span>` : '';
 
   return `
 <div class="ticker-card">
@@ -502,27 +534,27 @@ function chipDetailHTML(t, isPortfolio) {
   // Technical section
   rows.push(`<div class="chip-section-label">TECHNICAL</div>`);
   rows.push(`<div class="chip-row">`);
-  rows.push(statChip('MA5', t.ma5 != null ? fmt(t.ma5,1) : '—', ''));
-  rows.push(statChip('MA20', t.ma20 != null ? fmt(t.ma20,1) : '—', ''));
-  rows.push(statChip('MA60', t.ma60 != null ? fmt(t.ma60,1) : '—', ''));
-  rows.push(statChip('VOL×', t.vol_ratio != null ? t.vol_ratio.toFixed(1) : '—', t.vol_ratio >= 1.5 ? 'pos' : ''));
-  rows.push(statChip('52W%', t.pct_from_52w_high != null ? (t.pct_from_52w_high >= 0 ? '+' : '') + t.pct_from_52w_high.toFixed(1) : '—', t.pct_from_52w_high >= -5 ? 'pos' : 'neg'));
+  rows.push(statChip('MA5', t.ma5 != null ? fmt(t.ma5,1) : 'â', ''));
+  rows.push(statChip('MA20', t.ma20 != null ? fmt(t.ma20,1) : 'â', ''));
+  rows.push(statChip('MA60', t.ma60 != null ? fmt(t.ma60,1) : 'â', ''));
+  rows.push(statChip('VOLÃ', t.vol_ratio != null ? t.vol_ratio.toFixed(1) : 'â', t.vol_ratio >= 1.5 ? 'pos' : ''));
+  rows.push(statChip('52W%', t.pct_from_52w_high != null ? (t.pct_from_52w_high >= 0 ? '+' : '') + t.pct_from_52w_high.toFixed(1) : 'â', t.pct_from_52w_high >= -5 ? 'pos' : 'neg'));
   rows.push(`</div>`);
 
   // Chip / institutional section
   if (t.foreign_net != null || t.inst_net != null) {
-    rows.push(`<div class="chip-section-label">三大法人 CHIP FLOW (shares, thousands)</div>`);
+    rows.push(`<div class="chip-section-label">ä¸å¤§æ³äºº CHIP FLOW (shares, thousands)</div>`);
     rows.push(`<div class="chip-row">`);
-    rows.push(statChip('外資今', fmtShares(t.foreign_net), colorClass(t.foreign_net)));
-    rows.push(statChip('投信今', fmtShares(t.trust_net), colorClass(t.trust_net)));
-    rows.push(statChip('自營今', fmtShares(t.dealer_net), colorClass(t.dealer_net)));
-    rows.push(statChip('法人今', fmtShares(t.inst_net), colorClass(t.inst_net)));
+    rows.push(statChip('å¤è³ä»', fmtShares(t.foreign_net), colorClass(t.foreign_net)));
+    rows.push(statChip('æä¿¡ä»', fmtShares(t.trust_net), colorClass(t.trust_net)));
+    rows.push(statChip('èªçä»', fmtShares(t.dealer_net), colorClass(t.dealer_net)));
+    rows.push(statChip('æ³äººä»', fmtShares(t.inst_net), colorClass(t.inst_net)));
     rows.push(`</div>`);
     rows.push(`<div class="chip-row">`);
-    rows.push(statChip('外資3d', fmtShares(t.foreign_3d), colorClass(t.foreign_3d)));
-    rows.push(statChip('外資5d', fmtShares(t.foreign_5d), colorClass(t.foreign_5d)));
-    rows.push(statChip('投信3d', fmtShares(t.trust_3d), colorClass(t.trust_3d)));
-    rows.push(statChip('投信5d', fmtShares(t.trust_5d), colorClass(t.trust_5d)));
+    rows.push(statChip('å¤è³3d', fmtShares(t.foreign_3d), colorClass(t.foreign_3d)));
+    rows.push(statChip('å¤è³5d', fmtShares(t.foreign_5d), colorClass(t.foreign_5d)));
+    rows.push(statChip('æä¿¡3d', fmtShares(t.trust_3d), colorClass(t.trust_3d)));
+    rows.push(statChip('æä¿¡5d', fmtShares(t.trust_5d), colorClass(t.trust_5d)));
     rows.push(`</div>`);
   }
 
@@ -535,7 +567,7 @@ function chipDetailHTML(t, isPortfolio) {
     rows.push(statChip('Signal', (t.signal_score >= 0 ? '+' : '') + (t.signal_score ?? 0), colorClass(t.signal_score)));
     rows.push(`</div>`);
     rows.push(`<div style="font-size:10px;color:var(--muted);margin-top:6px;font-family:var(--font)">
-      T86 only · concentration/broker/margin = stubs (BSR not yet wired)
+      T86 only Â· concentration/broker/margin = stubs (BSR not yet wired)
     </div>`);
   }
 
@@ -543,7 +575,7 @@ function chipDetailHTML(t, isPortfolio) {
   if (isPortfolio && t.avg_cost != null) {
     rows.push(`<div class="chip-section-label">POSITION</div>`);
     rows.push(`<div class="chip-row">`);
-    rows.push(statChip('Qty', t.qty != null ? fmt(t.qty, 0) : '—', ''));
+    rows.push(statChip('Qty', t.qty != null ? fmt(t.qty, 0) : 'â', ''));
     rows.push(statChip('Avg', fmt(t.avg_cost, 1), ''));
     if (t.price != null && t.avg_cost != null) {
       const pnlPct = ((t.price - t.avg_cost) / t.avg_cost * 100).toFixed(1);
@@ -562,7 +594,7 @@ function statChip(label, val, cls='') {
   </div>`;
 }
 
-// ── Render Pulse ──
+// ââ Render Pulse ââ
 function renderPulse() {
   if (!DATA) return;
   const m = DATA.market || {};
@@ -571,7 +603,7 @@ function renderPulse() {
   const taiex = m.taiex;
   const chg   = m.taiex_chg;
   const chgPct= m.taiex_chg_pct;
-  document.getElementById('p-taiex').textContent = taiex != null ? fmt(taiex, 2) : '—';
+  document.getElementById('p-taiex').textContent = taiex != null ? fmt(taiex, 2) : 'â';
   if (chg != null) {
     const cls = chg >= 0 ? 'pos' : 'neg';
     const sign= chg >= 0 ? '+' : '';
@@ -585,7 +617,7 @@ function renderPulse() {
     if (!el) return;
     const n = val != null ? Number(val) : null;
     const cls = n == null ? '' : n >= 0 ? 'pos' : 'neg';
-    const str = n != null ? ((n >= 0 ? '+' : '') + fmt(Math.abs(n), 0, suffix)) : '—';
+    const str = n != null ? ((n >= 0 ? '+' : '') + fmt(Math.abs(n), 0, suffix)) : 'â';
     el.innerHTML = `<span class="${cls}">${str}</span>`;
     if (prevId && prevVal != null) {
       const pn = Number(prevVal);
@@ -603,10 +635,10 @@ function renderPulse() {
   // 5d
   const f5d = m.foreign_5d_cumul_m;
   document.getElementById('p-5d').textContent =
-    f5d != null ? '5d: ' + (f5d >= 0 ? '+' : '') + fmt(Math.abs(f5d), 0) + 'M' : '5d: —';
+    f5d != null ? '5d: ' + (f5d >= 0 ? '+' : '') + fmt(Math.abs(f5d), 0) + 'M' : '5d: â';
 }
 
-// ── Render Portfolio ──
+// ââ Render Portfolio ââ
 function renderPortfolio() {
   if (!DATA) return;
   const items = DATA.portfolio || [];
@@ -621,11 +653,11 @@ function renderPortfolio() {
   }).join('');
 }
 
-// ── Render Take ──
+// ââ Render Take ââ
 function renderTake() {
   if (!DATA) return;
   const a = DATA.analysis || {};
-  document.getElementById('take-summary').textContent = a.summary || '—';
+  document.getElementById('take-summary').textContent = a.summary || 'â';
   const callouts = a.callouts || [];
   const list = document.getElementById('callout-list');
   if (callouts.length === 0) {
@@ -642,22 +674,22 @@ function renderTake() {
   ${c.action ? `<div class="callout-action">${c.action}</div>` : ''}
 </div>`).join('');
   }
-  const sources = (a.sources || []).join(' · ');
+  const sources = (a.sources || []).join(' Â· ');
   document.getElementById('take-sources').textContent = sources;
 }
 
-// ── Nav meta ──
+// ââ Nav meta ââ
 function renderNav() {
   if (!DATA) return;
   const updated = DATA.updated || '';
   const dt = updated ? new Date(updated) : null;
-  const timeStr = dt ? dt.toLocaleString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+  const timeStr = dt ? dt.toLocaleString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'â';
   const wCount  = (DATA.watchlist || []).length;
   const pCount  = (DATA.portfolio || []).length;
-  document.getElementById('nav-meta').textContent = `${timeStr} · ${wCount + pCount} tickers`;
+  document.getElementById('nav-meta').textContent = `${timeStr} Â· ${wCount + pCount} tickers`;
 }
 
-// ── Tab switching ──
+// ââ Tab switching ââ
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -668,13 +700,53 @@ function switchTab(name) {
   document.getElementById('panel-' + name).classList.add('active');
 }
 
-// ── Master render ──
+// ââ Master render ââ
+function renderRadar() {
+  const list = document.getElementById('radar-list');
+  const hint = document.getElementById('radar-hint');
+  if (!list) return;
+  const items = (DATA && DATA.radar) ? DATA.radar : [];
+  if (!items.length) {
+    list.innerHTML = '<p class="radar-empty">市場休市或今日無新投信買超。次日開盤後更新。</p>';
+    if (hint) hint.textContent = '';
+    return;
+  }
+  // Max trust for bar scaling
+  const maxT = Math.max(...items.map(x => x.trust_net || 0), 1);
+  if (hint) hint.textContent = '共 ' + items.length + ' 筆候選 · 今日投信淨買 > 0 + 量 1,000–10,000 張';
+  const rows = items.map(x => {
+    const barW = Math.round((x.trust_net / maxT) * 80);
+    const chgPct = x.chg_pct != null ? (x.chg_pct > 0 ? '+' : '') + x.chg_pct.toFixed(2) + '%' : '—';
+    const chgColor = x.chg_pct > 0 ? 'color:var(--bull)' : x.chg_pct < 0 ? 'color:var(--bear,#c0392b)' : '';
+    const trustK = x.trust_net != null ? (x.trust_net/1000).toFixed(1) + 'K' : '—';
+    const volZhang = x.volume_k != null ? Math.round(x.volume_k).toLocaleString() : '—';
+    return `<tr>
+      <td><strong>${x.ticker}</strong></td>
+      <td>${x.name_zh || '—'}</td>
+      <td style="${chgColor}">${chgPct}</td>
+      <td>${volZhang} 張</td>
+      <td>
+        <span class="radar-trust-bar" style="width:${barW}px"></span>
+        <span style="margin-left:4px;font-size:0.78rem">${trustK}</span>
+      </td>
+      <td style="color:var(--muted);font-size:0.75rem">${x.radar_note || ''}</td>
+    </tr>`;
+  }).join('');
+  list.innerHTML = `<table class="radar-table">
+    <thead><tr>
+      <th>代號</th><th>名稱</th><th>漲跌</th><th>成交量</th><th>投信淨買</th><th>備注</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
 function render() {
   renderNav();
   renderWatch();
   renderPulse();
   renderPortfolio();
   renderTake();
+  renderRadar();
 }
 
 loadData();
