@@ -384,9 +384,10 @@ function fmtShares(v) {
   if (v === null || v === undefined) return '—';
   const n = Number(v);
   if (isNaN(n)) return '—';
-  const sign = n >= 0 ? '+' : '';
-  if (Math.abs(n) >= 1000) return sign + (n/1000).toFixed(1) + 'k';
-  return sign + n.toFixed(0);
+  const sign = n >= 0 ? '+' : '-';
+  const a = Math.abs(n);
+  if (a >= 1000) return sign + (a/1000).toLocaleString('en-US', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + 'k';
+  return sign + a.toLocaleString('en-US');
 }
 
 function colorClass(v) {
@@ -410,8 +411,8 @@ function streakLabel(v, actor) {
 
 function trendBadge(trend) {
   if (!trend) return '';
-  const map = { BULL:'BULL', 'MIXED+':'MIX+', 'MIXED-':'MIX−', BEAR:'BEAR' };
-  const cls  = (trend === 'BULL') ? 'bull' : (trend === 'BEAR') ? 'bear' : '';
+  const map = { BULL:'BULL', 'MIXED+':'MIX+', 'MIXED-':'MIX−', BEAR:'BEAR', STALE:'STALE ⚠' };
+  const cls  = (trend === 'BULL') ? 'bull' : (trend === 'BEAR') ? 'bear' : (trend === 'STALE') ? 'amber' : '';
   return `<span class="chip ${cls}">${map[trend] || trend}</span>`;
 }
 
