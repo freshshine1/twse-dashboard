@@ -95,6 +95,10 @@ SESSION.headers.update({
 })
 REQUEST_DELAY = 1.0
 
+# 4a: concentration is wired but OFF by default until the BSR fetch is verified in CI.
+# Flip to "1" in the workflow env only after fetch_concentration() is implemented/tested.
+ENABLE_CONCENTRATION = os.getenv("ENABLE_CONCENTRATION") == "1"
+
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Logging ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def setup_logging():
     logger = logging.getLogger("feeder")
@@ -363,6 +367,19 @@ def compute_technicals(history, snapshot_close):
     ma60 = sma(closes, 60)
     price = snapshot_close if snapshot_close is not None else (closes[-1] if closes else None)
 
+    # L2 DATA-MISMATCH GUARD:
+    # If today's snapshot close diverges from the most-recent history close by more
+    # than 25%, the price and the OHLC history are on different scales/times (stale or
+    # truncated history, or a bad snapshot). A daily limit move is <=10%, so >25% is
+    # structurally impossible for fresh, same-scale data. In that case the MA / 52w /
+    # trend metrics are untrustworthy, so we null them and flag `stale` rather than
+    # emit a bogus BULL/BEAR signal (which previously produced e.g. +194% from 52w high).
+    last_close = closes[-1] if closes else None
+    stale = bool(
+        price and last_close and last_close > 0
+        and abs(price / last_close - 1.0) > 0.25
+    )
+
     vols = [r["volume"] for r in history if r["volume"] is not None]
     vol_today = vols[-1] if vols else None
     avg5v = sum(vols[-5:]) / 5 if len(vols) >= 5 else None
@@ -392,6 +409,18 @@ def compute_technicals(history, snapshot_close):
         avg_loss = sum(abs(min(d, 0)) for d in seed) / 14
         rsi14 = 100.0 if avg_loss == 0 else round(100 - (100 / (1 + avg_gain / avg_loss)), 1)
 
+    if stale:
+        # Suppress untrustworthy metrics; keep price + rsi out of the trend logic.
+        return {
+            "ma5": None, "ma20": None, "ma60": None,
+            "vol_ratio": vol_ratio,
+            "high_52w": None, "low_52w": None,
+            "pct_from_52w_high": None,
+            "trend": "STALE",
+            "rsi14": None,
+            "stale": True,
+        }
+
     return {
         "ma5": ma5, "ma20": ma20, "ma60": ma60,
         "vol_ratio": vol_ratio,
@@ -399,6 +428,7 @@ def compute_technicals(history, snapshot_close):
         "pct_from_52w_high": pct_from_52w_high,
         "trend": trend,
         "rsi14": rsi14,
+        "stale": False,
     }
 
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ TAIEX ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
@@ -755,7 +785,66 @@ def screen_radar_candidates(market_t86_today, universe_codes, snapshot, float_m_
     return result
 
 
-def compute_l1_score(t86_entry, float_m):
+def fetch_concentration(code, exchange):
+    """4a: fetch broker-branch detail from TWSE BSR and return (c5, c60) concentration %.
+
+    *** NEEDS CI VERIFICATION ***  bsr.twse.com.tw is a stateful two-step ASP.NET flow
+    (GET bsMenu.aspx for the form/token -> POST stockNo -> GET the generated CSV at a
+    tokenized URL). It cannot be exercised from the build sandbox. This is a fail-safe
+    scaffold: ANY error returns (None, None), so concentration stays unfilled and L1 is
+    unchanged. Implement/verify the scrape against the live endpoint and the Actions log,
+    then flip ENABLE_CONCENTRATION. Spend this slow per-stock scrape ONLY on the curated
+    universe + radar survivors (per agent_ops) -- never the whole market.
+    """
+    try:
+        # TODO(4a): implement the two-step BSR scrape + per-branch buy/sell aggregation,
+        # then call compute_concentration(...) per window. Until then, no-op.
+        #   menu = SESSION.get("https://bsr.twse.com.tw/bshtm/bsMenu.aspx", ...)
+        #   token = parse(menu)
+        #   csv  = SESSION.post(".../bsMenu.aspx", data={... 'stockNo': code, token ...})
+        #   buyers, sellers, vol_5d, vol_60d = aggregate(csv)
+        #   c5  = compute_concentration(buyers_5d, sellers_5d, vol_5d)
+        #   c60 = compute_concentration(buyers_60d, sellers_60d, vol_60d)
+        #   return c5, c60
+        return None, None
+    except Exception as exc:
+        log.debug("%s concentration fetch failed: %s", code, exc)
+        return None, None
+
+
+def compute_concentration(buyer_nets, seller_nets, total_volume):
+    """4a: chip concentration % for one window.
+
+    concentration = (sum(top-15 buyer nets) - sum(top-15 seller nets)) / total_volume * 100
+    Signed: positive = net specific-party accumulation, negative = distribution.
+    `buyer_nets` / `seller_nets` are per-branch net share counts (already split by side);
+    `total_volume` is the window's total traded shares. Returns None if no volume.
+    """
+    if not total_volume or total_volume <= 0:
+        return None
+    top_buy = sum(sorted([n for n in buyer_nets if n > 0], reverse=True)[:15])
+    top_sell = sum(sorted([abs(n) for n in seller_nets if n < 0], reverse=True)[:15])
+    return round((top_buy - top_sell) / total_volume * 100.0, 3)
+
+
+def compute_concentration_score(c5, c60):
+    """Map signed 5-day and 60-day concentration % to an L1 sub-score in [-1, +1].
+
+    Thresholds are DISPLAY references from the report (5d > 6%, 60d > 5%), used here
+    only to normalise magnitude -- they are not standalone action rules (1-day chip
+    alone had a documented sub-30% hit rate). Returns None if neither window has data.
+    """
+    parts = []
+    if c5 is not None:
+        parts.append(max(-1.0, min(1.0, c5 / 6.0)))
+    if c60 is not None:
+        parts.append(max(-1.0, min(1.0, c60 / 5.0)))
+    if not parts:
+        return None
+    return round(sum(parts) / len(parts), 3)
+
+
+def compute_l1_score(t86_entry, float_m, concentration=None):
     if not t86_entry:
         return None
     def norm(net, cap_pct):
@@ -775,13 +864,18 @@ def compute_l1_score(t86_entry, float_m):
         + 0.20 * _sgn(d5) * abs(norm(d5, 0.01))
     )
     t86_score = max(-1.0, min(1.0, t86_score))
-    # P1a FIX: rescale L1 by filled sub-weight fraction so observe-only data
-    # stays valid when concentration/broker/margin stubs are zeroed.
-    # T86 sub-weight = 0.50 of L1; other three stubs = 0.
-    # filled_fraction = 0.50 / (0.50+0.20+0.20+0.10) = 0.50
-    # rescaled: l1 = t86_score * (0.50/0.50) = t86_score
-    # (when stubs land, this line becomes: l1 = 0.50*t86_score + 0.20*conc + 0.20*broker + 0.10*margin)
-    l1 = t86_score  # rescaled: T86 fills 100% of current sub-weights
+
+    # L1 sub-weights (target): T86 0.50, concentration 0.20, broker 0.20, margin 0.10.
+    # Rescale by the FILLED sub-weight fraction so the score stays comparable while
+    # broker/margin remain stubs (same approach the P1a fix used). When a sub-score is
+    # unavailable (e.g. BSR fetch failed -> concentration None) it simply isn't filled,
+    # so this is fail-safe: with concentration None, l1 == t86_score (unchanged).
+    num = 0.50 * t86_score
+    den = 0.50
+    if concentration is not None:
+        num += 0.20 * max(-1.0, min(1.0, concentration))
+        den += 0.20
+    l1 = num / den if den else 0.0
     return round(max(-1.0, min(1.0, l1)), 3)
 
 def compute_signal_score(l1, trend):
@@ -1011,7 +1105,12 @@ def main():
             # BUG3 FIX: renamed to t86_entry (no longer shadows inst_market)
             t86_entry = t86.get(code)
             float_m   = FLOAT_M.get(code)
-            l1  = compute_l1_score(t86_entry, float_m)
+            # 4a: concentration sub-score (gated; no-op + fail-safe until BSR verified).
+            conc_score = None
+            if ENABLE_CONCENTRATION:
+                c5, c60 = fetch_concentration(code, exchange)
+                conc_score = compute_concentration_score(c5, c60)
+            l1  = compute_l1_score(t86_entry, float_m, concentration=conc_score)
             sig = compute_signal_score(l1, techs.get("trend"))
 
             entry = {
