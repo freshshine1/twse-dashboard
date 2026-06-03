@@ -508,6 +508,20 @@ def _parse_int(s):
     except Exception:
         return 0
 
+def _t86_idx(fields, needle, exclude=(), default=None):
+    """Resolve a T86 column index by Chinese header-name substring.
+
+    Robust to TWSE column reordering (the index-hardcoding that broke trust twice).
+    Returns `default` (the documented positional index) if fields is missing or
+    no header matches.
+    """
+    if fields:
+        for i, name in enumerate(fields):
+            nm = str(name)
+            if needle in nm and not any(x in nm for x in exclude):
+                return i
+    return default
+
 def _trading_dates_back(n):
     results = []
     d = _date.today()
@@ -557,28 +571,35 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
         raw = twse_get(url, f"T86 {dt}", retries=2, backoff=3)
         if not raw or not raw.get("data"):
             continue
+        # Resolve columns by header name (foreign=4 is confirmed-correct positionally;
+        # trust/dealer/inst matched by name with documented-index fallback).
+        fields = raw.get("fields")
+        I_FOR = 4
+        I_TRU = _t86_idx(fields, "投信買賣超", default=10)
+        I_DEA = _t86_idx(fields, "自營商買賣超", exclude=("自行", "避險", "外資"), default=11)
+        I_INS = _t86_idx(fields, "三大法人", default=18)
+        need_len = max(I_FOR, I_TRU, I_DEA, I_INS) + 1
         day_map = {}
         for row in raw["data"]:
-            if len(row) < 18:
+            if len(row) < need_len:
                 continue
             code = row[0].strip()
             # P2: capture whole-market T86 snapshot for Radar (today's date only)
             if dt == fetch_dates[0]:
                 market_t86_today[code] = {
-                    "foreign_net": _parse_int(row[4]),
-                    "trust_net":   _parse_int(row[7]),
-                    "dealer_net":  _parse_int(row[16]),
-                    "inst_net":    _parse_int(row[17]),
-                    "volume_k":    _parse_int(row[2]),
+                    "foreign_net": _parse_int(row[I_FOR]),
+                    "trust_net":   _parse_int(row[I_TRU]),
+                    "dealer_net":  _parse_int(row[I_DEA]),
+                    "inst_net":    _parse_int(row[I_INS]),
                     "name_zh":     row[1].strip(),
                 }
             if code not in twse_codes:
                 continue
             day_map[code] = {
-                "foreign_net": _parse_int(row[4]),
-                "trust_net":   _parse_int(row[7]),   # BUG2 FIX
-                "dealer_net":  _parse_int(row[16]),   # BUG2 FIX
-                "inst_net":    _parse_int(row[17]),   # BUG2 FIX
+                "foreign_net": _parse_int(row[I_FOR]),
+                "trust_net":   _parse_int(row[I_TRU]),
+                "dealer_net":  _parse_int(row[I_DEA]),
+                "inst_net":    _parse_int(row[I_INS]),
             }
         t86_by_date[dt] = day_map
         log.info("T86 TWSE %s: %d tickers", dt, len(day_map))
@@ -679,22 +700,22 @@ def screen_radar_candidates(market_t86_today, universe_codes, snapshot, float_m_
             continue
 
         trust_net = row.get("trust_net", 0) or 0
-        volume_k  = row.get("volume_k", 0) or 0   # in thousand shares
 
         # Trust must be net positive today (newly-started accumulation signal)
         if trust_net <= 0:
             skipped_no_trust += 1
             continue
 
-        # Volume band: 1,000-10,000 Zhang (1 Zhang = 1,000 shares)
-        # volume_k is in thousand-share units from T86 row[2]
-        # 1,000 Zhang = 1,000,000 shares = 1,000 K-shares
-        # 10,000 Zhang = 10,000,000 shares = 10,000 K-shares
-        if not (1000 <= volume_k <= 10000):
+        # Volume band: 1,000-10,000 張 (1 張 = 1,000 shares).
+        # Real volume comes from the snapshot (TWSE TradeVolume, in shares);
+        # T86 has no volume column, so the old T86-derived band never matched.
+        snap = snapshot.get(code, {})
+        vol_shares = snap.get("volume") or 0
+        volume_zhang = vol_shares / 1000.0
+        if not (1000 <= volume_zhang <= 10000):
             skipped_volume += 1
             continue
 
-        snap = snapshot.get(code, {})
         close = snap.get("close")
         name_zh = row.get("name_zh") or snap.get("name_zh", code)
         float_m = float_m_map.get(code)
@@ -714,7 +735,7 @@ def screen_radar_candidates(market_t86_today, universe_codes, snapshot, float_m_
             "bucket":      "under_radar",
             "price":       close,
             "chg_pct":     snap.get("chg_pct"),
-            "volume_k":    volume_k,
+            "volume_k":    round(volume_zhang),
             "trust_net":   trust_net,
             "foreign_net": row.get("foreign_net", 0),
             "dealer_net":  row.get("dealer_net", 0),
