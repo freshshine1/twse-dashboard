@@ -1268,7 +1268,7 @@ def main():
     # Read via the SAME helpers used for T1/T2 (token + REST), then parse with the
     # dependency-free fetch_news module. Surfaced for display + per-ticker bias;
     # NOT folded into the composite score yet (that is the deliberate L5 step).
-    news_recent, news_by_ticker = [], {}
+    news_recent, news_by_ticker, news_by_sector = [], {}, {}
     news_sheet_id = os.environ.get("NEWS_SHEET_ID")
     if news_sheet_id:
         try:
@@ -1277,6 +1277,7 @@ def main():
             news_rows_raw = read_sheet_tab(tok, news_sheet_id, "News") if tok else []
             news_recent    = _news.parse_news_rows(news_rows_raw, days=5)
             news_by_ticker = _news.news_bias_by_ticker(news_recent)
+            news_by_sector = _news.sector_rollup(news_recent)
         except Exception as exc:
             log.warning("news read/parse failed, continuing without L5 news: %s", exc)
     else:
@@ -1300,7 +1301,7 @@ def main():
         "watchlist": watchlist,
         "portfolio": portfolio,
         "radar":     radar,      # P2: under-radar Radar tab
-        "news":      {"recent": news_recent[:60], "by_ticker": news_by_ticker},
+        "news":      {"recent": news_recent[:60], "by_ticker": news_by_ticker, "by_sector": news_by_sector},
         "analysis":  analysis,
     }
     with open("docs/data.json", "w", encoding="utf-8") as f:
