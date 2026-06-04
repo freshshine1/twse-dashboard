@@ -439,6 +439,24 @@ function signalBadge(label, score) {
   return `<span class="badge-signal ${cls}">${label}</span>`;
 }
 
+// Per-card latest-news line (今日焦點). Self-hides when the entry has no attached news.
+function newsTagColor(tag) {
+  return tag === 'bull' ? 'var(--bull)'
+       : tag === 'bear' ? 'var(--bear)'
+       : tag === 'watch' ? '#b8860b' : 'var(--muted)';
+}
+function newsLine(t) {
+  const n = t.news;
+  if (!n || !n.latest || !n.latest.headline) return '';
+  const tag = n.latest.tag;
+  const esc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const dot = tag ? `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${newsTagColor(tag)};margin-right:5px;flex-shrink:0"></span>` : '';
+  return `<div style="font-size:11px;color:var(--muted);margin-top:5px;display:flex;align-items:center;min-width:0">
+    <span style="font-family:var(--font);font-size:9px;letter-spacing:.04em;margin-right:6px;flex-shrink:0">今日焦點</span>
+    ${dot}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n.latest.headline)}</span>
+  </div>`;
+}
+
 // ── Sort ──
 function setSort(s) {
   SORT = s;
@@ -528,6 +546,7 @@ function tickerCard(t, isPortfolio) {
         ${expandBtn}
       </div>
       <div class="ticker-chips">${chips}</div>
+      ${newsLine(t)}
     </div>
     <div class="ticker-right">
       <div class="price-main">${priceStr}</div>
@@ -762,7 +781,13 @@ function renderNews() {
     if (hint) hint.textContent = '';
     return;
   }
-  if (hint) hint.textContent = '最近 ' + news.length + ' 則（依新聞日期排序）';
+  if (hint) {
+    const tally = {};
+    news.forEach(n => (n.sectors || []).forEach(s => { tally[s] = (tally[s] || 0) + 1; }));
+    const themes = Object.entries(tally).sort((a, b) => b[1] - a[1])
+                     .map(([s, c]) => s + ' ' + c).join(' · ');
+    hint.textContent = '最近 ' + news.length + ' 則（依新聞日期排序）' + (themes ? ' ｜ 主題：' + themes : '');
+  }
   const tagColor = t => t === 'bull' ? 'var(--bull)'
                       : t === 'bear' ? 'var(--bear,#c0392b)'
                       : t === 'watch' ? 'var(--amber,#b8860b)' : 'var(--muted)';
@@ -771,9 +796,10 @@ function renderNews() {
     const tk  = n.ticker ? '<strong>' + n.ticker + '</strong> ' + esc(n.name)
                          : '<span style="color:var(--muted)">大盤/產業</span>';
     const tag = n.tag ? '<span class="chip" style="color:' + tagColor(n.tag) + '">' + n.tag + '</span>' : '';
+    const secs = (n.sectors || []).map(s => '<span class="chip" style="font-size:9px">' + esc(s) + '</span>').join(' ');
     const link = n.gmail_link ? '<a href="' + n.gmail_link + '" target="_blank" rel="noopener" style="color:var(--muted);font-size:0.75rem">✉</a>' : '';
     return '<div style="padding:0.5rem 0;border-bottom:1px solid var(--border,#eee)">'
-      + '<div style="font-size:0.75rem;color:var(--muted)">' + (n.news_date || '') + ' · ' + tk + ' ' + tag + ' ' + link + '</div>'
+      + '<div style="font-size:0.75rem;color:var(--muted)">' + (n.news_date || '') + ' · ' + tk + ' ' + tag + ' ' + secs + ' ' + link + '</div>'
       + '<div style="font-size:0.85rem">' + esc(n.headline) + '</div>'
       + '</div>';
   }).join('');
