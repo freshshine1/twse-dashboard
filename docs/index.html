@@ -254,6 +254,7 @@ a { color: inherit; text-decoration: none; }
   <button class="tab" onclick="switchTab('portfolio')">Portfolio</button>
   <button class="tab" onclick="switchTab('radar')">雷達</button>
   <button class="tab" onclick="switchTab('take')">Take</button>
+  <button class="tab" onclick="switchTab('news')">新聞</button>
 </div>
 
 <!-- ══ WATCH TAB ══ -->
@@ -327,6 +328,16 @@ a { color: inherit; text-decoration: none; }
       詳見 <code>config/ark_crosscheck.md</code>。
     </p>
   </div>
+</div>
+
+<!-- ══ NEWS TAB ══ -->
+<div class="panel" id="panel-news">
+  <div class="pulse-section">
+    <div class="pulse-label">新聞 · 轉寄信件（Tier-2/3 偏向參考，未計入評分）</div>
+    <div id="news-hint" style="color:var(--muted);font-size:0.8rem;margin-bottom:0.5rem;"></div>
+    <div id="news-list"></div>
+  </div>
+  <div class="footer-note">來自 News 試算表（Account B 自動轉寄信件）。僅供偏向參考，不計入 composite 評分。</div>
 </div>
 
 <div class="panel" id="panel-take">
@@ -694,7 +705,7 @@ function renderNav() {
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  const tabMap = { watch:'Watch', pulse:'Pulse', portfolio:'Portfolio', take:'Take' };
+  const tabMap = { watch:'Watch', pulse:'Pulse', portfolio:'Portfolio', radar:'雷達', take:'Take', news:'新聞' };
   document.querySelectorAll('.tab').forEach(t => {
     if (t.textContent === tabMap[name]) t.classList.add('active');
   });
@@ -741,6 +752,33 @@ function renderRadar() {
   </table>`;
 }
 
+function renderNews() {
+  const list = document.getElementById('news-list');
+  const hint = document.getElementById('news-hint');
+  if (!list) return;
+  const news = (DATA && DATA.news && DATA.news.recent) ? DATA.news.recent : [];
+  if (!news.length) {
+    list.innerHTML = '<p class="radar-empty">尚無新聞。News 試算表更新後顯示。</p>';
+    if (hint) hint.textContent = '';
+    return;
+  }
+  if (hint) hint.textContent = '最近 ' + news.length + ' 則（依新聞日期排序）';
+  const tagColor = t => t === 'bull' ? 'var(--bull)'
+                      : t === 'bear' ? 'var(--bear,#c0392b)'
+                      : t === 'watch' ? 'var(--amber,#b8860b)' : 'var(--muted)';
+  const esc = s => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  list.innerHTML = news.map(n => {
+    const tk  = n.ticker ? '<strong>' + n.ticker + '</strong> ' + esc(n.name)
+                         : '<span style="color:var(--muted)">大盤/產業</span>';
+    const tag = n.tag ? '<span class="chip" style="color:' + tagColor(n.tag) + '">' + n.tag + '</span>' : '';
+    const link = n.gmail_link ? '<a href="' + n.gmail_link + '" target="_blank" rel="noopener" style="color:var(--muted);font-size:0.75rem">✉</a>' : '';
+    return '<div style="padding:0.5rem 0;border-bottom:1px solid var(--border,#eee)">'
+      + '<div style="font-size:0.75rem;color:var(--muted)">' + (n.news_date || '') + ' · ' + tk + ' ' + tag + ' ' + link + '</div>'
+      + '<div style="font-size:0.85rem">' + esc(n.headline) + '</div>'
+      + '</div>';
+  }).join('');
+}
+
 function render() {
   renderNav();
   renderWatch();
@@ -748,6 +786,7 @@ function render() {
   renderPortfolio();
   renderTake();
   renderRadar();
+  renderNews();
 }
 
 loadData();
