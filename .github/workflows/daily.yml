@@ -2,11 +2,13 @@ name: Daily TWSE fetch
 
 on:
   schedule:
-    - cron: '30 8 * * 1-5'   # 16:30 TPE = 08:30 UTC, Mon–Fri
-  workflow_dispatch:           # allow manual trigger from Actions tab
+    # 19:00 Taiwan time = 11:00 UTC. Runs AFTER the institutional (T86) data
+    # publishes at ~18:00 TPE. (The old 16:30 TPE time ran too early.)
+    - cron: '0 11 * * 1-5'   # Mon-Fri
+  workflow_dispatch:          # allow manual trigger from the Actions tab
 
 permissions:
-  contents: write              # required for git push
+  contents: write             # required for git push
 
 jobs:
   fetch:
@@ -27,6 +29,7 @@ jobs:
       - name: Run feeder
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          NEWS_SHEET_ID: ${{ secrets.NEWS_SHEET_ID }}
         run: python feeder.py
 
       - name: Commit and push data.json + tickers.json
