@@ -461,16 +461,18 @@ def fetch_taiex():
 def _parse_bfi82u(rows):
     r = {"foreign": 0.0, "dealer": 0.0, "trust": 0.0}
     for row in rows:
-        name = row[0].strip()
+        if not row or len(row) < 4:
+            continue
+        name = str(row[0]).strip()
         net = safe_float(row[3], 0.0) / 1_000_000
-        if "ÃÂ¥ÃÂ¤ÃÂÃÂ¨ÃÂ³ÃÂÃÂ¥ÃÂÃÂÃÂ©ÃÂÃÂ¸ÃÂ¨ÃÂ³ÃÂ" in name and "ÃÂ¤ÃÂ¸ÃÂÃÂ¥ÃÂÃÂ«" not in name:
+        # Match by Unicode codepoints (avoids mojibake literal mismatch with live API)
+        if "外資" in name and "陸資" in name and "合計" not in name:
             r["foreign"] = round(net, 2)
-        elif "ÃÂ¨ÃÂÃÂªÃÂ§ÃÂÃÂÃÂ¥ÃÂÃÂ" in name and "ÃÂ©ÃÂÃÂ¿ÃÂ©ÃÂÃÂª" not in name and "ÃÂ¨ÃÂÃÂªÃÂ¨ÃÂ¡ÃÂ" not in name:
+        elif "自營商" in name and "避險" not in name and "自行" not in name and "合計" not in name:
             r["dealer"] = round(net, 2)
-        elif "ÃÂ¦ÃÂÃÂÃÂ¤ÃÂ¿ÃÂ¡" in name:
+        elif "投信" in name:
             r["trust"] = round(net, 2)
     return r
-
 def fetch_institutional_today():
     url = "https://www.twse.com.tw/fund/BFI82U?response=json&dayDate=&type=day"
     data = twse_get(url, "BFI82U today")
@@ -598,13 +600,16 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
     fetch_dates = [today_str] + prior_dates  # newest first
 
     # TWSE T86
-    market_t86_today = {}   # P2: whole-market today snapshot for Radar
+    market_t86_today = {}   # P2: whole-market snapshot for Radar (most recent available)
+    latest_dt = None         # first date that returns real T86 data (newest first = most recent)
     t86_by_date = {}
     for dt in fetch_dates:
         url = f"https://www.twse.com.tw/fund/T86?response=json&date={dt}&selectType=ALL"
         raw = twse_get(url, f"T86 {dt}", retries=2, backoff=3)
         if not raw or not raw.get("data"):
             continue
+        if latest_dt is None:
+            latest_dt = dt   # most-recent date with actual data (radar fallback)
         # Resolve columns by header name (foreign=4 is confirmed-correct positionally;
         # trust/dealer/inst matched by name with documented-index fallback).
         fields = raw.get("fields")
@@ -618,8 +623,9 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
             if len(row) < need_len:
                 continue
             code = row[0].strip()
-            # P2: capture whole-market T86 snapshot for Radar (today's date only)
-            if dt == fetch_dates[0]:
+            # P2: populate market_t86_today from the most-recent date with data
+            # (latest_dt). Falls back to yesterday if today's T86 is still processing.
+            if dt == latest_dt:
                 market_t86_today[code] = {
                     "foreign_net": _parse_int(row[I_FOR]),
                     "trust_net":   _parse_int(row[I_TRU]),
