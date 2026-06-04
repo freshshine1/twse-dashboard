@@ -99,6 +99,10 @@ REQUEST_DELAY = 1.0
 # Flip to "1" in the workflow env only after fetch_concentration() is implemented/tested.
 ENABLE_CONCENTRATION = os.getenv("ENABLE_CONCENTRATION") == "1"
 
+# 4c: margin (MI_MARGN, whole-market one call/day, Tier-1, no captcha). Wired but OFF
+# by default until the live field names are confirmed in CI. Then set ENABLE_MARGIN=1.
+ENABLE_MARGIN = os.getenv("ENABLE_MARGIN") == "1"
+
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Logging ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def setup_logging():
     logger = logging.getLogger("feeder")
@@ -785,6 +789,72 @@ def screen_radar_candidates(market_t86_today, universe_codes, snapshot, float_m_
     return result
 
 
+def fetch_margin_all():
+    """4c: whole-market margin balances from TWSE OpenAPI (one call/day, Tier-1, no captcha).
+
+    Returns dict: code -> {"margin_today": int, "margin_prev": int} (融資餘額 today/prev).
+    *** NEEDS CI VERIFICATION ***  confirm the exact field names against a live response
+    and add the right ones to the candidate lists below. Fail-safe: ANY error or missing
+    fields -> {} (or that row skipped), so margin stays unfilled and L1 is unchanged.
+    """
+    out = {}
+    try:
+        url = "https://openapi.twse.com.tw/v1/exchangeReport/MI_MARGN"
+        time.sleep(REQUEST_DELAY)
+        r = SESSION.get(url, timeout=30)
+        r.raise_for_status()
+        rows = r.json()
+        if not isinstance(rows, list):
+            log.warning("MI_MARGN: unexpected payload shape; margin skipped")
+            return {}
+
+        def pick(row, *keys):
+            for k in keys:
+                if k in row and str(row[k]).strip() not in ("", "--"):
+                    return _parse_int(row[k])
+            return None
+
+        for row in rows:
+            code = str(row.get("Code", "") or row.get("StockNo", "")).strip()
+            if not code:
+                continue
+            today = pick(row, "MarginPurchaseTodayBalance", "MarginPurchaseTodayBalanceShares")
+            prev  = pick(row, "MarginPurchaseYesterdayBalance", "MarginPurchasePreviousDayBalance")
+            if today is None or prev is None:
+                continue
+            out[code] = {"margin_today": today, "margin_prev": prev}
+        log.info("MI_MARGN: %d tickers with margin balances", len(out))
+    except Exception as exc:
+        log.debug("margin fetch failed: %s", exc)
+        return {}
+    return out
+
+
+def compute_margin_score(margin_today, margin_prev, price_chg_pct, inst_net):
+    """4c: retail-sentiment read in [-1, +1] from 融資餘額 change vs price and 法人 flow.
+
+    Report logic: 法人 buy + 融資 flat/down = silent (clean) accumulation [+];
+    融資 up on an up-day while 法人 sell = retail chasing / distribution risk [-].
+    Magnitudes/thresholds here are interpretation of the report's qualitative rules
+    (tunable later via thresholds.json), not Tier-1-originated rules.
+    """
+    if margin_today is None or margin_prev is None or margin_prev <= 0:
+        return None
+    m_chg = (margin_today - margin_prev) / margin_prev
+    inst = inst_net or 0
+    pc = price_chg_pct or 0
+    score = 0.0
+    if inst > 0 and m_chg <= 0.0:
+        score = 0.6      # institutions accumulating without retail chasing
+    elif inst < 0 and pc > 0 and m_chg > 0.02:
+        score = -0.8     # margin rising on up-day while institutions sell = distribution
+    elif pc > 0 and m_chg > 0.05:
+        score = -0.4     # retail chasing on margin
+    elif inst > 0 and m_chg > 0:
+        score = 0.2      # both rising = mild confirmation
+    return round(max(-1.0, min(1.0, score)), 3)
+
+
 def fetch_concentration(code, exchange):
     """4a: fetch broker-branch detail from TWSE BSR and return (c5, c60) concentration %.
 
@@ -844,7 +914,7 @@ def compute_concentration_score(c5, c60):
     return round(sum(parts) / len(parts), 3)
 
 
-def compute_l1_score(t86_entry, float_m, concentration=None):
+def compute_l1_score(t86_entry, float_m, concentration=None, margin=None):
     if not t86_entry:
         return None
     def norm(net, cap_pct):
@@ -867,14 +937,16 @@ def compute_l1_score(t86_entry, float_m, concentration=None):
 
     # L1 sub-weights (target): T86 0.50, concentration 0.20, broker 0.20, margin 0.10.
     # Rescale by the FILLED sub-weight fraction so the score stays comparable while
-    # broker/margin remain stubs (same approach the P1a fix used). When a sub-score is
-    # unavailable (e.g. BSR fetch failed -> concentration None) it simply isn't filled,
-    # so this is fail-safe: with concentration None, l1 == t86_score (unchanged).
+    # the remaining sub-scores are stubs (same approach the P1a fix used). Any sub-score
+    # that is None is simply not filled -> fail-safe: with all None, l1 == t86_score.
     num = 0.50 * t86_score
     den = 0.50
     if concentration is not None:
         num += 0.20 * max(-1.0, min(1.0, concentration))
         den += 0.20
+    if margin is not None:
+        num += 0.10 * max(-1.0, min(1.0, margin))
+        den += 0.10
     l1 = num / den if den else 0.0
     return round(max(-1.0, min(1.0, l1)), 3)
 
@@ -1065,6 +1137,9 @@ def main():
     log.info("Fetching T86: %d TWSE + %d TPEx tickers", len(t86_twse), len(t86_tpex))
     t86, market_t86_today = fetch_t86_institutional(t86_twse, t86_tpex)  # P2: unpack radar snapshot
 
+    # 4c: whole-market margin balances (one call/day, gated + fail-safe; {} when off/failed)
+    margin_map = fetch_margin_all() if ENABLE_MARGIN else {}
+
     # P2: Radar screen — discover under-radar names with fresh trust accumulation
     universe_codes = {t[0] for t in tickers}
     radar = screen_radar_candidates(market_t86_today, universe_codes, snapshot, FLOAT_M)
@@ -1110,7 +1185,16 @@ def main():
             if ENABLE_CONCENTRATION:
                 c5, c60 = fetch_concentration(code, exchange)
                 conc_score = compute_concentration_score(c5, c60)
-            l1  = compute_l1_score(t86_entry, float_m, concentration=conc_score)
+            # 4c: margin sub-score (gated; no-op + fail-safe until MI_MARGN fields verified).
+            margin_score = None
+            if ENABLE_MARGIN:
+                mrow = margin_map.get(code)
+                if mrow:
+                    inst_net = t86_entry.get("inst_net") if t86_entry else None
+                    margin_score = compute_margin_score(
+                        mrow["margin_today"], mrow["margin_prev"], snap.get("chg_pct"), inst_net
+                    )
+            l1  = compute_l1_score(t86_entry, float_m, concentration=conc_score, margin=margin_score)
             sig = compute_signal_score(l1, techs.get("trend"))
 
             entry = {
