@@ -178,6 +178,15 @@ a { color: inherit; text-decoration: none; }
 .inst-card-delta { font-family: var(--font); font-size: 11px; margin-left: 6px; }
 .inst-card-delta.flat { color: var(--muted); }
 
+/* L3 fundamental flag chip — shows on a ticker card when L3 flags fire
+   (attention list / disposition list / revenue decline). Hard flags
+   (attention, disposition) get bear styling; soft flags (revenue) amber. */
+.l3-flag { display: inline-flex; align-items: center; font-size: 9px; font-weight: 700;
+           padding: 1px 5px; border-radius: 3px; letter-spacing: .04em; margin-right: 4px;
+           font-family: var(--font); }
+.l3-flag.hard { background: var(--bear); color: #fff; }
+.l3-flag.soft { background: #f4d35e; color: #7a5800; }
+
 /* L4 Regime card */
 .regime-card {
   background: var(--surface); border: 1px solid var(--border);
@@ -452,8 +461,17 @@ async function loadData() {
       renderRegime();
     }
   } catch(e) { /* leave placeholder visible */ }
+  // L3 fundamentals (注意股/處置股/月營收) live in their own file too — same pattern.
+  try {
+    const l = await fetch('raw/l3_fundamentals_latest.json?t=' + Date.now());
+    if (l.ok) {
+      L3_DATA = await l.json();
+      render();    // re-render so cards pick up the flag chips
+    }
+  } catch(e) { /* L3 absent — cards render without flag chips */ }
 }
 let L4_DATA = null;
+let L3_DATA = null;
 
 // ── Helpers ──
 function fmt(v, digits=0, suffix='') {
@@ -529,6 +547,22 @@ function newsTagColor(tag) {
        : tag === 'bear' ? 'var(--bear)'
        : tag === 'watch' ? '#b8860b' : 'var(--muted)';
 }
+
+// L3 fundamental flag chip — pulls from L3_DATA.by_ticker[code].flags. Hard flags
+// (注意/處置) render as red chips; soft flags (revenue YoY) as amber. Returns ''
+// when L3 data isn't loaded or the ticker has no flags.
+function l3Flag(ticker) {
+  if (!L3_DATA || !L3_DATA.by_ticker) return '';
+  const row = L3_DATA.by_ticker[ticker];
+  if (!row || !row.flags || !row.flags.length) return '';
+  const esc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  return row.flags.map(f => {
+    const hard = f.type === 'attention' || f.type === 'disposition';
+    const cls  = hard ? 'l3-flag hard' : 'l3-flag soft';
+    return `<span class="${cls}" title="${esc(f.type)}">${esc(f.label)}</span>`;
+  }).join('');
+}
+
 function newsLine(t) {
   const n = t.news;
   if (!n || !n.latest || !n.latest.headline) return '';
@@ -633,7 +667,7 @@ function tickerCard(t, isPortfolio) {
         <span class="ticker-name">${t.name_zh || t.name || ''}</span>
         ${expandBtn}
       </div>
-      <div class="ticker-chips">${chips}</div>
+      <div class="ticker-chips">${l3Flag(t.ticker)}${chips}</div>
       ${newsLine(t)}
     </div>
     <div class="ticker-right">
