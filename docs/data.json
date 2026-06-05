@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-05T10:33:52+08:00",
+  "updated": "2026-06-05T11:25:05+08:00",
   "market": {
     "taiex": 45677.46,
     "taiex_chg": -781.7,
@@ -405,7 +405,7 @@
       "ma60": 1032.33,
       "vol_ratio": 1.2,
       "high_52w": 1315.0,
-      "low_52w": 164.0,
+      "low_52w": 197.5,
       "pct_from_52w_high": -24.71,
       "trend": "MIXED-",
       "rsi14": 52.3,
@@ -932,7 +932,7 @@
       "ma60": 1032.33,
       "vol_ratio": 1.2,
       "high_52w": 1315.0,
-      "low_52w": 164.0,
+      "low_52w": 197.5,
       "pct_from_52w_high": -24.71,
       "trend": "MIXED-",
       "rsi14": 52.3,
@@ -1068,7 +1068,7 @@
         "name": "",
         "tag": "bull",
         "headline": "【庫存提醒】土洋連四買加權飆破 46,400 新高！您的最新庫存新聞已送達!",
-        "snippet": "提供您 6月 4日的個人庫存相關新聞與市場最新動態，協助您在檢視持倉明細的同時，同步掌握市場脈動與熱門股資訊。 ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ",
+        "snippet": "提供您 6月 4日的個人庫存相關新聞與市場最新動態，協助您在檢視持倉明細的同時，同步掌握市場脈動與熱門股資訊。",
         "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DN3tbMyOkPv-4ubO4cvGk1LeUy2x1g0wMs",
         "sectors": [
           "大盤"
@@ -1125,12 +1125,11 @@
         "name": "",
         "tag": "bull",
         "headline": "Fwd: 【庫存提醒】COMPUTEX持續加持台積電、伺服器代工，櫃買卻遭遇劇烈洗盤?",
-        "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Wed, Jun 3, 2026 at 9:27 AM Subject: 【庫存提醒】COMPUTEX持續加持台積電、伺服器代工，櫃買卻遭遇劇烈洗盤? To: <Krazefishy@gmail.com> ",
+        "snippet": "",
         "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DNR4jWk6YFV4dRSZXHi8cTq_YqWOBVzAag",
         "sectors": [
           "AI",
-          "半導體",
-          "金融"
+          "半導體"
         ],
         "mentioned_tickers": [
           {
@@ -1180,11 +1179,10 @@
         "name": "",
         "tag": "watch",
         "headline": "Fwd: 【庫存提醒】COMPUTEX今日開展!輝達、高通背板效應引爆!",
-        "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Tue, Jun 2, 2026 at 9:47 AM Subject: 【庫存提醒】COMPUTEX今日開展!輝達、高通背板效應引爆! To: <Krazefishy@gmail.com> 提供您 6月 ",
+        "snippet": "提供您 6月",
         "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DNmajxPjtLU-0ApQgx_WNu2YuOjVKKSezE",
         "sectors": [
-          "AI",
-          "金融"
+          "AI"
         ],
         "mentioned_tickers": [
           {
@@ -1234,12 +1232,11 @@
         "name": "",
         "tag": "bear",
         "headline": "Fwd: 【庫存日報】輝達信仰充值了沒？被動元件接棒力守4萬大關！",
-        "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Thu, May 21, 2026 at 9:27 AM Subject: 【庫存日報】輝達信仰充值了沒？被動元件接棒力守4萬大關！ To: <Krazefishy@gmail.com> 提供您 5月 21",
+        "snippet": "提供您 5月 21",
         "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DOowO2EtZe-80dbk4AIX8lSpgHPEVH0ei8",
         "sectors": [
           "AI",
-          "被動元件",
-          "金融"
+          "被動元件"
         ],
         "mentioned_tickers": []
       },
@@ -1252,11 +1249,9 @@
         "name": "",
         "tag": "watch",
         "headline": "Fwd: 【庫存日報】加權指數再創1.87 兆新高天量!查看最新庫存新聞!",
-        "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Mon, Jun 1, 2026 at 9:36 AM Subject: 【庫存日報】加權指數再創1.87 兆新高天量!查看最新庫存新聞! To: <Krazefishy@gmail.com> 提供您 6月",
+        "snippet": "提供您 6月",
         "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DP9NPqh4JgPbQHbicgbxwItV8uNaQX1qq8",
         "sectors": [
-          "AI",
-          "金融",
           "大盤"
         ],
         "mentioned_tickers": [
@@ -1307,7 +1302,7 @@
           "name": "",
           "tag": "bull",
           "headline": "【庫存提醒】土洋連四買加權飆破 46,400 新高！您的最新庫存新聞已送達!",
-          "snippet": "提供您 6月 4日的個人庫存相關新聞與市場最新動態，協助您在檢視持倉明細的同時，同步掌握市場脈動與熱門股資訊。 ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ",
+          "snippet": "提供您 6月 4日的個人庫存相關新聞與市場最新動態，協助您在檢視持倉明細的同時，同步掌握市場脈動與熱門股資訊。",
           "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DN3tbMyOkPv-4ubO4cvGk1LeUy2x1g0wMs",
           "sectors": [
             "大盤"
@@ -1364,11 +1359,9 @@
           "name": "",
           "tag": "watch",
           "headline": "Fwd: 【庫存日報】加權指數再創1.87 兆新高天量!查看最新庫存新聞!",
-          "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Mon, Jun 1, 2026 at 9:36 AM Subject: 【庫存日報】加權指數再創1.87 兆新高天量!查看最新庫存新聞! To: <Krazefishy@gmail.com> 提供您 6月",
+          "snippet": "提供您 6月",
           "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DP9NPqh4JgPbQHbicgbxwItV8uNaQX1qq8",
           "sectors": [
-            "AI",
-            "金融",
             "大盤"
           ],
           "mentioned_tickers": [
@@ -1417,12 +1410,11 @@
           "name": "",
           "tag": "bull",
           "headline": "Fwd: 【庫存提醒】COMPUTEX持續加持台積電、伺服器代工，櫃買卻遭遇劇烈洗盤?",
-          "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Wed, Jun 3, 2026 at 9:27 AM Subject: 【庫存提醒】COMPUTEX持續加持台積電、伺服器代工，櫃買卻遭遇劇烈洗盤? To: <Krazefishy@gmail.com> ",
+          "snippet": "",
           "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DNR4jWk6YFV4dRSZXHi8cTq_YqWOBVzAag",
           "sectors": [
             "AI",
-            "半導體",
-            "金融"
+            "半導體"
           ],
           "mentioned_tickers": [
             {
@@ -1472,11 +1464,10 @@
           "name": "",
           "tag": "watch",
           "headline": "Fwd: 【庫存提醒】COMPUTEX今日開展!輝達、高通背板效應引爆!",
-          "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Tue, Jun 2, 2026 at 9:47 AM Subject: 【庫存提醒】COMPUTEX今日開展!輝達、高通背板效應引爆! To: <Krazefishy@gmail.com> 提供您 6月 ",
+          "snippet": "提供您 6月",
           "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DNmajxPjtLU-0ApQgx_WNu2YuOjVKKSezE",
           "sectors": [
-            "AI",
-            "金融"
+            "AI"
           ],
           "mentioned_tickers": [
             {
@@ -1526,65 +1517,13 @@
           "name": "",
           "tag": "bear",
           "headline": "Fwd: 【庫存日報】輝達信仰充值了沒？被動元件接棒力守4萬大關！",
-          "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Thu, May 21, 2026 at 9:27 AM Subject: 【庫存日報】輝達信仰充值了沒？被動元件接棒力守4萬大關！ To: <Krazefishy@gmail.com> 提供您 5月 21",
+          "snippet": "提供您 5月 21",
           "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DOowO2EtZe-80dbk4AIX8lSpgHPEVH0ei8",
           "sectors": [
             "AI",
-            "被動元件",
-            "金融"
+            "被動元件"
           ],
           "mentioned_tickers": []
-        },
-        {
-          "dedup_key": "9e1b7d294301f01f627b420c155a80aa",
-          "news_date": "2026-06-01",
-          "ingested_at": "2026-06-04 14:21",
-          "sender": "Fisher Shen <krazefishy@gmail.com>",
-          "ticker": "",
-          "name": "",
-          "tag": "watch",
-          "headline": "Fwd: 【庫存日報】加權指數再創1.87 兆新高天量!查看最新庫存新聞!",
-          "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Mon, Jun 1, 2026 at 9:36 AM Subject: 【庫存日報】加權指數再創1.87 兆新高天量!查看最新庫存新聞! To: <Krazefishy@gmail.com> 提供您 6月",
-          "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DP9NPqh4JgPbQHbicgbxwItV8uNaQX1qq8",
-          "sectors": [
-            "AI",
-            "金融",
-            "大盤"
-          ],
-          "mentioned_tickers": [
-            {
-              "ticker": "2313",
-              "name": "華通"
-            },
-            {
-              "ticker": "2337",
-              "name": "旺宏"
-            },
-            {
-              "ticker": "2344",
-              "name": "華邦電"
-            },
-            {
-              "ticker": "2408",
-              "name": "南亞科"
-            },
-            {
-              "ticker": "3163",
-              "name": "波若威"
-            },
-            {
-              "ticker": "3481",
-              "name": "群創"
-            },
-            {
-              "ticker": "3711",
-              "name": "日月光投控"
-            },
-            {
-              "ticker": "7810",
-              "name": "捷創科技"
-            }
-          ]
         }
       ],
       "半導體": [
@@ -1597,12 +1536,11 @@
           "name": "",
           "tag": "bull",
           "headline": "Fwd: 【庫存提醒】COMPUTEX持續加持台積電、伺服器代工，櫃買卻遭遇劇烈洗盤?",
-          "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Wed, Jun 3, 2026 at 9:27 AM Subject: 【庫存提醒】COMPUTEX持續加持台積電、伺服器代工，櫃買卻遭遇劇烈洗盤? To: <Krazefishy@gmail.com> ",
+          "snippet": "",
           "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DNR4jWk6YFV4dRSZXHi8cTq_YqWOBVzAag",
           "sectors": [
             "AI",
-            "半導體",
-            "金融"
+            "半導體"
           ],
           "mentioned_tickers": [
             {
@@ -1636,186 +1574,6 @@
             {
               "ticker": "6770",
               "name": "力積電"
-            },
-            {
-              "ticker": "7810",
-              "name": "捷創科技"
-            }
-          ]
-        }
-      ],
-      "金融": [
-        {
-          "dedup_key": "3c43f36e997abdb0cc7e1e822f15cb99",
-          "news_date": "2026-06-03",
-          "ingested_at": "2026-06-04 14:21",
-          "sender": "Fisher Shen <krazefishy@gmail.com>",
-          "ticker": "",
-          "name": "",
-          "tag": "bull",
-          "headline": "Fwd: 【庫存提醒】COMPUTEX持續加持台積電、伺服器代工，櫃買卻遭遇劇烈洗盤?",
-          "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Wed, Jun 3, 2026 at 9:27 AM Subject: 【庫存提醒】COMPUTEX持續加持台積電、伺服器代工，櫃買卻遭遇劇烈洗盤? To: <Krazefishy@gmail.com> ",
-          "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DNR4jWk6YFV4dRSZXHi8cTq_YqWOBVzAag",
-          "sectors": [
-            "AI",
-            "半導體",
-            "金融"
-          ],
-          "mentioned_tickers": [
-            {
-              "ticker": "2337",
-              "name": "旺宏"
-            },
-            {
-              "ticker": "2344",
-              "name": "華邦電"
-            },
-            {
-              "ticker": "3017",
-              "name": "奇鋐"
-            },
-            {
-              "ticker": "3163",
-              "name": "波若威"
-            },
-            {
-              "ticker": "3481",
-              "name": "群創"
-            },
-            {
-              "ticker": "3711",
-              "name": "日月光投控"
-            },
-            {
-              "ticker": "6147",
-              "name": "頎邦"
-            },
-            {
-              "ticker": "6770",
-              "name": "力積電"
-            },
-            {
-              "ticker": "7810",
-              "name": "捷創科技"
-            }
-          ]
-        },
-        {
-          "dedup_key": "bfdeccc16d044f6e58a267a7542db631",
-          "news_date": "2026-06-02",
-          "ingested_at": "2026-06-04 14:21",
-          "sender": "Fisher Shen <krazefishy@gmail.com>",
-          "ticker": "",
-          "name": "",
-          "tag": "watch",
-          "headline": "Fwd: 【庫存提醒】COMPUTEX今日開展!輝達、高通背板效應引爆!",
-          "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Tue, Jun 2, 2026 at 9:47 AM Subject: 【庫存提醒】COMPUTEX今日開展!輝達、高通背板效應引爆! To: <Krazefishy@gmail.com> 提供您 6月 ",
-          "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DNmajxPjtLU-0ApQgx_WNu2YuOjVKKSezE",
-          "sectors": [
-            "AI",
-            "金融"
-          ],
-          "mentioned_tickers": [
-            {
-              "ticker": "2337",
-              "name": "旺宏"
-            },
-            {
-              "ticker": "2344",
-              "name": "華邦電"
-            },
-            {
-              "ticker": "2408",
-              "name": "南亞科"
-            },
-            {
-              "ticker": "3017",
-              "name": "奇鋐"
-            },
-            {
-              "ticker": "3163",
-              "name": "波若威"
-            },
-            {
-              "ticker": "3481",
-              "name": "群創"
-            },
-            {
-              "ticker": "3711",
-              "name": "日月光投控"
-            },
-            {
-              "ticker": "6770",
-              "name": "力積電"
-            },
-            {
-              "ticker": "7810",
-              "name": "捷創科技"
-            }
-          ]
-        },
-        {
-          "dedup_key": "e62fddc8f02bd0843c5e1f3b64c7cb87",
-          "news_date": "2026-06-02",
-          "ingested_at": "2026-06-04 14:21",
-          "sender": "Fisher Shen <krazefishy@gmail.com>",
-          "ticker": "",
-          "name": "",
-          "tag": "bear",
-          "headline": "Fwd: 【庫存日報】輝達信仰充值了沒？被動元件接棒力守4萬大關！",
-          "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Thu, May 21, 2026 at 9:27 AM Subject: 【庫存日報】輝達信仰充值了沒？被動元件接棒力守4萬大關！ To: <Krazefishy@gmail.com> 提供您 5月 21",
-          "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DOowO2EtZe-80dbk4AIX8lSpgHPEVH0ei8",
-          "sectors": [
-            "AI",
-            "被動元件",
-            "金融"
-          ],
-          "mentioned_tickers": []
-        },
-        {
-          "dedup_key": "9e1b7d294301f01f627b420c155a80aa",
-          "news_date": "2026-06-01",
-          "ingested_at": "2026-06-04 14:21",
-          "sender": "Fisher Shen <krazefishy@gmail.com>",
-          "ticker": "",
-          "name": "",
-          "tag": "watch",
-          "headline": "Fwd: 【庫存日報】加權指數再創1.87 兆新高天量!查看最新庫存新聞!",
-          "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Mon, Jun 1, 2026 at 9:36 AM Subject: 【庫存日報】加權指數再創1.87 兆新高天量!查看最新庫存新聞! To: <Krazefishy@gmail.com> 提供您 6月",
-          "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DP9NPqh4JgPbQHbicgbxwItV8uNaQX1qq8",
-          "sectors": [
-            "AI",
-            "金融",
-            "大盤"
-          ],
-          "mentioned_tickers": [
-            {
-              "ticker": "2313",
-              "name": "華通"
-            },
-            {
-              "ticker": "2337",
-              "name": "旺宏"
-            },
-            {
-              "ticker": "2344",
-              "name": "華邦電"
-            },
-            {
-              "ticker": "2408",
-              "name": "南亞科"
-            },
-            {
-              "ticker": "3163",
-              "name": "波若威"
-            },
-            {
-              "ticker": "3481",
-              "name": "群創"
-            },
-            {
-              "ticker": "3711",
-              "name": "日月光投控"
             },
             {
               "ticker": "7810",
@@ -1834,12 +1592,11 @@
           "name": "",
           "tag": "bear",
           "headline": "Fwd: 【庫存日報】輝達信仰充值了沒？被動元件接棒力守4萬大關！",
-          "snippet": "1 ---------- Forwarded message --------- From: 永豐金證券投資日報 <SinoPacEDM@edm.sinotrade.com.tw> Date: Thu, May 21, 2026 at 9:27 AM Subject: 【庫存日報】輝達信仰充值了沒？被動元件接棒力守4萬大關！ To: <Krazefishy@gmail.com> 提供您 5月 21",
+          "snippet": "提供您 5月 21",
           "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DOowO2EtZe-80dbk4AIX8lSpgHPEVH0ei8",
           "sectors": [
             "AI",
-            "被動元件",
-            "金融"
+            "被動元件"
           ],
           "mentioned_tickers": []
         }
