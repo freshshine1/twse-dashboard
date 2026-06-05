@@ -72,7 +72,18 @@ def fetch_json(url, label, retries=3, backoff=4):
         try:
             r = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
             r.raise_for_status()
-            return r.json()
+            data = r.json()
+            # Diagnostic: log the response shape so a 0-flag run reveals whether
+            # the endpoint is empty (zero rows) or our field names are stale.
+            if isinstance(data, list):
+                log.info("  %s: %d rows; first-row keys: %s",
+                         label, len(data),
+                         list(data[0].keys()) if data and isinstance(data[0], dict) else "(none)")
+            else:
+                log.info("  %s: response type=%s, keys=%s",
+                         label, type(data).__name__,
+                         list(data.keys())[:8] if isinstance(data, dict) else "(n/a)")
+            return data
         except Exception as e:
             log.warning("fetch %s attempt %d/%d failed: %s", label, i + 1, retries, e)
             if i < retries - 1:

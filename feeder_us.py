@@ -51,6 +51,11 @@ def fetch_quote(symbol, retries=3, backoff=4):
     for attempt in range(retries):
         try:
             r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
+            # Diagnostic: capture HTTP details before raising. Yahoo Finance has
+            # been known to 401/429 cloud IPs (incl. GitHub-hosted runners). If
+            # this consistently fails, we'll switch to Stooq as a fallback source.
+            if r.status_code != 200:
+                log.warning("  %s HTTP %d body[:200]=%r", symbol, r.status_code, r.text[:200])
             r.raise_for_status()
             d = r.json()
             result = d["chart"]["result"][0]
