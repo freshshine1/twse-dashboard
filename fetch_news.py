@@ -31,8 +31,13 @@ COLS = ["dedup_key", "news_date", "ingested_at", "sender", "ticker",
 
 # Whole-inbox read picks up the odd system mail (account alerts, mailer-daemon).
 # Drop obvious non-news senders — a tiny denylist, not a source allowlist.
-SENDER_DENYLIST = ("accounts.google.com", "no-reply@google", "mailer-daemon",
-                   "postmaster", "googlemail.com>")
+SENDER_DENYLIST = ("accounts.google.com", "no-reply@google", "noreply@google",
+                   "forwarding-noreply", "mailer-daemon", "postmaster",
+                   "googlemail.com>")
+
+# Headlines that are mail-system noise, not news.
+HEADLINE_DENYLIST = ("gmail forwarding confirmation", "forwarding confirmation",
+                     "security alert", "verify your")
 
 # ── Sector / theme keyword map (Tier-3, display-only grouping) ───────────────────────
 # Each sector -> list of substrings to look for in headline + snippet.
@@ -100,6 +105,23 @@ def tag_sectors(text):
     return hits
 
 
+# A headline attached to this many DISTINCT tickers is a digest "wrapper" (e.g. the
+# SinoPac 庫存提醒/庫存日報 broadcast), NOT per-stock news. NewsIngest.gs currently
+# fans one such email across every ticker number it finds in the body (including the
+# year "2026"), which pollutes every holding's 今日焦點 with the same generic subject.
+# We demote those to a single market/industry row. (Real per-stock items have
+# distinct headlines, so this never collapses genuine news.)
+BROADCAST_MIN_TICKERS = 4
+
+_TICKER_RE = re.compile(r"^\d{4}[A-Z]?$")
+
+
+def _clean_ticker(code):
+    """Return a valid TWSE/TPEx code (4 digits, optional trailing letter) or ''."""
+    code = (code or "").strip().upper()
+    return code if _TICKER_RE.match(code) else ""
+
+
 def parse_news_rows(rows, days=5):
     """Raw rows (list[list] from read_sheet_tab) -> cleaned dicts, recent-first.
 
@@ -107,6 +129,8 @@ def parse_news_rows(rows, days=5):
     bad input just yields fewer rows, never raises. Each output row gains:
       - news_date normalized to ISO
       - `sectors`: list of theme tags (for grouping industry/market news)
+    Broadcast/digest headlines (same headline fanned across many tickers) are
+    demoted to market-level (ticker cleared) and de-duplicated.
     """
     cutoff = (date.today() - timedelta(days=days)).isoformat()
     out = []
@@ -119,11 +143,37 @@ def parse_news_rows(rows, days=5):
         rec["news_date"] = nd                              # store normalized ISO back
         if any(bad in rec["sender"].lower() for bad in SENDER_DENYLIST):
             continue
+        hl = (rec.get("headline") or "").strip()
+        if not hl or any(bad in hl.lower() for bad in HEADLINE_DENYLIST):
+            continue                                       # mail-system noise, not news
+        rec["ticker"] = _clean_ticker(rec.get("ticker"))   # drop bogus codes (e.g. "2026 年的")
         rec["sectors"] = tag_sectors((rec.get("headline") or "") + " " +
                                      (rec.get("snippet") or ""))
         out.append(rec)
-    out.sort(key=lambda x: x["news_date"], reverse=True)
-    return out
+
+    # Detect digest broadcasts: identical headline spread over many distinct tickers.
+    fan = defaultdict(set)
+    for rec in out:
+        if rec["ticker"]:
+            fan[rec["headline"]].add(rec["ticker"])
+    broadcast = {h for h, ts in fan.items() if len(ts) >= BROADCAST_MIN_TICKERS}
+    for rec in out:
+        if rec["headline"] in broadcast:
+            rec["ticker"] = ""                             # demote to 大盤/產業
+            rec["name"] = ""
+
+    # De-duplicate market-level rows by headline (keep most recent); per-ticker rows
+    # are kept as-is so genuine single-stock items still show on their card.
+    seen, deduped = set(), []
+    for rec in out:
+        if not rec["ticker"]:
+            if rec["headline"] in seen:
+                continue
+            seen.add(rec["headline"])
+        deduped.append(rec)
+
+    deduped.sort(key=lambda x: x["news_date"], reverse=True)
+    return deduped
 
 
 def news_bias_by_ticker(news_recent):
@@ -142,6 +192,7 @@ def news_bias_by_ticker(news_recent):
                 "tag": rec.get("tag"),
                 "headline": rec.get("headline"),
                 "sender": rec.get("sender"),
+                "sectors": rec.get("sectors", []),
             })
     return dict(agg)
 
