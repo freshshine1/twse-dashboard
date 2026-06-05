@@ -122,6 +122,28 @@ def _clean_ticker(code):
     return code if _TICKER_RE.match(code) else ""
 
 
+# Zero-width characters used by HTML mail to pad whitespace.
+_ZW_RE = re.compile(r"[\u200B\u200C\u200D\uFEFF]")
+# Leading email-forwarding boilerplate: "1 ---------- Forwarded message --------- From: ... To: <addr> "
+# followed by the actual body. We strip from the start through the trailing "To: <addr>" header.
+_FWD_RE = re.compile(
+    r"^[\d\s\-]*Forwarded\s+message[\s\-]*(?:From|寄件者)\s*:.*?To\s*:\s*<[^>]+>\s*",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def _clean_snippet(s):
+    """Remove mail-header boilerplate ('Forwarded message', From/Date/Subject/To
+    headers) and zero-width whitespace so the snippet shown in the dashboard is the
+    actual body content, not envelope noise. Pure/total; empty result returns ''."""
+    if not s:
+        return ""
+    s = _FWD_RE.sub("", s)
+    s = _ZW_RE.sub("", s)
+    s = re.sub(r"[ \t]+", " ", s).strip()
+    return s
+
+
 def parse_news_rows(rows, days=5):
     """Raw rows (list[list] from read_sheet_tab) -> cleaned dicts, recent-first.
 
@@ -147,6 +169,7 @@ def parse_news_rows(rows, days=5):
         if not hl or any(bad in hl.lower() for bad in HEADLINE_DENYLIST):
             continue                                       # mail-system noise, not news
         rec["ticker"] = _clean_ticker(rec.get("ticker"))   # drop bogus codes (e.g. "2026 年的")
+        rec["snippet"] = _clean_snippet(rec.get("snippet"))  # strip forwarded-mail boilerplate
         rec["sectors"] = tag_sectors((rec.get("headline") or "") + " " +
                                      (rec.get("snippet") or ""))
         out.append(rec)
