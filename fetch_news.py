@@ -152,15 +152,32 @@ def parse_news_rows(rows, days=5):
         out.append(rec)
 
     # Detect digest broadcasts: identical headline spread over many distinct tickers.
+    # We also collect the (ticker -> name) map so the surviving market row can show
+    # ticker chips of every stock the digest fanned across.
     fan = defaultdict(set)
+    fan_names = defaultdict(dict)              # headline -> {ticker: name}
     for rec in out:
         if rec["ticker"]:
             fan[rec["headline"]].add(rec["ticker"])
+            if rec["name"]:
+                fan_names[rec["headline"]][rec["ticker"]] = rec["name"]
     broadcast = {h for h, ts in fan.items() if len(ts) >= BROADCAST_MIN_TICKERS}
+
     for rec in out:
         if rec["headline"] in broadcast:
-            rec["ticker"] = ""                             # demote to 大盤/產業
+            # Preserve every ticker the broadcast fanned across as chips on the kept row.
+            tks = sorted(fan[rec["headline"]])
+            rec["mentioned_tickers"] = [
+                {"ticker": t, "name": fan_names[rec["headline"]].get(t, "")}
+                for t in tks
+            ]
+            rec["ticker"] = ""                 # demote to 大盤/產業
             rec["name"] = ""
+        else:
+            # Per-ticker row: its own code is the only mention.
+            rec["mentioned_tickers"] = (
+                [{"ticker": rec["ticker"], "name": rec["name"]}] if rec["ticker"] else []
+            )
 
     # De-duplicate market-level rows by headline (keep most recent); per-ticker rows
     # are kept as-is so genuine single-stock items still show on their card.
