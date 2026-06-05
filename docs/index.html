@@ -178,6 +178,30 @@ a { color: inherit; text-decoration: none; }
 .inst-card-delta { font-family: var(--font); font-size: 11px; margin-left: 6px; }
 .inst-card-delta.flat { color: var(--muted); }
 
+/* L4 Regime card */
+.regime-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--border); border-radius: var(--radius);
+  padding: 12px; transition: border-left-color .15s, background .15s;
+}
+.regime-card[data-dir="bull"] { border-left-color: var(--bull); background: var(--bull-bg); }
+.regime-card[data-dir="bear"] { border-left-color: var(--bear); background: var(--bear-bg); }
+.regime-card[data-dir="veto"] { border-left-color: var(--bear); background: var(--bear-bg); box-shadow: inset 0 0 0 1px var(--bear); }
+.regime-head { display: flex; align-items: center; gap: 14px; }
+.regime-tilt { font-family: var(--font); font-size: 32px; font-weight: 700; min-width: 88px; }
+.regime-tilt.pos { color: var(--bull); }
+.regime-tilt.neg { color: var(--bear); }
+.regime-meta { flex: 1; }
+.regime-label { font-size: 14px; font-weight: 600; }
+.regime-asof { font-family: var(--font); font-size: 10px; color: var(--muted); margin-top: 2px; }
+.regime-veto-tag { display: inline-block; font-family: var(--font); font-size: 9px; font-weight: 700; letter-spacing: .07em; padding: 2px 6px; background: var(--bear); color: #fff; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
+.regime-components { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.regime-comp { display: flex; flex-direction: column; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); min-width: 70px; }
+.regime-comp-label { font-family: var(--font); font-size: 9px; letter-spacing: .04em; color: var(--muted); }
+.regime-comp-val { font-family: var(--font); font-size: 13px; font-weight: 700; }
+.regime-comp-val.pos { color: var(--bull); }
+.regime-comp-val.neg { color: var(--bear); }
+
 /* ── News tab collapsible rows ── */
 .news-row { border-bottom: 1px solid var(--border, #eee); }
 .news-header { padding: 8px 0; cursor: pointer; }
@@ -337,6 +361,19 @@ a { color: inherit; text-decoration: none; }
       </div>
     </div>
   </div>
+  <div class="pulse-section">
+    <div class="pulse-label">L4 · 美股海外 Regime（每日 08:00 TPE 更新）</div>
+    <div class="regime-card" id="regime-card" data-dir="flat">
+      <div class="regime-head">
+        <div class="regime-tilt" id="regime-tilt">—</div>
+        <div class="regime-meta">
+          <div class="regime-label" id="regime-label">尚未更新</div>
+          <div class="regime-asof" id="regime-asof"></div>
+        </div>
+      </div>
+      <div class="regime-components" id="regime-components"></div>
+    </div>
+  </div>
   <div class="footer-note">Updated daily after 16:30 TPE.</div>
 </div>
 
@@ -404,7 +441,19 @@ async function loadData() {
   } catch(e) {
     document.getElementById('nav-meta').textContent = 'offline';
   }
+  // L4 lives in its own file written by the 08:00 TPE us_overnight workflow,
+  // independent of the main daily.yml run. 404 just means the workflow hasn't
+  // produced a file yet (first install / weekend / failed run) — render an
+  // "尚未更新" placeholder rather than erroring.
+  try {
+    const u = await fetch('raw/us_overnight_latest.json?t=' + Date.now());
+    if (u.ok) {
+      L4_DATA = await u.json();
+      renderRegime();
+    }
+  } catch(e) { /* leave placeholder visible */ }
 }
+let L4_DATA = null;
 
 // ── Helpers ──
 function fmt(v, digits=0, suffix='') {
@@ -665,6 +714,52 @@ function statChip(label, val, cls='') {
 }
 
 // ── Render Pulse ──
+function renderRegime() {
+  if (!L4_DATA) return;
+  const d = L4_DATA;
+  const tilt = Number(d.tilt_raw);
+  const tiltEl = document.getElementById('regime-tilt');
+  const card   = document.getElementById('regime-card');
+  const labEl  = document.getElementById('regime-label');
+  const asEl   = document.getElementById('regime-asof');
+  const compEl = document.getElementById('regime-components');
+  if (!tiltEl) return;
+
+  const cls = tilt >= 2 ? 'pos' : tilt <= -2 ? 'neg' : '';
+  const sign = tilt >= 0 ? '+' : '−';
+  tiltEl.textContent = sign + Math.abs(tilt).toFixed(2);
+  tiltEl.className = 'regime-tilt ' + cls;
+
+  // Card tint: bull / bear / veto (heavy bear) / flat
+  const dir = d.regime_veto ? 'veto'
+            : tilt >=  2    ? 'bull'
+            : tilt <= -2    ? 'bear'
+            :                  'flat';
+  card.setAttribute('data-dir', dir);
+
+  const vetoTag = d.regime_veto ? '<span class="regime-veto-tag">REGIME VETO</span>' : '';
+  labEl.innerHTML = (d.label || '') + vetoTag;
+
+  // Format asof as TPE local datetime + US session date
+  const asof = new Date(d.asof);
+  const asofStr = isNaN(asof) ? d.asof :
+    asof.toLocaleString('zh-TW', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false });
+  asEl.textContent = `更新於 ${asofStr} · US session ${d.us_session_date} · L4 = ${d.L4 >= 0 ? '+' : ''}${d.L4}`;
+
+  // Components
+  const order = ['SOX','TSM','GSPC','VIX'];
+  compEl.innerHTML = order.map(k => {
+    const c = (d.components || {})[k];
+    if (!c) return '';
+    const ccls = c.chg_pct >= 0 ? 'pos' : 'neg';
+    const csign = c.chg_pct >= 0 ? '+' : '−';
+    return `<div class="regime-comp">
+      <div class="regime-comp-label">${k}</div>
+      <div class="regime-comp-val ${ccls}">${csign}${Math.abs(c.chg_pct).toFixed(2)}%</div>
+    </div>`;
+  }).join('');
+}
+
 function renderPulse() {
   if (!DATA) return;
   const m = DATA.market || {};
@@ -947,6 +1042,7 @@ function render() {
   renderNav();
   renderWatch();
   renderPulse();
+  renderRegime();
   renderPortfolio();
   renderTake();
   renderRadar();
