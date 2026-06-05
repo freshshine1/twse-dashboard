@@ -480,8 +480,20 @@ def fetch_institutional_today():
     r = _parse_bfi82u(rows)
     r["three_inst_total_m"] = round(r["foreign"] + r["dealer"] + r["trust"], 2)
 
-    # BUG4 FIX: walk back up to 7 calendar days for prev-day (handles Mondays)
-    prev = _date.today() - timedelta(days=1)
+    # PREV-DATE FIX: base 'prev' on the date TWSE actually returned in today's
+    # response, not _date.today(). An empty dayDate makes TWSE serve the latest
+    # available trading day, which can be EARLIER than today when our run lands
+    # before publish or while the market is still open. Without this, prev fetches
+    # the same date as today (visible in dashboard as prev == today). We also
+    # verify the prev response's own date differs, in case TWSE serves the same
+    # cached day on consecutive calls.
+    today_str = (data or {}).get("date", "")
+    try:
+        prev_start = datetime.strptime(today_str, "%Y%m%d").date() - timedelta(days=1)
+    except Exception:
+        prev_start = _date.today() - timedelta(days=1)
+
+    prev = prev_start
     for _ in range(7):
         if prev.weekday() < 5:
             prev_str = prev.strftime("%Y%m%d")
@@ -490,11 +502,15 @@ def fetch_institutional_today():
                 f"BFI82U prev {prev_str}", retries=2, backoff=3
             )
             if prev_data and prev_data.get("data"):
-                pr = _parse_bfi82u(prev_data["data"])
-                r["foreign_net_m_prev"] = pr["foreign"]
-                r["dealer_net_m_prev"] = pr["dealer"]
-                r["trust_net_m_prev"] = pr["trust"]
-                break
+                returned = prev_data.get("date", "")
+                if today_str and returned == today_str:
+                    log.warning("BFI82U prev %s returned today's date %s — walking back", prev_str, returned)
+                else:
+                    pr = _parse_bfi82u(prev_data["data"])
+                    r["foreign_net_m_prev"] = pr["foreign"]
+                    r["dealer_net_m_prev"] = pr["dealer"]
+                    r["trust_net_m_prev"] = pr["trust"]
+                    break
         prev -= timedelta(days=1)
 
     return r
@@ -508,10 +524,16 @@ def pressure_label(v):
     return "Neutral"
 
 def fetch_foreign_5d_cumul():
+    """5-day cumulative foreign net buy/sell. Previously this function matched the
+    Chinese row label with a mojibake'd string literal that the live TWSE response
+    never matched, so the function silently returned 0.0 every run (visible in the
+    dashboard as 5d:+0M). We now reuse _parse_bfi82u which matches by clean Unicode
+    codepoints, so the 5d aggregate populates from the same parser as today's row."""
     total = 0.0
     days_collected = 0
     candidate = _date.today()
     attempts = 0
+    seen_dates = set()
     while days_collected < 5 and attempts < 20:
         attempts += 1
         if candidate.weekday() >= 5:
@@ -523,21 +545,27 @@ def fetch_foreign_5d_cumul():
             f"BFI82U {date_str}", retries=2, backoff=3
         )
         candidate -= timedelta(days=1)
-        if not data:
+        if not data or not data.get("data"):
             continue
-        for row in data.get("data", []):
-            name = row[0].strip()
-            if "ÃÂ¥ÃÂ¤ÃÂÃÂ¨ÃÂ³ÃÂÃÂ¥ÃÂÃÂÃÂ©ÃÂÃÂ¸ÃÂ¨ÃÂ³ÃÂ" in name and "ÃÂ¤ÃÂ¸ÃÂÃÂ¥ÃÂÃÂ«" not in name:
-                net = safe_float(row[3], 0.0) / 1_000_000
-                total += net
-                days_collected += 1
-                log.info("BFI82U %s foreign=%.1fM (day %d/5)", date_str, net, days_collected)
-                break
+        # De-duplicate by TWSE's resolved date — an empty/pre-publish day causes TWSE
+        # to silently serve the most recent past day, which would otherwise be counted
+        # twice toward the 5-day sum.
+        resolved = data.get("date", date_str)
+        if resolved in seen_dates:
+            continue
+        seen_dates.add(resolved)
+        pr = _parse_bfi82u(data["data"])
+        net = pr.get("foreign", 0.0)
+        if net == 0.0:
+            continue
+        total += net
+        days_collected += 1
+        log.info("BFI82U %s foreign=%.1fM (day %d/5)", resolved, net, days_collected)
     if days_collected < 5:
         log.warning("BFI82U 5d cumul: only %d days collected", days_collected)
     return round(total, 2)
 
-# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ T86 per-ticker institutional flow ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
+# ---- T86 per-ticker institutional flow ----
 def _parse_int(s):
     try:
         return int(str(s).replace(",", "").replace(" ", ""))
