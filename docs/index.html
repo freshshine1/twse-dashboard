@@ -448,12 +448,14 @@ function newsTagColor(tag) {
 function newsLine(t) {
   const n = t.news;
   if (!n || !n.latest || !n.latest.headline) return '';
-  const tag = n.latest.tag;
+  const L = n.latest;
   const esc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  const dot = tag ? `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${newsTagColor(tag)};margin-right:5px;flex-shrink:0"></span>` : '';
+  const dot = L.tag ? `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${newsTagColor(L.tag)};margin-right:5px;flex-shrink:0"></span>` : '';
+  const secs = (L.sectors || []).map(s =>
+    `<span style="font-size:9px;background:var(--chip-bg,#eee);color:var(--muted);border-radius:3px;padding:0 4px;margin-right:4px;flex-shrink:0">${esc(s)}</span>`).join('');
   return `<div style="font-size:11px;color:var(--muted);margin-top:5px;display:flex;align-items:center;min-width:0">
     <span style="font-family:var(--font);font-size:9px;letter-spacing:.04em;margin-right:6px;flex-shrink:0">今日焦點</span>
-    ${dot}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n.latest.headline)}</span>
+    ${dot}${secs}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(L.headline)}</span>
   </div>`;
 }
 
@@ -486,13 +488,14 @@ function sortedWatchlist(items) {
   return arr;
 }
 
-// ── Toggle expand ──
-function toggleCard(ticker) {
-  OPEN[ticker] = !OPEN[ticker];
-  const el = document.getElementById('detail-' + ticker);
-  if (el) el.classList.toggle('open', OPEN[ticker]);
-  const arrow = document.getElementById('arrow-' + ticker);
-  if (arrow) arrow.textContent = OPEN[ticker] ? '▲' : '▼';
+// ── Toggle expand ── (key is scope-prefixed: 'w-3017' / 'p-3017' so cross-listed
+// tickers don't collide between the Watch and Portfolio panels)
+function toggleCard(key) {
+  OPEN[key] = !OPEN[key];
+  const el = document.getElementById('detail-' + key);
+  if (el) el.classList.toggle('open', OPEN[key]);
+  const arrow = document.getElementById('arrow-' + key);
+  if (arrow) arrow.textContent = OPEN[key] ? '▲' : '▼';
 }
 
 // ── Render Watch ──
@@ -534,11 +537,12 @@ function tickerCard(t, isPortfolio) {
   // Expand detail
   const detail = chipDetailHTML(t, isPortfolio);
   const hasDetail = t.foreign_net != null || t.l1_score != null;
-  const expandBtn = hasDetail ? `<span id="arrow-${t.ticker}" style="font-size:10px;color:var(--muted);margin-left:6px">▼</span>` : '';
+  const key = (isPortfolio ? 'p-' : 'w-') + t.ticker;   // scope so Watch/Portfolio IDs don't collide
+  const expandBtn = hasDetail ? `<span id="arrow-${key}" style="font-size:10px;color:var(--muted);margin-left:6px">▼</span>` : '';
 
   return `
 <div class="ticker-card">
-  <div class="ticker-main" onclick="toggleCard('${t.ticker}')">
+  <div class="ticker-main" onclick="toggleCard('${key}')">
     <div class="ticker-left">
       <div class="ticker-top">
         <span class="ticker-code">${t.ticker}</span>
@@ -553,7 +557,7 @@ function tickerCard(t, isPortfolio) {
       <div class="price-chg ${chgCls}">${chgStr}</div>
     </div>
   </div>
-  <div class="chip-detail ${OPEN[t.ticker] ? 'open' : ''}" id="detail-${t.ticker}">
+  <div class="chip-detail ${OPEN[key] ? 'open' : ''}" id="detail-${key}">
     ${detail}
   </div>
 </div>`;
