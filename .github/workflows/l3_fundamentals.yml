@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: l3-fundamentals
+  group: twse-dashboard-write
   cancel-in-progress: false
 
 jobs:

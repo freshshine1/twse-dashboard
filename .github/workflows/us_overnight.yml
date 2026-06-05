@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: us-overnight
+  group: twse-dashboard-write
   cancel-in-progress: false
 
 jobs:

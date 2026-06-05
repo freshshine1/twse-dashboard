@@ -10,6 +10,15 @@ on:
 permissions:
   contents: write             # required for git push
 
+# Shared concurrency group across daily.yml + us_overnight.yml + l3_fundamentals.yml.
+# All three workflows push to main; without serialization, a manual trigger of one
+# while another is running causes the second push to be rejected as non-fast-forward
+# (the cause of run #46's failure: daily ran 15:13 alongside another workflow that
+# pushed first). cancel-in-progress=false makes later runs queue, not abort.
+concurrency:
+  group: twse-dashboard-write
+  cancel-in-progress: false
+
 jobs:
   fetch:
     runs-on: ubuntu-latest
@@ -37,5 +46,20 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/data.json docs/tickers.json
-          git diff --cached --quiet || git commit -m "chore: daily data update $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git commit -m "chore: daily data update $(date -u +'%Y-%m-%d %H:%M UTC')"
+          # Race-proof push: if the remote has moved since checkout (e.g. a manual
+          # commit or another workflow pushed concurrently), rebase our commit
+          # on top and try again. Retry once.
+          for i in 1 2; do
+            if git pull --rebase origin main && git push; then
+              exit 0
+            fi
+            echo "push attempt $i failed, retrying in 5s…"
+            sleep 5
+          done
+          echo "push failed after retries"
+          exit 1
