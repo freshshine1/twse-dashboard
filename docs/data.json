@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-05T09:10:58+08:00",
+  "updated": "2026-06-05T10:33:52+08:00",
   "market": {
     "taiex": 45677.46,
     "taiex_chg": -781.7,
@@ -25,16 +25,16 @@
       "chg": -40.0,
       "chg_pct": -1.65,
       "vol_today": 32542948.0,
-      "ma5": null,
-      "ma20": null,
-      "ma60": null,
-      "vol_ratio": 1.12,
-      "high_52w": null,
-      "low_52w": null,
-      "pct_from_52w_high": null,
-      "trend": "STALE",
-      "rsi14": null,
-      "stale": true,
+      "ma5": 2380.0,
+      "ma20": 2286.25,
+      "ma60": 2086.33,
+      "vol_ratio": 0.6,
+      "high_52w": 2440.0,
+      "low_52w": 1065.0,
+      "pct_from_52w_high": -2.25,
+      "trend": "BULL",
+      "rsi14": 63.3,
+      "stale": false,
       "foreign_net": -11256052,
       "trust_net": 537838,
       "dealer_net": 1099064,
@@ -47,8 +47,8 @@
       "foreign_streak": -2,
       "trust_streak": 2,
       "l1_score": 0.0,
-      "signal_score": 0,
-      "signal_label": "Neutral"
+      "signal_score": 2,
+      "signal_label": "Bull"
     },
     {
       "ticker": "0050",
@@ -195,7 +195,7 @@
       "ma60": 1044.87,
       "vol_ratio": 1.08,
       "high_52w": 1305.0,
-      "low_52w": 641.0,
+      "low_52w": 621.0,
       "pct_from_52w_high": -9.2,
       "trend": "BULL",
       "rsi14": 66.9,
@@ -335,7 +335,7 @@
       "ma60": 4784.83,
       "vol_ratio": 0.38,
       "high_52w": 6665.0,
-      "low_52w": 1350.0,
+      "low_52w": 932.0,
       "pct_from_52w_high": -8.93,
       "trend": "BULL",
       "rsi14": 52.9,
@@ -405,7 +405,7 @@
       "ma60": 1032.33,
       "vol_ratio": 1.2,
       "high_52w": 1315.0,
-      "low_52w": 197.5,
+      "low_52w": 164.0,
       "pct_from_52w_high": -24.71,
       "trend": "MIXED-",
       "rsi14": 52.3,
@@ -685,7 +685,7 @@
       "ma60": 2900.0,
       "vol_ratio": 0.73,
       "high_52w": 3865.0,
-      "low_52w": 1330.0,
+      "low_52w": 1320.0,
       "pct_from_52w_high": -16.95,
       "trend": "MIXED+",
       "rsi14": 59.1,
@@ -816,6 +816,16 @@
       "chg": -0.45,
       "chg_pct": -1.41,
       "vol_today": 192386145.0,
+      "ma5": 31.55,
+      "ma20": 30.05,
+      "ma60": 25.68,
+      "vol_ratio": 0.81,
+      "high_52w": 32.73,
+      "low_52w": 10.98,
+      "pct_from_52w_high": -4.19,
+      "trend": "MIXED+",
+      "rsi14": 65.2,
+      "stale": false,
       "foreign_net": -34987034,
       "trust_net": 0,
       "dealer_net": -16694288,
@@ -828,8 +838,8 @@
       "foreign_streak": -1,
       "trust_streak": 0,
       "l1_score": 0.0,
-      "signal_score": 0,
-      "signal_label": "Neutral",
+      "signal_score": 1,
+      "signal_label": "Bull",
       "qty": 400.0,
       "avg_cost": 28.4
     },
@@ -922,7 +932,7 @@
       "ma60": 1032.33,
       "vol_ratio": 1.2,
       "high_52w": 1315.0,
-      "low_52w": 197.5,
+      "low_52w": 164.0,
       "pct_from_52w_high": -24.71,
       "trend": "MIXED-",
       "rsi14": 52.3,
@@ -1062,6 +1072,48 @@
         "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DN3tbMyOkPv-4ubO4cvGk1LeUy2x1g0wMs",
         "sectors": [
           "大盤"
+        ],
+        "mentioned_tickers": [
+          {
+            "ticker": "2026",
+            "name": "年的"
+          },
+          {
+            "ticker": "2337",
+            "name": "旺宏"
+          },
+          {
+            "ticker": "2344",
+            "name": "華邦電"
+          },
+          {
+            "ticker": "3017",
+            "name": "奇鋐"
+          },
+          {
+            "ticker": "3163",
+            "name": "波若威"
+          },
+          {
+            "ticker": "3481",
+            "name": "群創"
+          },
+          {
+            "ticker": "3711",
+            "name": "日月光投控"
+          },
+          {
+            "ticker": "6147",
+            "name": "頎邦"
+          },
+          {
+            "ticker": "6770",
+            "name": "力積電"
+          },
+          {
+            "ticker": "7810",
+            "name": "捷創科技"
+          }
         ]
       },
       {
@@ -1079,6 +1131,44 @@
           "AI",
           "半導體",
           "金融"
+        ],
+        "mentioned_tickers": [
+          {
+            "ticker": "2337",
+            "name": "旺宏"
+          },
+          {
+            "ticker": "2344",
+            "name": "華邦電"
+          },
+          {
+            "ticker": "3017",
+            "name": "奇鋐"
+          },
+          {
+            "ticker": "3163",
+            "name": "波若威"
+          },
+          {
+            "ticker": "3481",
+            "name": "群創"
+          },
+          {
+            "ticker": "3711",
+            "name": "日月光投控"
+          },
+          {
+            "ticker": "6147",
+            "name": "頎邦"
+          },
+          {
+            "ticker": "6770",
+            "name": "力積電"
+          },
+          {
+            "ticker": "7810",
+            "name": "捷創科技"
+          }
         ]
       },
       {
@@ -1095,6 +1185,44 @@
         "sectors": [
           "AI",
           "金融"
+        ],
+        "mentioned_tickers": [
+          {
+            "ticker": "2337",
+            "name": "旺宏"
+          },
+          {
+            "ticker": "2344",
+            "name": "華邦電"
+          },
+          {
+            "ticker": "2408",
+            "name": "南亞科"
+          },
+          {
+            "ticker": "3017",
+            "name": "奇鋐"
+          },
+          {
+            "ticker": "3163",
+            "name": "波若威"
+          },
+          {
+            "ticker": "3481",
+            "name": "群創"
+          },
+          {
+            "ticker": "3711",
+            "name": "日月光投控"
+          },
+          {
+            "ticker": "6770",
+            "name": "力積電"
+          },
+          {
+            "ticker": "7810",
+            "name": "捷創科技"
+          }
         ]
       },
       {
@@ -1112,7 +1240,8 @@
           "AI",
           "被動元件",
           "金融"
-        ]
+        ],
+        "mentioned_tickers": []
       },
       {
         "dedup_key": "9e1b7d294301f01f627b420c155a80aa",
@@ -1129,6 +1258,40 @@
           "AI",
           "金融",
           "大盤"
+        ],
+        "mentioned_tickers": [
+          {
+            "ticker": "2313",
+            "name": "華通"
+          },
+          {
+            "ticker": "2337",
+            "name": "旺宏"
+          },
+          {
+            "ticker": "2344",
+            "name": "華邦電"
+          },
+          {
+            "ticker": "2408",
+            "name": "南亞科"
+          },
+          {
+            "ticker": "3163",
+            "name": "波若威"
+          },
+          {
+            "ticker": "3481",
+            "name": "群創"
+          },
+          {
+            "ticker": "3711",
+            "name": "日月光投控"
+          },
+          {
+            "ticker": "7810",
+            "name": "捷創科技"
+          }
         ]
       }
     ],
@@ -1148,6 +1311,48 @@
           "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DN3tbMyOkPv-4ubO4cvGk1LeUy2x1g0wMs",
           "sectors": [
             "大盤"
+          ],
+          "mentioned_tickers": [
+            {
+              "ticker": "2026",
+              "name": "年的"
+            },
+            {
+              "ticker": "2337",
+              "name": "旺宏"
+            },
+            {
+              "ticker": "2344",
+              "name": "華邦電"
+            },
+            {
+              "ticker": "3017",
+              "name": "奇鋐"
+            },
+            {
+              "ticker": "3163",
+              "name": "波若威"
+            },
+            {
+              "ticker": "3481",
+              "name": "群創"
+            },
+            {
+              "ticker": "3711",
+              "name": "日月光投控"
+            },
+            {
+              "ticker": "6147",
+              "name": "頎邦"
+            },
+            {
+              "ticker": "6770",
+              "name": "力積電"
+            },
+            {
+              "ticker": "7810",
+              "name": "捷創科技"
+            }
           ]
         },
         {
@@ -1165,6 +1370,40 @@
             "AI",
             "金融",
             "大盤"
+          ],
+          "mentioned_tickers": [
+            {
+              "ticker": "2313",
+              "name": "華通"
+            },
+            {
+              "ticker": "2337",
+              "name": "旺宏"
+            },
+            {
+              "ticker": "2344",
+              "name": "華邦電"
+            },
+            {
+              "ticker": "2408",
+              "name": "南亞科"
+            },
+            {
+              "ticker": "3163",
+              "name": "波若威"
+            },
+            {
+              "ticker": "3481",
+              "name": "群創"
+            },
+            {
+              "ticker": "3711",
+              "name": "日月光投控"
+            },
+            {
+              "ticker": "7810",
+              "name": "捷創科技"
+            }
           ]
         }
       ],
@@ -1184,6 +1423,44 @@
             "AI",
             "半導體",
             "金融"
+          ],
+          "mentioned_tickers": [
+            {
+              "ticker": "2337",
+              "name": "旺宏"
+            },
+            {
+              "ticker": "2344",
+              "name": "華邦電"
+            },
+            {
+              "ticker": "3017",
+              "name": "奇鋐"
+            },
+            {
+              "ticker": "3163",
+              "name": "波若威"
+            },
+            {
+              "ticker": "3481",
+              "name": "群創"
+            },
+            {
+              "ticker": "3711",
+              "name": "日月光投控"
+            },
+            {
+              "ticker": "6147",
+              "name": "頎邦"
+            },
+            {
+              "ticker": "6770",
+              "name": "力積電"
+            },
+            {
+              "ticker": "7810",
+              "name": "捷創科技"
+            }
           ]
         },
         {
@@ -1200,6 +1477,44 @@
           "sectors": [
             "AI",
             "金融"
+          ],
+          "mentioned_tickers": [
+            {
+              "ticker": "2337",
+              "name": "旺宏"
+            },
+            {
+              "ticker": "2344",
+              "name": "華邦電"
+            },
+            {
+              "ticker": "2408",
+              "name": "南亞科"
+            },
+            {
+              "ticker": "3017",
+              "name": "奇鋐"
+            },
+            {
+              "ticker": "3163",
+              "name": "波若威"
+            },
+            {
+              "ticker": "3481",
+              "name": "群創"
+            },
+            {
+              "ticker": "3711",
+              "name": "日月光投控"
+            },
+            {
+              "ticker": "6770",
+              "name": "力積電"
+            },
+            {
+              "ticker": "7810",
+              "name": "捷創科技"
+            }
           ]
         },
         {
@@ -1217,7 +1532,8 @@
             "AI",
             "被動元件",
             "金融"
-          ]
+          ],
+          "mentioned_tickers": []
         },
         {
           "dedup_key": "9e1b7d294301f01f627b420c155a80aa",
@@ -1234,6 +1550,40 @@
             "AI",
             "金融",
             "大盤"
+          ],
+          "mentioned_tickers": [
+            {
+              "ticker": "2313",
+              "name": "華通"
+            },
+            {
+              "ticker": "2337",
+              "name": "旺宏"
+            },
+            {
+              "ticker": "2344",
+              "name": "華邦電"
+            },
+            {
+              "ticker": "2408",
+              "name": "南亞科"
+            },
+            {
+              "ticker": "3163",
+              "name": "波若威"
+            },
+            {
+              "ticker": "3481",
+              "name": "群創"
+            },
+            {
+              "ticker": "3711",
+              "name": "日月光投控"
+            },
+            {
+              "ticker": "7810",
+              "name": "捷創科技"
+            }
           ]
         }
       ],
@@ -1253,6 +1603,44 @@
             "AI",
             "半導體",
             "金融"
+          ],
+          "mentioned_tickers": [
+            {
+              "ticker": "2337",
+              "name": "旺宏"
+            },
+            {
+              "ticker": "2344",
+              "name": "華邦電"
+            },
+            {
+              "ticker": "3017",
+              "name": "奇鋐"
+            },
+            {
+              "ticker": "3163",
+              "name": "波若威"
+            },
+            {
+              "ticker": "3481",
+              "name": "群創"
+            },
+            {
+              "ticker": "3711",
+              "name": "日月光投控"
+            },
+            {
+              "ticker": "6147",
+              "name": "頎邦"
+            },
+            {
+              "ticker": "6770",
+              "name": "力積電"
+            },
+            {
+              "ticker": "7810",
+              "name": "捷創科技"
+            }
           ]
         }
       ],
@@ -1272,6 +1660,44 @@
             "AI",
             "半導體",
             "金融"
+          ],
+          "mentioned_tickers": [
+            {
+              "ticker": "2337",
+              "name": "旺宏"
+            },
+            {
+              "ticker": "2344",
+              "name": "華邦電"
+            },
+            {
+              "ticker": "3017",
+              "name": "奇鋐"
+            },
+            {
+              "ticker": "3163",
+              "name": "波若威"
+            },
+            {
+              "ticker": "3481",
+              "name": "群創"
+            },
+            {
+              "ticker": "3711",
+              "name": "日月光投控"
+            },
+            {
+              "ticker": "6147",
+              "name": "頎邦"
+            },
+            {
+              "ticker": "6770",
+              "name": "力積電"
+            },
+            {
+              "ticker": "7810",
+              "name": "捷創科技"
+            }
           ]
         },
         {
@@ -1288,6 +1714,44 @@
           "sectors": [
             "AI",
             "金融"
+          ],
+          "mentioned_tickers": [
+            {
+              "ticker": "2337",
+              "name": "旺宏"
+            },
+            {
+              "ticker": "2344",
+              "name": "華邦電"
+            },
+            {
+              "ticker": "2408",
+              "name": "南亞科"
+            },
+            {
+              "ticker": "3017",
+              "name": "奇鋐"
+            },
+            {
+              "ticker": "3163",
+              "name": "波若威"
+            },
+            {
+              "ticker": "3481",
+              "name": "群創"
+            },
+            {
+              "ticker": "3711",
+              "name": "日月光投控"
+            },
+            {
+              "ticker": "6770",
+              "name": "力積電"
+            },
+            {
+              "ticker": "7810",
+              "name": "捷創科技"
+            }
           ]
         },
         {
@@ -1305,7 +1769,8 @@
             "AI",
             "被動元件",
             "金融"
-          ]
+          ],
+          "mentioned_tickers": []
         },
         {
           "dedup_key": "9e1b7d294301f01f627b420c155a80aa",
@@ -1322,6 +1787,40 @@
             "AI",
             "金融",
             "大盤"
+          ],
+          "mentioned_tickers": [
+            {
+              "ticker": "2313",
+              "name": "華通"
+            },
+            {
+              "ticker": "2337",
+              "name": "旺宏"
+            },
+            {
+              "ticker": "2344",
+              "name": "華邦電"
+            },
+            {
+              "ticker": "2408",
+              "name": "南亞科"
+            },
+            {
+              "ticker": "3163",
+              "name": "波若威"
+            },
+            {
+              "ticker": "3481",
+              "name": "群創"
+            },
+            {
+              "ticker": "3711",
+              "name": "日月光投控"
+            },
+            {
+              "ticker": "7810",
+              "name": "捷創科技"
+            }
           ]
         }
       ],
@@ -1341,7 +1840,8 @@
             "AI",
             "被動元件",
             "金融"
-          ]
+          ],
+          "mentioned_tickers": []
         }
       ]
     }
