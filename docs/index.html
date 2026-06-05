@@ -170,15 +170,42 @@ a { color: inherit; text-decoration: none; }
 /* ── Pulse tab ── */
 .pulse-section { padding: 16px; border-bottom: 1px solid var(--border); }
 .pulse-label { font-family: var(--font); font-size: 10px; font-weight: 700; letter-spacing: .07em; color: var(--muted); margin-bottom: 10px; }
+
+/* ── News tab collapsible rows ── */
+.news-row { border-bottom: 1px solid var(--border, #eee); }
+.news-header { padding: 8px 0; cursor: pointer; }
+.news-header:hover { background: var(--surface); }
+.news-meta { font-size: 0.75rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.news-headline { font-size: 0.9rem; margin-top: 2px; line-height: 1.35; }
+.news-detail { display: none; padding: 6px 0 12px 0; }
+.news-row.open .news-detail { display: block; }
+.news-row.open .news-caret { transform: rotate(180deg); }
+.news-caret { display: inline-block; font-size: 10px; color: var(--muted); transition: transform .15s; margin-left: auto; }
+.news-snippet { font-size: 0.8rem; color: var(--muted); line-height: 1.5; white-space: pre-wrap; padding: 6px 8px; background: var(--surface); border-radius: var(--radius); margin-bottom: 8px; max-height: 220px; overflow-y: auto; }
+.mention-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 7px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin: 2px 4px 2px 0; color: var(--muted); }
+.mention-chip.clickable { cursor: pointer; color: var(--ink, #222); }
+.mention-chip.clickable:hover { background: var(--bull-bg); border-color: var(--bull); }
+.mention-chip .mc-code { font-weight: 700; font-family: var(--font); font-size: 10px; }
+.mention-chip .mc-arrow { font-size: 9px; opacity: .7; }
+.news-mentions { margin-top: 4px; }
+.news-mentions-compact { display: inline-flex; flex-wrap: wrap; gap: 2px; }
+.news-mentions-compact .mention-chip { font-size: 10px; padding: 1px 5px; }
 .inst-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .inst-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 12px;
+  border-left: 3px solid var(--border);     /* default accent strip (overridden by direction) */
+  transition: border-left-color .15s, background .15s;
 }
+.inst-card[data-dir="bull"]  { border-left-color: var(--bull); background: var(--bull-bg); }
+.inst-card[data-dir="bear"]  { border-left-color: var(--bear); background: var(--bear-bg); }
+.inst-card[data-dir="flat"]  { border-left-color: var(--muted); }
 .inst-card-label { font-family: var(--font); font-size: 10px; color: var(--muted); letter-spacing: .04em; }
 .inst-card-val { font-family: var(--font); font-size: 18px; font-weight: 700; margin-top: 4px; }
 .inst-card-prev { font-family: var(--font); font-size: 10px; color: var(--muted); margin-top: 3px; }
-.taiex-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.taiex-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; padding: 10px 12px; border-radius: var(--radius); background: var(--surface); border-left: 3px solid var(--border); transition: border-left-color .15s, background .15s; }
+.taiex-row[data-dir="bull"] { border-left-color: var(--bull); background: var(--bull-bg); }
+.taiex-row[data-dir="bear"] { border-left-color: var(--bear); background: var(--bear-bg); }
 .taiex-val { font-family: var(--font); font-size: 28px; font-weight: 700; }
 .taiex-chg { font-family: var(--font); font-size: 15px; }
 
@@ -250,7 +277,7 @@ a { color: inherit; text-decoration: none; }
 
 <div class="tabs">
   <button class="tab active" onclick="switchTab('watch')">Watch</button>
-  <button class="tab" onclick="switchTab('pulse')">Pulse</button>
+  <button class="tab" onclick="switchTab('pulse')">Market</button>
   <button class="tab" onclick="switchTab('portfolio')">Portfolio</button>
   <button class="tab" onclick="switchTab('radar')">雷達</button>
   <button class="tab" onclick="switchTab('take')">Take</button>
@@ -634,6 +661,10 @@ function renderPulse() {
   if (!DATA) return;
   const m = DATA.market || {};
 
+  // direction helper: bull / bear / flat from a signed number
+  const dirOf = n => (n == null || n === 0) ? 'flat' : (n > 0 ? 'bull' : 'bear');
+  const setDir = (sel, n) => { const el = document.querySelector(sel); if (el) el.setAttribute('data-dir', dirOf(n)); };
+
   // TAIEX
   const taiex = m.taiex;
   const chg   = m.taiex_chg;
@@ -645,6 +676,7 @@ function renderPulse() {
     document.getElementById('p-taiex-chg').innerHTML =
       `<span class="${cls}">${sign}${fmt(chg,2)} (${sign}${chgPct?.toFixed(2)}%)</span>`;
   }
+  setDir('#panel-pulse .taiex-row', chg);
 
   // Institutional
   function setInst(id, val, prevId, prevVal, suffix='M NT$') {
@@ -654,6 +686,9 @@ function renderPulse() {
     const cls = n == null ? '' : n >= 0 ? 'pos' : 'neg';
     const str = n != null ? ((n >= 0 ? '+' : '') + fmt(Math.abs(n), 0, suffix)) : '—';
     el.innerHTML = `<span class="${cls}">${str}</span>`;
+    // Tint the surrounding inst-card based on net direction
+    const card = el.closest('.inst-card');
+    if (card) card.setAttribute('data-dir', dirOf(n));
     if (prevId && prevVal != null) {
       const pn = Number(prevVal);
       const pcls = pn >= 0 ? 'pos' : 'neg';
@@ -728,7 +763,7 @@ function renderNav() {
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  const tabMap = { watch:'Watch', pulse:'Pulse', portfolio:'Portfolio', radar:'雷達', take:'Take', news:'新聞' };
+  const tabMap = { watch:'Watch', pulse:'Market', portfolio:'Portfolio', radar:'雷達', take:'Take', news:'新聞' };
   document.querySelectorAll('.tab').forEach(t => {
     if (t.textContent === tabMap[name]) t.classList.add('active');
   });
@@ -775,6 +810,41 @@ function renderRadar() {
   </table>`;
 }
 
+// ── News tab state + helpers ──
+const NEWS_OPEN = {};   // idx -> bool
+
+function toggleNewsRow(idx) {
+  NEWS_OPEN[idx] = !NEWS_OPEN[idx];
+  const row = document.getElementById('news-row-' + idx);
+  if (row) row.classList.toggle('open', NEWS_OPEN[idx]);
+}
+
+// Build {ticker -> {name_zh, scope}} from the tracked universe so news mention
+// chips can jump to that card. Tickers not in our universe render as static chips.
+function buildTickerIndex() {
+  const idx = {};
+  (DATA?.portfolio || []).forEach(t => { idx[t.ticker] = { name: t.name_zh || t.name, scope: 'p' }; });
+  (DATA?.watchlist || []).forEach(t => { if (!idx[t.ticker]) idx[t.ticker] = { name: t.name_zh || t.name, scope: 'w' }; });
+  return idx;
+}
+
+// Jump to a ticker's card in Watch or Portfolio, expand its detail, and scroll into view.
+function jumpToTicker(ticker, scope, ev) {
+  if (ev) ev.stopPropagation();    // don't bubble into the news row's toggle
+  switchTab(scope === 'p' ? 'portfolio' : 'watch');
+  const key = scope + '-' + ticker;
+  OPEN[key] = true;
+  setTimeout(() => {
+    const el = document.getElementById('detail-' + key);
+    if (el) {
+      el.classList.add('open');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    const arrow = document.getElementById('arrow-' + key);
+    if (arrow) arrow.textContent = '▲';
+  }, 60);
+}
+
 function renderNews() {
   const list = document.getElementById('news-list');
   const hint = document.getElementById('news-hint');
@@ -790,22 +860,57 @@ function renderNews() {
     news.forEach(n => (n.sectors || []).forEach(s => { tally[s] = (tally[s] || 0) + 1; }));
     const themes = Object.entries(tally).sort((a, b) => b[1] - a[1])
                      .map(([s, c]) => s + ' ' + c).join(' · ');
-    hint.textContent = '最近 ' + news.length + ' 則（依新聞日期排序）' + (themes ? ' ｜ 主題：' + themes : '');
+    hint.textContent = '最近 ' + news.length + ' 則（點擊展開摘要）' + (themes ? ' ｜ 主題：' + themes : '');
   }
   const tagColor = t => t === 'bull' ? 'var(--bull)'
-                      : t === 'bear' ? 'var(--bear,#c0392b)'
-                      : t === 'watch' ? 'var(--amber,#b8860b)' : 'var(--muted)';
-  const esc = s => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  list.innerHTML = news.map(n => {
-    const tk  = n.ticker ? '<strong>' + n.ticker + '</strong> ' + esc(n.name)
-                         : '<span style="color:var(--muted)">大盤/產業</span>';
+                      : t === 'bear' ? 'var(--bear)'
+                      : t === 'watch' ? '#b8860b' : 'var(--muted)';
+  const esc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const tIdx = buildTickerIndex();
+
+  // Render one mention chip. Clickable when the ticker is in our tracked universe.
+  function chipHTML(m) {
+    const known = tIdx[m.ticker];
+    const name  = (known && known.name) || m.name || '';
+    if (known) {
+      return `<span class="mention-chip clickable" onclick="jumpToTicker('${m.ticker}','${known.scope}',event)">`
+           + `<span class="mc-code">${m.ticker}</span>${esc(name)}<span class="mc-arrow">↗</span></span>`;
+    }
+    return `<span class="mention-chip"><span class="mc-code">${m.ticker}</span>${esc(name)}</span>`;
+  }
+
+  list.innerHTML = news.map((n, i) => {
+    const tk = n.ticker
+      ? '<strong>' + n.ticker + '</strong> ' + esc(n.name)
+      : '<span style="color:var(--muted)">大盤/產業</span>';
     const tag = n.tag ? '<span class="chip" style="color:' + tagColor(n.tag) + '">' + n.tag + '</span>' : '';
     const secs = (n.sectors || []).map(s => '<span class="chip" style="font-size:9px">' + esc(s) + '</span>').join(' ');
-    const link = n.gmail_link ? '<a href="' + n.gmail_link + '" target="_blank" rel="noopener" style="color:var(--muted);font-size:0.75rem">✉</a>' : '';
-    return '<div style="padding:0.5rem 0;border-bottom:1px solid var(--border,#eee)">'
-      + '<div style="font-size:0.75rem;color:var(--muted)">' + (n.news_date || '') + ' · ' + tk + ' ' + tag + ' ' + secs + ' ' + link + '</div>'
-      + '<div style="font-size:0.85rem">' + esc(n.headline) + '</div>'
-      + '</div>';
+    const link = n.gmail_link ? '<a href="' + n.gmail_link + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--muted);font-size:0.75rem">✉</a>' : '';
+
+    const mentions = (n.mentioned_tickers || []).filter(m => m.ticker);
+    // Compact preview chips (closed state): show up to 5 + overflow marker
+    const previewMax = 5;
+    const previewChips = mentions.slice(0, previewMax).map(chipHTML).join('');
+    const overflow = mentions.length > previewMax
+      ? `<span class="mention-chip" style="opacity:.6">+${mentions.length - previewMax}</span>` : '';
+    // Full chips (open state)
+    const allChips = mentions.map(chipHTML).join('');
+
+    const isOpen = !!NEWS_OPEN[i];
+    return `<div class="news-row ${isOpen ? 'open' : ''}" id="news-row-${i}">
+      <div class="news-header" onclick="toggleNewsRow(${i})">
+        <div class="news-meta">
+          <span>${n.news_date || ''}</span>·<span>${tk}</span>${tag}${secs}
+          <span class="news-mentions-compact">${previewChips}${overflow}</span>
+          ${link}<span class="news-caret">▼</span>
+        </div>
+        <div class="news-headline">${esc(n.headline)}</div>
+      </div>
+      <div class="news-detail">
+        ${n.snippet ? `<div class="news-snippet">${esc(n.snippet)}</div>` : ''}
+        ${mentions.length ? `<div class="news-mentions">${allChips}</div>` : ''}
+      </div>
+    </div>`;
   }).join('');
 }
 
