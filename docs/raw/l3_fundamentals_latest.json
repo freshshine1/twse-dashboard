@@ -1,0 +1,14 @@
+{
+  "asof": "2026-06-05T15:15:00+08:00",
+  "source": "TWSE OpenAPI",
+  "thresholds": {
+    "revenue_yoy_pct": -10.0
+  },
+  "counts": {
+    "attention": 0,
+    "disposition": 0,
+    "revenue_decline": 0,
+    "flagged_total": 0
+  },
+  "by_ticker": {}
+}
