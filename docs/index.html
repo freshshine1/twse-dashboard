@@ -862,8 +862,16 @@ function renderPulse() {
 
   // 5d
   const f5d = m.foreign_5d_cumul_m;
-  document.getElementById('p-5d').textContent =
-    f5d != null ? '5d: ' + (f5d >= 0 ? '+' : '') + fmt(Math.abs(f5d), 0) + 'M' : '5d: —';
+  const p5d = document.getElementById('p-5d');
+  if (p5d) {
+    if (f5d == null) {
+      p5d.textContent = '5d: —';
+    } else {
+      const cls5 = f5d >= 0 ? 'pos' : 'neg';
+      const sg5  = f5d >= 0 ? '+'   : '−';
+      p5d.innerHTML = `5d: <span class="${cls5}">${sg5}${fmt(Math.abs(f5d), 0)}M</span>`;
+    }
+  }
 }
 
 // ── Render Portfolio ──
