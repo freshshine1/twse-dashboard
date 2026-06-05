@@ -1,0 +1,44 @@
+name: US Overnight L4
+
+on:
+  schedule:
+    # 00:00 UTC = 08:00 TPE, Mon–Fri.
+    # US close: 16:00 ET = 04:00 TPE (DST) / 05:00 TPE (standard). Running 08:00
+    # gives Yahoo quotes 3–4 hours to settle and lands ~1 hour before TW open.
+    - cron: '0 0 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: us-overnight
+  cancel-in-progress: false
+
+jobs:
+  fetch_us:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install requests
+
+      - name: Compute L4 regime tilt
+        run: python feeder_us.py
+
+      - name: Commit raw L4 file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/raw/us_overnight_*.json
+          if git diff --staged --quiet; then
+            echo "No new us_overnight file to commit"
+          else
+            git commit -m "L4 us_overnight $(date -u +%Y-%m-%d)"
+            git push
+          fi
