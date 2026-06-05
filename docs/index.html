@@ -170,6 +170,13 @@ a { color: inherit; text-decoration: none; }
 /* ── Pulse tab ── */
 .pulse-section { padding: 16px; border-bottom: 1px solid var(--border); }
 .pulse-label { font-family: var(--font); font-size: 10px; font-weight: 700; letter-spacing: .07em; color: var(--muted); margin-bottom: 10px; }
+/* Color the inline +/-values inside the Market tab (CSS for these was previously
+   only defined for .price-chg / .chip-stat-val, so taiex-chg and inst-card spans
+   stayed dark). */
+.taiex-chg .pos, .inst-card-val .pos, .inst-card-prev .pos, .inst-card-delta .pos { color: var(--bull); }
+.taiex-chg .neg, .inst-card-val .neg, .inst-card-prev .neg, .inst-card-delta .neg { color: var(--bear); }
+.inst-card-delta { font-family: var(--font); font-size: 11px; margin-left: 6px; }
+.inst-card-delta.flat { color: var(--muted); }
 
 /* ── News tab collapsible rows ── */
 .news-row { border-bottom: 1px solid var(--border, #eee); }
@@ -188,8 +195,9 @@ a { color: inherit; text-decoration: none; }
 .mention-chip .mc-code { font-weight: 700; font-family: var(--font); font-size: 10px; }
 .mention-chip .mc-arrow { font-size: 9px; opacity: .7; }
 .news-mentions { margin-top: 4px; }
-.news-mentions-compact { display: inline-flex; flex-wrap: wrap; gap: 2px; }
-.news-mentions-compact .mention-chip { font-size: 10px; padding: 1px 5px; }
+.news-mentions-compact { display: inline-flex; flex-wrap: wrap; gap: 3px; }
+.news-mentions-compact .mention-chip { font-size: 11px; padding: 2px 6px; margin: 0; }
+.news-detail-label { font-family: var(--font); font-size: 10px; font-weight: 700; letter-spacing: .04em; color: var(--muted); margin: 6px 0 4px; }
 .inst-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .inst-card {
   background: var(--surface); border: 1px solid var(--border);
@@ -684,16 +692,37 @@ function renderPulse() {
     if (!el) return;
     const n = val != null ? Number(val) : null;
     const cls = n == null ? '' : n >= 0 ? 'pos' : 'neg';
-    const str = n != null ? ((n >= 0 ? '+' : '') + fmt(Math.abs(n), 0, suffix)) : '—';
-    el.innerHTML = `<span class="${cls}">${str}</span>`;
+    // Use proper minus sign (U+2212) so negatives display: "−75,685M NT$" not "75,685M NT$"
+    const sign = n == null ? '' : (n >= 0 ? '+' : '−');
+    const str = n != null ? (sign + fmt(Math.abs(n), 0, suffix)) : '—';
+
+    // Delta-vs-prev arrow: ↑ if today's net is bigger (more bullish) than prev, ↓ if smaller.
+    // Compares net positions: -50000 → -30000 is an UP arrow (less bearish).
+    let deltaHTML = '';
+    if (n != null && prevVal != null) {
+      const pn = Number(prevVal);
+      const d = n - pn;
+      if (Math.abs(d) >= 1) {                           // ≥1M tolerance
+        const arrow = d > 0 ? '↑' : '↓';
+        const aCls  = d > 0 ? 'pos' : 'neg';
+        const dStr  = (d >= 0 ? '+' : '−') + fmt(Math.abs(d), 0);
+        deltaHTML = ` <span class="inst-card-delta"><span class="${aCls}">${arrow}${dStr}M</span></span>`;
+      } else {
+        deltaHTML = ` <span class="inst-card-delta flat">→</span>`;
+      }
+    }
+    el.innerHTML = `<span class="${cls}">${str}</span>${deltaHTML}`;
+
     // Tint the surrounding inst-card based on net direction
     const card = el.closest('.inst-card');
     if (card) card.setAttribute('data-dir', dirOf(n));
+
     if (prevId && prevVal != null) {
       const pn = Number(prevVal);
       const pcls = pn >= 0 ? 'pos' : 'neg';
+      const psign = pn >= 0 ? '+' : '−';
       document.getElementById(prevId).innerHTML =
-        `prev <span class="${pcls}">${pn >= 0 ? '+' : ''}${fmt(Math.abs(pn),0)}M</span>`;
+        `prev <span class="${pcls}">${psign}${fmt(Math.abs(pn),0)}M</span>`;
     }
   }
 
@@ -907,8 +936,8 @@ function renderNews() {
         <div class="news-headline">${esc(n.headline)}</div>
       </div>
       <div class="news-detail">
-        ${n.snippet ? `<div class="news-snippet">${esc(n.snippet)}</div>` : ''}
-        ${mentions.length ? `<div class="news-mentions">${allChips}</div>` : ''}
+        ${n.snippet ? `<div class="news-detail-label">摘要</div><div class="news-snippet">${esc(n.snippet)}</div>` : ''}
+        ${mentions.length ? `<div class="news-detail-label">📋 提及 (${mentions.length})</div><div class="news-mentions">${allChips}</div>` : ''}
       </div>
     </div>`;
   }).join('');
