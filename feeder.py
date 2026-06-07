@@ -1471,6 +1471,32 @@ def main():
         "docs/data.json written ÃÂ¢ÃÂÃÂ portfolio:%d watchlist:%d",
         len(portfolio), len(watchlist)
     )
+
+    # Daily snapshot archive - minimal per-ticker view of what the dashboard
+    # recommended today, for back-testing the hit-rate review. Without these
+    # archives, the observe-only validation clock has no data to grade against.
+    # Path is dated; one snapshot per trading day (overwrite if same day re-runs).
+    try:
+        snap_fields = ("ticker", "name_zh", "tier", "exchange", "price",
+                       "composite", "action", "confluence", "regime_veto",
+                       "l1_score", "l2_score", "l3_score", "l4_score", "l3_flags",
+                       "foreign_5d", "trust_5d", "foreign_streak", "trust_streak",
+                       "signal_score", "signal_label")
+        def _slim(e):
+            return {k: e.get(k) for k in snap_fields}
+        snap = {
+            "updated":   now_iso(),
+            "market":    data_out.get("market", {}),
+            "entries":   [_slim(e) for e in (portfolio + watchlist)],
+        }
+        os.makedirs("docs/raw", exist_ok=True)
+        snap_path = f"docs/raw/snapshot_{_date.today().isoformat()}.json"
+        with open(snap_path, "w", encoding="utf-8") as fp:
+            json.dump(snap, fp, ensure_ascii=False, indent=2)
+        log.info("snapshot written %s (%d entries)", snap_path, len(snap["entries"]))
+    except Exception as exc:
+        log.warning("snapshot write failed (non-fatal): %s", exc)
+
     log.info("=== feeder done %s ===", now_iso())
 
 if __name__ == "__main__":
