@@ -121,6 +121,18 @@ a { color: inherit; text-decoration: none; }
 .badge-signal.bear   { background: var(--bear-bg);    color: var(--bear); }
 .badge-signal.neutral{ background: var(--neutral-bg); color: var(--neutral); }
 
+/* Action badge (Chapter 6) — bolder than the signal badge; it's the call. */
+.badge-action {
+  font-family: var(--font); font-size: 10px; font-weight: 800; letter-spacing: .05em;
+  padding: 2px 8px; border-radius: 4px; white-space: nowrap; border: 1px solid transparent;
+}
+.badge-action.act-go     { background: var(--bull); color: #fff; }
+.badge-action.act-gohalf { background: var(--bull-bg); color: var(--bull); border-color: var(--bull); }
+.badge-action.act-hold   { background: var(--neutral-bg); color: var(--neutral); }
+.badge-action.act-nogo   { background: var(--neutral-bg); color: var(--muted); }
+.badge-action.act-trim   { background: #f4d35e; color: #7a5800; }
+.badge-action.act-sell   { background: var(--bear); color: #fff; }
+
 /* small chip */
 .chip {
   font-family: var(--font); font-size: 10px; font-weight: 600;
@@ -541,6 +553,19 @@ function signalBadge(label, score) {
   return `<span class="badge-signal ${cls}">${label}</span>`;
 }
 
+// Action badge (Chapter 6 action table). The single most decision-relevant chip,
+// so it leads the card. Colors: GO/ADD green, TRIM amber, SELL/EXCLUDE red.
+function actionBadge(action) {
+  if (!action) return '';
+  const map = {
+    'GO': 'act-go', 'ADD': 'act-go', 'GO half': 'act-gohalf',
+    'HOLD': 'act-hold', 'NO-GO': 'act-nogo', 'MONITOR': 'act-nogo',
+    'TRIM': 'act-trim', 'SELL': 'act-sell', 'EXCLUDE': 'act-sell',
+  };
+  const cls = map[action] || 'act-hold';
+  return `<span class="badge-action ${cls}">${action}</span>`;
+}
+
 // Per-card latest-news line (今日焦點). Self-hides when the entry has no attached news.
 function newsTagColor(tag) {
   return tag === 'bull' ? 'var(--bull)'
@@ -595,7 +620,7 @@ function sortedWatchlist(items) {
   const arr = [...items];
   const trendOrder = { BULL: 0, 'MIXED+': 1, 'MIXED-': 2, BEAR: 3 };
   if (SORT === 'signal') {
-    arr.sort((a, b) => (b.signal_score ?? -99) - (a.signal_score ?? -99));
+    arr.sort((a, b) => ((b.composite ?? (b.signal_score ?? -99) * 25) - (a.composite ?? (a.signal_score ?? -99) * 25)));
   } else if (SORT === 'chg') {
     arr.sort((a, b) => (b.chg_pct ?? -999) - (a.chg_pct ?? -999));
   } else if (SORT === 'volume') {
@@ -647,6 +672,7 @@ function tickerCard(t, isPortfolio) {
   ].join('');
 
   const chips = [
+    actionBadge(t.action),
     sigBadge,
     streakChips,
     rsiChip(t.rsi14),
@@ -711,16 +737,24 @@ function chipDetailHTML(t, isPortfolio) {
     rows.push(`</div>`);
   }
 
-  // L1 score
-  if (t.l1_score != null) {
-    rows.push(`<div class="chip-section-label">L1 COMPOSITE SCORE</div>`);
+  // Composite scoring section (Chapter 6 synthesis: L1..L4 + action)
+  if (t.l1_score != null || t.composite != null) {
+    rows.push(`<div class="chip-section-label">COMPOSITE 評分</div>`);
     rows.push(`<div class="chip-row">`);
-    const l1Cls = t.l1_score >= 0.15 ? 'pos' : t.l1_score <= -0.15 ? 'neg' : 'dim';
-    rows.push(statChip('L1', t.l1_score.toFixed(3), l1Cls));
-    rows.push(statChip('Signal', (t.signal_score >= 0 ? '+' : '') + (t.signal_score ?? 0), colorClass(t.signal_score)));
+    const lcls = v => v == null ? 'dim' : v >= 0.15 ? 'pos' : v <= -0.15 ? 'neg' : 'dim';
+    rows.push(statChip('L1 籌碼', t.l1_score != null ? t.l1_score.toFixed(2) : '—', lcls(t.l1_score)));
+    rows.push(statChip('L2 技術', t.l2_score != null ? t.l2_score.toFixed(2) : '—', lcls(t.l2_score)));
+    rows.push(statChip('L3 基本', t.l3_score != null ? t.l3_score.toFixed(2) : '—', lcls(t.l3_score)));
+    rows.push(statChip('L4 美股', t.l4_score != null ? t.l4_score.toFixed(2) : '—', lcls(t.l4_score)));
+    rows.push(`</div>`);
+    rows.push(`<div class="chip-row">`);
+    const cCls = t.composite == null ? 'dim' : t.composite >= 40 ? 'pos' : t.composite <= -40 ? 'neg' : '';
+    rows.push(statChip('Composite', t.composite != null ? (t.composite >= 0 ? '+' : '') + t.composite.toFixed(0) : '—', cCls));
+    rows.push(statChip('Confluence', t.confluence ? '✓ L1&L2≥.4' : '✗', t.confluence ? 'pos' : 'dim'));
+    if (t.regime_veto) rows.push(statChip('Regime', 'VETO', 'neg'));
     rows.push(`</div>`);
     rows.push(`<div style="font-size:10px;color:var(--muted);margin-top:6px;font-family:var(--font)">
-      T86 only · concentration/broker/margin = stubs (BSR not yet wired)
+      L1 T86-only (conc/broker/margin stubs) · L5 news not yet folded in
     </div>`);
   }
 
