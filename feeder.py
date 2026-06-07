@@ -1004,6 +1004,114 @@ def signal_label(score):
     elif score >= -2: return "Bear"
     else:            return "Strong Bear"
 
+# ============================================================================
+# Chapter 6 synthesis: L2 numeric score, composite, action table.
+# Each layer score is in [-1,+1]; composite is the filled-weight-rescaled
+# weighted sum * 100, so range is -100..+100 regardless of which layers exist.
+# ============================================================================
+
+# Bucket weight overrides (IMPLEMENTATION_GUIDE 6.3). Inventory leans more on
+# fundamentals (L3) and news (L5); watchlist leans on chip+technical entry timing.
+WEIGHTS = {
+    "T1": {"L1": 30, "L2": 25, "L3": 20, "L4": 10, "L5": 15},   # inventory
+    "T2": {"L1": 35, "L2": 35, "L3": 8,  "L4": 15, "L5": 7},    # watchlist
+}
+_WEIGHTS_DEFAULT = {"L1": 35, "L2": 30, "L3": 10, "L4": 15, "L5": 10}
+
+
+def compute_l2_score(techs):
+    """Technical layer score in [-1,+1] from trend structure + RSI + volume.
+    Returns None when price history is stale/missing (so it doesn't fill a
+    composite slot with a fake 0)."""
+    if not techs or techs.get("trend") in (None, "STALE"):
+        return None
+    trend = techs.get("trend")
+    base = {"BULL": 0.6, "MIXED+": 0.25, "MIXED-": -0.25, "BEAR": -0.6}.get(trend, 0.0)
+    adj = 0.0
+    rsi = techs.get("rsi14")
+    if rsi is not None:
+        if   rsi >= 80: adj -= 0.20      # blow-off overbought
+        elif rsi >= 70: adj -= 0.10      # overbought
+        elif rsi <= 20: adj -= 0.10      # don't reward a falling knife
+        elif 45 <= rsi <= 65: adj += 0.10  # healthy momentum band
+    vr = techs.get("vol_ratio")
+    if vr is not None and vr >= 1.5 and base > 0:
+        adj += 0.10                      # volume confirms an up-move
+    return round(max(-1.0, min(1.0, base + adj)), 3)
+
+
+def compute_composite(l1, l2, l3, l4, l5, bucket):
+    """Filled-weight-rescaled weighted sum * 100. Layers that are None are
+    excluded from both numerator and denominator, so a missing layer doesn't
+    drag the score toward zero."""
+    w = WEIGHTS.get(bucket, _WEIGHTS_DEFAULT)
+    pairs = [(w["L1"], l1), (w["L2"], l2), (w["L3"], l3), (w["L4"], l4), (w["L5"], l5)]
+    num = sum(wi * li for wi, li in pairs if li is not None)
+    den = sum(wi for wi, li in pairs if li is not None)
+    if den == 0:
+        return None
+    return round(num / den * 100, 1)
+
+
+def _confluence(l1, l2):
+    return (l1 is not None and l1 >= 0.4) and (l2 is not None and l2 >= 0.4)
+
+
+def _sell_trigger(l1, l2, l3):
+    """SELL when >=2 of {L1,L2,L3} <= -0.4, or L3 <= -0.6 alone (hard exclude)."""
+    if l3 is not None and l3 <= -0.6:
+        return True
+    neg = sum(1 for x in (l1, l2, l3) if x is not None and x <= -0.4)
+    return neg >= 2
+
+
+def compute_action(composite, l1, l2, l3, bucket, veto=False):
+    """Action table (IMPLEMENTATION_GUIDE 6.2). GO requires confluence AND no
+    regime veto. Returns (action, confluence_bool)."""
+    if composite is None:
+        return ("MONITOR", False)
+    conf = _confluence(l1, l2)
+    sell = _sell_trigger(l1, l2, l3)
+    if bucket == "T1":                        # inventory
+        if sell or composite <= -40: return ("SELL", conf)
+        if composite <= -20:         return ("TRIM", conf)
+        if composite >= 40:          return ("ADD" if conf else "HOLD", conf)
+        return ("HOLD", conf)
+    # watchlist (T2)
+    if sell:                                  return ("NO-GO", conf)
+    if composite >= 40 and conf and not veto: return ("GO", conf)
+    if composite >= 20 and conf and not veto: return ("GO half", conf)
+    return ("NO-GO", conf)
+
+
+def load_l4_regime():
+    """Read the L4 file written by feeder_us.py (08:00 TPE). Market-wide, applied
+    uniformly to every ticker. Fail-safe: returns all-None when the file is absent."""
+    try:
+        with open("docs/raw/us_overnight_latest.json", encoding="utf-8") as f:
+            d = json.load(f)
+        log.info("L4 loaded: tilt=%s veto=%s label=%s", d.get("tilt_raw"),
+                 d.get("regime_veto"), d.get("label"))
+        return {"l4": d.get("L4"), "veto": bool(d.get("regime_veto"))}
+    except Exception as exc:
+        log.info("L4 file not available (%s) -> L4 unfilled", exc)
+        return {"l4": None, "veto": False}
+
+
+def load_l3_fundamentals():
+    """Read the L3 file written by feeder_l3.py (08:30 TPE). Returns
+    (by_ticker, available). When available, an unflagged ticker scores L3 = 0
+    (neutral, filled); when the file is absent L3 stays None (unfilled)."""
+    try:
+        with open("docs/raw/l3_fundamentals_latest.json", encoding="utf-8") as f:
+            d = json.load(f)
+        bt = d.get("by_ticker", {})
+        log.info("L3 loaded: %d flagged tickers", len(bt))
+        return bt, True
+    except Exception as exc:
+        log.info("L3 file not available (%s) -> L3 unfilled", exc)
+        return {}, False
+
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Google Sheets reader ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def get_gsheet_token():
     creds_raw = os.environ.get("GOOGLE_CREDENTIALS")
@@ -1185,6 +1293,10 @@ def main():
     radar      = []   # P2: populated by screen_radar_candidates before loop
     history_cache = {}
 
+    # Chapter 6 synthesis inputs — loaded once, applied per ticker below.
+    l4_regime = load_l4_regime()               # market-wide L4 + veto flag
+    l3_by_ticker, l3_available = load_l3_fundamentals()
+
     for ticker_entry in tickers:
         code     = ticker_entry[0]
         name_en  = ticker_entry[1]
@@ -1231,6 +1343,19 @@ def main():
             l1  = compute_l1_score(t86_entry, float_m, concentration=conc_score, margin=margin_score)
             sig = compute_signal_score(l1, techs.get("trend"))
 
+            # Chapter 6 synthesis: L2 numeric, L3 from fundamentals file, L4 regime.
+            l2 = compute_l2_score(techs)
+            if l3_available:
+                _l3row  = l3_by_ticker.get(code, {})
+                l3      = _l3row.get("l3_score", 0.0)     # unflagged ticker = neutral 0
+                l3flags = _l3row.get("flags", [])
+            else:
+                l3, l3flags = None, []                    # file missing -> unfilled
+            l4   = l4_regime["l4"]
+            veto = l4_regime["veto"]
+            composite = compute_composite(l1, l2, l3, l4, None, tier)   # L5 not folded yet
+            action, confluence = compute_action(composite, l1, l2, l3, tier, veto)
+
             entry = {
                 "ticker":    code,
                 "name":      name_en,
@@ -1254,6 +1379,14 @@ def main():
                 "foreign_streak": t86_entry.get("foreign_streak")  if t86_entry else None,
                 "trust_streak":   t86_entry.get("trust_streak")    if t86_entry else None,
                 "l1_score":       l1,
+                "l2_score":       l2,
+                "l3_score":       l3,
+                "l3_flags":       l3flags,
+                "l4_score":       l4,
+                "composite":      composite,
+                "action":         action,
+                "confluence":     confluence,
+                "regime_veto":    veto,
                 "signal_score":   sig,
                 "signal_label":   signal_label(sig),
             }
