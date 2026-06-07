@@ -1,0 +1,7 @@
+{
+  "_doc": "Bucket weight overrides for composite scoring (IMPLEMENTATION_GUIDE 6.3). Edit values here to re-tune the framework without code changes; the next feeder run picks them up. Weights are integers summing roughly to 100 (the composite normalizes by filled-weight fraction so partial layers don't drag scores). Comment fields starting with _ are ignored at load.",
+  "_layers": "L1=chip/flow  L2=technical  L3=fundamentals  L4=US/regime  L5=news",
+  "inventory":   { "L1": 30, "L2": 25, "L3": 20, "L4": 10, "L5": 15 },
+  "watchlist":   { "L1": 35, "L2": 35, "L3":  8, "L4": 15, "L5":  7 },
+  "under_radar": { "L1": 45, "L2": 25, "L3": 15, "L4": 10, "L5":  5 }
+}
