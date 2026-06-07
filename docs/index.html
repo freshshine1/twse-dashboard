@@ -133,6 +133,19 @@ a { color: inherit; text-decoration: none; }
 .badge-action.act-trim   { background: #f4d35e; color: #7a5800; }
 .badge-action.act-sell   { background: var(--bear); color: #fff; }
 
+/* Action filter pills (above Watch + Portfolio lists). Each pill shows the
+   action name and a count; clicking it narrows the visible cards. */
+.action-filter { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px 4px;
+  border-bottom: 1px solid var(--border); }
+.action-filter:empty { display: none; }
+.af-pill { font-family: var(--font); font-size: 10px; font-weight: 700;
+  letter-spacing: .05em; padding: 3px 9px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+  cursor: pointer; user-select: none; white-space: nowrap; }
+.af-pill:hover { border-color: var(--ink, #222); }
+.af-pill.active { background: var(--ink, #222); color: var(--bg); border-color: var(--ink, #222); }
+.af-pill .af-count { opacity: .7; font-weight: 500; margin-left: 4px; }
+
 /* small chip */
 .chip {
   font-family: var(--font); font-size: 10px; font-weight: 600;
@@ -346,6 +359,7 @@ a { color: inherit; text-decoration: none; }
     <button class="sort-btn" onclick="setSort('trend')">Trend</button>
     <button class="sort-btn" onclick="setSort('default')">Default</button>
   </div>
+  <div class="action-filter" id="watch-action-filter"></div>
   <div class="ticker-list" id="watch-list"></div>
   <div class="footer-note" id="watch-footer">Updated daily after 16:30 TPE.</div>
 </div>
@@ -400,6 +414,7 @@ a { color: inherit; text-decoration: none; }
 
 <!-- ══ PORTFOLIO TAB ══ -->
 <div class="panel" id="panel-portfolio">
+  <div class="action-filter" id="portfolio-action-filter"></div>
   <div id="portfolio-list"></div>
   <div class="footer-note">Holdings from T1 Inventory sheet.</div>
 </div>
@@ -602,6 +617,52 @@ function newsLine(t) {
   </div>`;
 }
 
+// ── Action filter (Chapter 6) ──
+// One filter per panel ('watch' or 'portfolio'). 'all' shows everything.
+const ACTION_FILTER = { watch: 'all', portfolio: 'all' };
+
+// Bucket action labels into broader groups so the pill bar stays tidy.
+// (e.g. ADD + HOLD share the HOLD pill; SELL + EXCLUDE share the SELL pill.)
+const ACTION_GROUPS = {
+  watch: [
+    { key: 'all',     label: 'All',     match: () => true },
+    { key: 'go',      label: 'GO',      match: a => a === 'GO' || a === 'GO half' },
+    { key: 'nogo',    label: 'NO-GO',   match: a => a === 'NO-GO' || a === 'MONITOR' },
+  ],
+  portfolio: [
+    { key: 'all',     label: 'All',     match: () => true },
+    { key: 'hold',    label: 'HOLD/ADD',match: a => a === 'HOLD' || a === 'ADD' },
+    { key: 'trim',    label: 'TRIM',    match: a => a === 'TRIM' },
+    { key: 'sell',    label: 'SELL',    match: a => a === 'SELL' || a === 'EXCLUDE' },
+  ],
+};
+
+function setActionFilter(panel, key) {
+  ACTION_FILTER[panel] = key;
+  if (panel === 'watch')     renderWatch();
+  if (panel === 'portfolio') renderPortfolio();
+}
+
+function applyActionFilter(items, panel) {
+  const cur = ACTION_FILTER[panel];
+  const group = ACTION_GROUPS[panel].find(g => g.key === cur) || ACTION_GROUPS[panel][0];
+  return items.filter(t => group.match(t.action));
+}
+
+function renderActionFilter(elId, items, panel) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  // Hide the bar entirely when no entry has an action yet (pre-synthesis data.json).
+  const anyAction = items.some(t => t.action != null);
+  if (!anyAction) { el.innerHTML = ''; return; }
+  const groups = ACTION_GROUPS[panel];
+  el.innerHTML = groups.map(g => {
+    const count = items.filter(t => g.match(t.action)).length;
+    const active = ACTION_FILTER[panel] === g.key ? 'active' : '';
+    return `<button class="af-pill ${active}" onclick="setActionFilter('${panel}','${g.key}')">${g.label}<span class="af-count">${count}</span></button>`;
+  }).join('');
+}
+
 // ── Sort ──
 function setSort(s) {
   SORT = s;
@@ -650,8 +711,12 @@ function renderWatch() {
     list.innerHTML = '<div class="empty">No data yet.<br>Runs weekdays after 16:30 TPE.</div>';
     return;
   }
-  const sorted = sortedWatchlist(items);
-  list.innerHTML = sorted.map(t => tickerCard(t, false)).join('');
+  renderActionFilter('watch-action-filter', items, 'watch');
+  const filtered = applyActionFilter(items, 'watch');
+  const sorted = sortedWatchlist(filtered);
+  list.innerHTML = sorted.length
+    ? sorted.map(t => tickerCard(t, false)).join('')
+    : '<div class="empty">No tickers match the selected action.</div>';
 }
 
 function tickerCard(t, isPortfolio) {
@@ -917,10 +982,14 @@ function renderPortfolio() {
     list.innerHTML = '<div class="empty">No holdings found.<br>Add tickers to T1 Inventory sheet.</div>';
     return;
   }
-  list.innerHTML = items.map(t => {
-    const card = tickerCard(t, true);
-    return card.replace('ticker-card', 'ticker-card port-card');
-  }).join('');
+  renderActionFilter('portfolio-action-filter', items, 'portfolio');
+  const filtered = applyActionFilter(items, 'portfolio');
+  list.innerHTML = filtered.length
+    ? filtered.map(t => {
+        const card = tickerCard(t, true);
+        return card.replace('ticker-card', 'ticker-card port-card');
+      }).join('')
+    : '<div class="empty">No holdings match the selected action.</div>';
 }
 
 // ── Render Take ──
