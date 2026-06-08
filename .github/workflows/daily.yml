@@ -39,6 +39,7 @@ jobs:
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           NEWS_SHEET_ID: ${{ secrets.NEWS_SHEET_ID }}
+          ENABLE_MARGIN: "1"
         run: python feeder.py
 
       - name: Commit and push data.json + tickers.json
