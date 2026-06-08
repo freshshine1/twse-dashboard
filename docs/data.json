@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-07T15:56:12+08:00",
+  "updated": "2026-06-08T13:39:39+08:00",
   "market": {
     "taiex": 45070.94,
     "taiex_chg": -606.52,
@@ -25,15 +25,15 @@
       "chg": -20.0,
       "chg_pct": -0.84,
       "vol_today": 43403895.0,
-      "ma5": 2196.0,
-      "ma20": 2042.75,
-      "ma60": 1913.83,
-      "vol_ratio": 1.0,
-      "high_52w": 2330.0,
+      "ma5": 2382.0,
+      "ma20": 2290.0,
+      "ma60": 2094.92,
+      "vol_ratio": 1.05,
+      "high_52w": 2440.0,
       "low_52w": 1065.0,
-      "pct_from_52w_high": 1.5,
-      "trend": "BULL",
-      "rsi14": 62.6,
+      "pct_from_52w_high": -3.07,
+      "trend": "MIXED+",
+      "rsi14": 64.0,
       "stale": false,
       "foreign_net": -17839581,
       "trust_net": 2900428,
@@ -47,15 +47,15 @@
       "foreign_streak": -3,
       "trust_streak": 3,
       "l1_score": 0.0,
-      "l2_score": 0.7,
+      "l2_score": 0.35,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 25.9,
+      "l4_score": -1.0,
+      "composite": -3.0,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
-      "signal_score": 2,
+      "regime_veto": true,
+      "signal_score": 1,
       "signal_label": "Bull"
     },
     {
@@ -93,11 +93,11 @@
       "l2_score": 0.35,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 12.7,
+      "l4_score": -1.0,
+      "composite": -3.0,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull"
     },
@@ -136,11 +136,11 @@
       "l2_score": 0.35,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 12.7,
+      "l4_score": -1.0,
+      "composite": -3.0,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull"
     },
@@ -154,28 +154,28 @@
       "chg": -9.5,
       "chg_pct": -4.03,
       "vol_today": 131546.0,
-      "foreign_net": null,
-      "trust_net": null,
-      "dealer_net": null,
-      "inst_net": null,
-      "foreign_3d": null,
-      "foreign_5d": null,
-      "trust_3d": null,
-      "trust_5d": null,
-      "dealer_5d": null,
-      "foreign_streak": null,
-      "trust_streak": null,
-      "l1_score": null,
+      "foreign_net": -32000,
+      "trust_net": 0,
+      "dealer_net": -3090,
+      "inst_net": -35090,
+      "foreign_3d": -96000,
+      "foreign_5d": -160000,
+      "trust_3d": 0,
+      "trust_5d": 0,
+      "dealer_5d": -15450,
+      "foreign_streak": -5,
+      "trust_streak": 0,
+      "l1_score": -0.5,
       "l2_score": null,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": -1.8,
+      "l4_score": -1.0,
+      "composite": -56.0,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
-      "signal_score": 0,
-      "signal_label": "Neutral"
+      "regime_veto": true,
+      "signal_score": -2,
+      "signal_label": "Bear"
     },
     {
       "ticker": "3017",
@@ -212,11 +212,11 @@
       "l2_score": 0.35,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 12.7,
+      "l4_score": -1.0,
+      "composite": -3.0,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull"
     },
@@ -240,26 +240,26 @@
       "trend": "MIXED+",
       "rsi14": 60.3,
       "stale": false,
-      "foreign_net": null,
-      "trust_net": null,
-      "dealer_net": null,
-      "inst_net": null,
-      "foreign_3d": null,
-      "foreign_5d": null,
-      "trust_3d": null,
-      "trust_5d": null,
-      "dealer_5d": null,
-      "foreign_streak": null,
-      "trust_streak": null,
-      "l1_score": null,
+      "foreign_net": -342236,
+      "trust_net": 10000,
+      "dealer_net": -106749,
+      "inst_net": -438985,
+      "foreign_3d": -1026708,
+      "foreign_5d": -1711180,
+      "trust_3d": 30000,
+      "trust_5d": 50000,
+      "dealer_5d": -533745,
+      "foreign_streak": -5,
+      "trust_streak": 5,
+      "l1_score": 0.0,
       "l2_score": 0.35,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 20.4,
+      "l4_score": -1.0,
+      "composite": -3.0,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull"
     },
@@ -298,11 +298,11 @@
       "l2_score": 0.35,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 12.7,
+      "l4_score": -1.0,
+      "composite": -3.0,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull"
     },
@@ -341,11 +341,11 @@
       "l2_score": 0.7,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 25.9,
+      "l4_score": -1.0,
+      "composite": 10.2,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 2,
       "signal_label": "Bull"
     },
@@ -384,11 +384,11 @@
       "l2_score": 0.25,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 9.0,
+      "l4_score": -1.0,
+      "composite": -6.7,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull"
     },
@@ -412,26 +412,26 @@
       "trend": "MIXED-",
       "rsi14": 43.9,
       "stale": false,
-      "foreign_net": null,
-      "trust_net": null,
-      "dealer_net": null,
-      "inst_net": null,
-      "foreign_3d": null,
-      "foreign_5d": null,
-      "trust_3d": null,
-      "trust_5d": null,
-      "dealer_5d": null,
-      "foreign_streak": null,
-      "trust_streak": null,
-      "l1_score": null,
+      "foreign_net": -79494,
+      "trust_net": 107030,
+      "dealer_net": -3710,
+      "inst_net": 23826,
+      "foreign_3d": -238482,
+      "foreign_5d": -397470,
+      "trust_3d": 321090,
+      "trust_5d": 535150,
+      "dealer_5d": -18550,
+      "foreign_streak": -5,
+      "trust_streak": 5,
+      "l1_score": 0.0,
       "l2_score": -0.25,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": -15.8,
+      "l4_score": -1.0,
+      "composite": -25.5,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": -1,
       "signal_label": "Bear"
     },
@@ -470,11 +470,11 @@
       "l2_score": 0.25,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 9.0,
+      "l4_score": -1.0,
+      "composite": -6.7,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull"
     },
@@ -498,28 +498,28 @@
       "trend": "MIXED-",
       "rsi14": 57.2,
       "stale": false,
-      "foreign_net": null,
-      "trust_net": null,
-      "dealer_net": null,
-      "inst_net": null,
-      "foreign_3d": null,
-      "foreign_5d": null,
-      "trust_3d": null,
-      "trust_5d": null,
-      "dealer_5d": null,
-      "foreign_streak": null,
-      "trust_streak": null,
-      "l1_score": null,
+      "foreign_net": -67937,
+      "trust_net": 219000,
+      "dealer_net": 3129,
+      "inst_net": 154192,
+      "foreign_3d": -203811,
+      "foreign_5d": -339685,
+      "trust_3d": 657000,
+      "trust_5d": 1095000,
+      "dealer_5d": 15645,
+      "foreign_streak": -5,
+      "trust_streak": 5,
+      "l1_score": 0.4,
       "l2_score": -0.15,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": -9.8,
+      "l4_score": -1.0,
+      "composite": -6.7,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
-      "signal_score": -1,
-      "signal_label": "Bear"
+      "regime_veto": true,
+      "signal_score": 0,
+      "signal_label": "Neutral"
     },
     {
       "ticker": "3363",
@@ -541,26 +541,26 @@
       "trend": "BULL",
       "rsi14": 61.6,
       "stale": false,
-      "foreign_net": null,
-      "trust_net": null,
-      "dealer_net": null,
-      "inst_net": null,
-      "foreign_3d": null,
-      "foreign_5d": null,
-      "trust_3d": null,
-      "trust_5d": null,
-      "dealer_5d": null,
-      "foreign_streak": null,
-      "trust_streak": null,
-      "l1_score": null,
+      "foreign_net": 1417745,
+      "trust_net": 0,
+      "dealer_net": -16567,
+      "inst_net": 1401178,
+      "foreign_3d": 4253235,
+      "foreign_5d": 7088725,
+      "trust_3d": 0,
+      "trust_5d": 0,
+      "dealer_5d": -82835,
+      "foreign_streak": 5,
+      "trust_streak": 0,
+      "l1_score": 0.1,
       "l2_score": 0.8,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 47.6,
+      "l4_score": -1.0,
+      "composite": 17.7,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 2,
       "signal_label": "Bull"
     },
@@ -584,28 +584,28 @@
       "trend": "MIXED-",
       "rsi14": 58.6,
       "stale": false,
-      "foreign_net": null,
-      "trust_net": null,
-      "dealer_net": null,
-      "inst_net": null,
-      "foreign_3d": null,
-      "foreign_5d": null,
-      "trust_3d": null,
-      "trust_5d": null,
-      "dealer_5d": null,
-      "foreign_streak": null,
-      "trust_streak": null,
-      "l1_score": null,
+      "foreign_net": -40900,
+      "trust_net": -10890,
+      "dealer_net": -4453,
+      "inst_net": -56243,
+      "foreign_3d": -122700,
+      "foreign_5d": -204500,
+      "trust_3d": -32670,
+      "trust_5d": -54450,
+      "dealer_5d": -22265,
+      "foreign_streak": -5,
+      "trust_streak": -5,
+      "l1_score": -1.0,
       "l2_score": -0.15,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": -9.8,
+      "l4_score": -1.0,
+      "composite": -59.4,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
-      "signal_score": -1,
-      "signal_label": "Bear"
+      "regime_veto": true,
+      "signal_score": -3,
+      "signal_label": "Strong Bear"
     },
     {
       "ticker": "3037",
@@ -617,16 +617,16 @@
       "chg": -38.0,
       "chg_pct": -3.91,
       "vol_today": 26076886.0,
-      "ma5": 985.8,
-      "ma20": 941.3,
-      "ma60": 740.64,
-      "vol_ratio": 1.21,
-      "high_52w": 1130.0,
-      "low_52w": 111.5,
-      "pct_from_52w_high": -17.43,
-      "trend": "MIXED-",
-      "rsi14": 61.0,
-      "stale": false,
+      "ma5": null,
+      "ma20": null,
+      "ma60": null,
+      "vol_ratio": 0.49,
+      "high_52w": null,
+      "low_52w": null,
+      "pct_from_52w_high": null,
+      "trend": "STALE",
+      "rsi14": null,
+      "stale": true,
       "foreign_net": -833510,
       "trust_net": -1480000,
       "dealer_net": -219476,
@@ -639,16 +639,16 @@
       "foreign_streak": -1,
       "trust_streak": -1,
       "l1_score": 0.0,
-      "l2_score": -0.15,
+      "l2_score": null,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": -6.1,
+      "l4_score": -1.0,
+      "composite": -25.9,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
-      "signal_score": -1,
-      "signal_label": "Bear"
+      "regime_veto": true,
+      "signal_score": 0,
+      "signal_label": "Neutral"
     },
     {
       "ticker": "3533",
@@ -681,15 +681,15 @@
       "dealer_5d": null,
       "foreign_streak": 4,
       "trust_streak": -4,
-      "l1_score": 0.0,
+      "l1_score": 0.1,
       "l2_score": -0.15,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": -6.1,
+      "l4_score": -1.0,
+      "composite": -18.0,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": -1,
       "signal_label": "Bear"
     },
@@ -728,11 +728,11 @@
       "l2_score": 0.45,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 16.5,
+      "l4_score": -1.0,
+      "composite": 0.8,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull"
     },
@@ -746,16 +746,16 @@
       "chg": -13.0,
       "chg_pct": -3.63,
       "vol_today": 7178751.0,
-      "ma5": 364.7,
-      "ma20": 376.4,
-      "ma60": 302.39,
-      "vol_ratio": 1.11,
-      "high_52w": 426.0,
-      "low_52w": 180.5,
-      "pct_from_52w_high": -19.01,
-      "trend": "MIXED-",
-      "rsi14": 38.5,
-      "stale": false,
+      "ma5": null,
+      "ma20": null,
+      "ma60": null,
+      "vol_ratio": 1.32,
+      "high_52w": null,
+      "low_52w": null,
+      "pct_from_52w_high": null,
+      "trend": "STALE",
+      "rsi14": null,
+      "stale": true,
       "foreign_net": -72093,
       "trust_net": -2551,
       "dealer_net": -211145,
@@ -768,16 +768,16 @@
       "foreign_streak": -1,
       "trust_streak": -3,
       "l1_score": 0.0,
-      "l2_score": -0.25,
+      "l2_score": null,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": -9.8,
+      "l4_score": -1.0,
+      "composite": -25.9,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
-      "signal_score": -1,
-      "signal_label": "Bear"
+      "regime_veto": true,
+      "signal_score": 0,
+      "signal_label": "Neutral"
     },
     {
       "ticker": "2308",
@@ -789,15 +789,15 @@
       "chg": -125.0,
       "chg_pct": -5.15,
       "vol_today": 12283892.0,
-      "ma5": 2392.0,
-      "ma20": 2238.25,
-      "ma60": 1905.67,
-      "vol_ratio": 1.12,
+      "ma5": 2399.0,
+      "ma20": 2194.0,
+      "ma60": 1813.33,
+      "vol_ratio": 1.28,
       "high_52w": 2585.0,
       "low_52w": 417.0,
       "pct_from_52w_high": -11.03,
       "trend": "MIXED+",
-      "rsi14": 61.4,
+      "rsi14": 58.9,
       "stale": false,
       "foreign_net": -2360808,
       "trust_net": -66097,
@@ -814,11 +814,11 @@
       "l2_score": 0.35,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 12.7,
+      "l4_score": -1.0,
+      "composite": -3.0,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull"
     },
@@ -842,28 +842,28 @@
       "trend": "MIXED+",
       "rsi14": 60.2,
       "stale": false,
-      "foreign_net": null,
-      "trust_net": null,
-      "dealer_net": null,
-      "inst_net": null,
-      "foreign_3d": null,
-      "foreign_5d": null,
-      "trust_3d": null,
-      "trust_5d": null,
-      "dealer_5d": null,
-      "foreign_streak": null,
-      "trust_streak": null,
-      "l1_score": null,
+      "foreign_net": 11647,
+      "trust_net": -63400,
+      "dealer_net": -8238,
+      "inst_net": -59991,
+      "foreign_3d": 34941,
+      "foreign_5d": 58235,
+      "trust_3d": -190200,
+      "trust_5d": -317000,
+      "dealer_5d": -41190,
+      "foreign_streak": 5,
+      "trust_streak": -5,
+      "l1_score": -0.4,
       "l2_score": 0.35,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 20.4,
+      "l4_score": -1.0,
+      "composite": -18.0,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
-      "signal_score": 1,
-      "signal_label": "Bull"
+      "regime_veto": true,
+      "signal_score": 0,
+      "signal_label": "Neutral"
     },
     {
       "ticker": "7769",
@@ -890,11 +890,11 @@
       "l2_score": null,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": -0.7,
+      "l4_score": -1.0,
+      "composite": -25.9,
       "action": "NO-GO",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 0,
       "signal_label": "Neutral"
     }
@@ -935,11 +935,11 @@
       "l2_score": 0.35,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 10.0,
+      "l4_score": -1.0,
+      "composite": -1.5,
       "action": "HOLD",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull",
       "qty": 50.0,
@@ -980,11 +980,11 @@
       "l2_score": 0.5,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 14.4,
+      "l4_score": -1.0,
+      "composite": 2.9,
       "action": "HOLD",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 2,
       "signal_label": "Bull",
       "qty": 160.0,
@@ -1025,11 +1025,11 @@
       "l2_score": 0.35,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 10.0,
+      "l4_score": -1.0,
+      "composite": -1.5,
       "action": "HOLD",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull",
       "qty": 400.0,
@@ -1070,11 +1070,11 @@
       "l2_score": 0.35,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 10.0,
+      "l4_score": -1.0,
+      "composite": -1.5,
       "action": "HOLD",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull",
       "qty": 4.0,
@@ -1090,16 +1090,16 @@
       "chg": -38.0,
       "chg_pct": -3.91,
       "vol_today": 26076886.0,
-      "ma5": 985.8,
-      "ma20": 941.3,
-      "ma60": 740.64,
-      "vol_ratio": 1.21,
-      "high_52w": 1130.0,
-      "low_52w": 111.5,
-      "pct_from_52w_high": -17.43,
-      "trend": "MIXED-",
-      "rsi14": 61.0,
-      "stale": false,
+      "ma5": null,
+      "ma20": null,
+      "ma60": null,
+      "vol_ratio": 0.49,
+      "high_52w": null,
+      "low_52w": null,
+      "pct_from_52w_high": null,
+      "trend": "STALE",
+      "rsi14": null,
+      "stale": true,
       "foreign_net": -833510,
       "trust_net": -1480000,
       "dealer_net": -219476,
@@ -1112,16 +1112,16 @@
       "foreign_streak": -1,
       "trust_streak": -1,
       "l1_score": 0.0,
-      "l2_score": -0.15,
+      "l2_score": null,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": -4.7,
+      "l4_score": -1.0,
+      "composite": -16.7,
       "action": "HOLD",
       "confluence": false,
-      "regime_veto": false,
-      "signal_score": -1,
-      "signal_label": "Bear",
+      "regime_veto": true,
+      "signal_score": 0,
+      "signal_label": "Neutral",
       "qty": 10.0,
       "avg_cost": 834.1
     },
@@ -1145,28 +1145,28 @@
       "trend": "MIXED-",
       "rsi14": 57.2,
       "stale": false,
-      "foreign_net": null,
-      "trust_net": null,
-      "dealer_net": null,
-      "inst_net": null,
-      "foreign_3d": null,
-      "foreign_5d": null,
-      "trust_3d": null,
-      "trust_5d": null,
-      "dealer_5d": null,
-      "foreign_streak": null,
-      "trust_streak": null,
-      "l1_score": null,
+      "foreign_net": -67937,
+      "trust_net": 219000,
+      "dealer_net": 3129,
+      "inst_net": 154192,
+      "foreign_3d": -203811,
+      "foreign_5d": -339685,
+      "trust_3d": 657000,
+      "trust_5d": 1095000,
+      "dealer_5d": 15645,
+      "foreign_streak": -5,
+      "trust_streak": 5,
+      "l1_score": 0.4,
       "l2_score": -0.15,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": -7.3,
+      "l4_score": -1.0,
+      "composite": -2.1,
       "action": "HOLD",
       "confluence": false,
-      "regime_veto": false,
-      "signal_score": -1,
-      "signal_label": "Bear",
+      "regime_veto": true,
+      "signal_score": 0,
+      "signal_label": "Neutral",
       "qty": 20.0,
       "avg_cost": 1046.45
     },
@@ -1190,26 +1190,26 @@
       "trend": "BULL",
       "rsi14": 61.6,
       "stale": false,
-      "foreign_net": null,
-      "trust_net": null,
-      "dealer_net": null,
-      "inst_net": null,
-      "foreign_3d": null,
-      "foreign_5d": null,
-      "trust_3d": null,
-      "trust_5d": null,
-      "dealer_5d": null,
-      "foreign_streak": null,
-      "trust_streak": null,
-      "l1_score": null,
+      "foreign_net": 1417745,
+      "trust_net": 0,
+      "dealer_net": -16567,
+      "inst_net": 1401178,
+      "foreign_3d": 4253235,
+      "foreign_5d": 7088725,
+      "trust_3d": 0,
+      "trust_5d": 0,
+      "dealer_5d": -82835,
+      "foreign_streak": 5,
+      "trust_streak": 0,
+      "l1_score": 0.1,
       "l2_score": 0.8,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 35.9,
+      "l4_score": -1.0,
+      "composite": 15.3,
       "action": "HOLD",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 2,
       "signal_label": "Bull",
       "qty": 12.0,
@@ -1250,11 +1250,11 @@
       "l2_score": 0.35,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": 10.0,
+      "l4_score": -1.0,
+      "composite": -1.5,
       "action": "HOLD",
       "confluence": false,
-      "regime_veto": false,
+      "regime_veto": true,
       "signal_score": 1,
       "signal_label": "Bull",
       "qty": 20.0,
@@ -1270,480 +1270,37 @@
       "chg": -9.5,
       "chg_pct": -4.03,
       "vol_today": 131546.0,
-      "foreign_net": null,
-      "trust_net": null,
-      "dealer_net": null,
-      "inst_net": null,
-      "foreign_3d": null,
-      "foreign_5d": null,
-      "trust_3d": null,
-      "trust_5d": null,
-      "dealer_5d": null,
-      "foreign_streak": null,
-      "trust_streak": null,
-      "l1_score": null,
+      "foreign_net": -32000,
+      "trust_net": 0,
+      "dealer_net": -3090,
+      "inst_net": -35090,
+      "foreign_3d": -96000,
+      "foreign_5d": -160000,
+      "trust_3d": 0,
+      "trust_5d": 0,
+      "dealer_5d": -15450,
+      "foreign_streak": -5,
+      "trust_streak": 0,
+      "l1_score": -0.5,
       "l2_score": null,
       "l3_score": 0.0,
       "l3_flags": [],
-      "l4_score": -0.027,
-      "composite": -0.9,
-      "action": "HOLD",
+      "l4_score": -1.0,
+      "composite": -41.7,
+      "action": "SELL",
       "confluence": false,
-      "regime_veto": false,
-      "signal_score": 0,
-      "signal_label": "Neutral",
+      "regime_veto": true,
+      "signal_score": -2,
+      "signal_label": "Bear",
       "qty": 110.0,
       "avg_cost": 237.92
     }
   ],
   "radar": [],
   "news": {
-    "recent": [
-      {
-        "dedup_key": "fe57382e301414846314bd7b17d9b978",
-        "news_date": "2026-06-04",
-        "ingested_at": "2026-06-04 14:22",
-        "sender": "\"永豐金證券投資日報\" <SinoPacEDM@edm.sinotrade.com.tw>",
-        "ticker": "",
-        "name": "",
-        "tag": "bull",
-        "headline": "【庫存提醒】土洋連四買加權飆破 46,400 新高！您的最新庫存新聞已送達!",
-        "snippet": "提供您 6月 4日的個人庫存相關新聞與市場最新動態，協助您在檢視持倉明細的同時，同步掌握市場脈動與熱門股資訊。",
-        "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DN3tbMyOkPv-4ubO4cvGk1LeUy2x1g0wMs",
-        "sectors": [
-          "大盤"
-        ],
-        "mentioned_tickers": [
-          {
-            "ticker": "2026",
-            "name": "年的"
-          },
-          {
-            "ticker": "2337",
-            "name": "旺宏"
-          },
-          {
-            "ticker": "2344",
-            "name": "華邦電"
-          },
-          {
-            "ticker": "3017",
-            "name": "奇鋐"
-          },
-          {
-            "ticker": "3163",
-            "name": "波若威"
-          },
-          {
-            "ticker": "3481",
-            "name": "群創"
-          },
-          {
-            "ticker": "3711",
-            "name": "日月光投控"
-          },
-          {
-            "ticker": "6147",
-            "name": "頎邦"
-          },
-          {
-            "ticker": "6770",
-            "name": "力積電"
-          },
-          {
-            "ticker": "7810",
-            "name": "捷創科技"
-          }
-        ]
-      },
-      {
-        "dedup_key": "3c43f36e997abdb0cc7e1e822f15cb99",
-        "news_date": "2026-06-03",
-        "ingested_at": "2026-06-04 14:21",
-        "sender": "Fisher Shen <krazefishy@gmail.com>",
-        "ticker": "",
-        "name": "",
-        "tag": "bull",
-        "headline": "Fwd: 【庫存提醒】COMPUTEX持續加持台積電、伺服器代工，櫃買卻遭遇劇烈洗盤?",
-        "snippet": "",
-        "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DNR4jWk6YFV4dRSZXHi8cTq_YqWOBVzAag",
-        "sectors": [
-          "AI",
-          "半導體"
-        ],
-        "mentioned_tickers": [
-          {
-            "ticker": "2337",
-            "name": "旺宏"
-          },
-          {
-            "ticker": "2344",
-            "name": "華邦電"
-          },
-          {
-            "ticker": "3017",
-            "name": "奇鋐"
-          },
-          {
-            "ticker": "3163",
-            "name": "波若威"
-          },
-          {
-            "ticker": "3481",
-            "name": "群創"
-          },
-          {
-            "ticker": "3711",
-            "name": "日月光投控"
-          },
-          {
-            "ticker": "6147",
-            "name": "頎邦"
-          },
-          {
-            "ticker": "6770",
-            "name": "力積電"
-          },
-          {
-            "ticker": "7810",
-            "name": "捷創科技"
-          }
-        ]
-      },
-      {
-        "dedup_key": "bfdeccc16d044f6e58a267a7542db631",
-        "news_date": "2026-06-02",
-        "ingested_at": "2026-06-04 14:21",
-        "sender": "Fisher Shen <krazefishy@gmail.com>",
-        "ticker": "",
-        "name": "",
-        "tag": "watch",
-        "headline": "Fwd: 【庫存提醒】COMPUTEX今日開展!輝達、高通背板效應引爆!",
-        "snippet": "提供您 6月",
-        "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DNmajxPjtLU-0ApQgx_WNu2YuOjVKKSezE",
-        "sectors": [
-          "AI"
-        ],
-        "mentioned_tickers": [
-          {
-            "ticker": "2337",
-            "name": "旺宏"
-          },
-          {
-            "ticker": "2344",
-            "name": "華邦電"
-          },
-          {
-            "ticker": "2408",
-            "name": "南亞科"
-          },
-          {
-            "ticker": "3017",
-            "name": "奇鋐"
-          },
-          {
-            "ticker": "3163",
-            "name": "波若威"
-          },
-          {
-            "ticker": "3481",
-            "name": "群創"
-          },
-          {
-            "ticker": "3711",
-            "name": "日月光投控"
-          },
-          {
-            "ticker": "6770",
-            "name": "力積電"
-          },
-          {
-            "ticker": "7810",
-            "name": "捷創科技"
-          }
-        ]
-      },
-      {
-        "dedup_key": "e62fddc8f02bd0843c5e1f3b64c7cb87",
-        "news_date": "2026-06-02",
-        "ingested_at": "2026-06-04 14:21",
-        "sender": "Fisher Shen <krazefishy@gmail.com>",
-        "ticker": "",
-        "name": "",
-        "tag": "bear",
-        "headline": "Fwd: 【庫存日報】輝達信仰充值了沒？被動元件接棒力守4萬大關！",
-        "snippet": "提供您 5月 21",
-        "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DOowO2EtZe-80dbk4AIX8lSpgHPEVH0ei8",
-        "sectors": [
-          "AI",
-          "被動元件"
-        ],
-        "mentioned_tickers": []
-      }
-    ],
+    "recent": [],
     "by_ticker": {},
-    "by_sector": {
-      "大盤": [
-        {
-          "dedup_key": "fe57382e301414846314bd7b17d9b978",
-          "news_date": "2026-06-04",
-          "ingested_at": "2026-06-04 14:22",
-          "sender": "\"永豐金證券投資日報\" <SinoPacEDM@edm.sinotrade.com.tw>",
-          "ticker": "",
-          "name": "",
-          "tag": "bull",
-          "headline": "【庫存提醒】土洋連四買加權飆破 46,400 新高！您的最新庫存新聞已送達!",
-          "snippet": "提供您 6月 4日的個人庫存相關新聞與市場最新動態，協助您在檢視持倉明細的同時，同步掌握市場脈動與熱門股資訊。",
-          "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DN3tbMyOkPv-4ubO4cvGk1LeUy2x1g0wMs",
-          "sectors": [
-            "大盤"
-          ],
-          "mentioned_tickers": [
-            {
-              "ticker": "2026",
-              "name": "年的"
-            },
-            {
-              "ticker": "2337",
-              "name": "旺宏"
-            },
-            {
-              "ticker": "2344",
-              "name": "華邦電"
-            },
-            {
-              "ticker": "3017",
-              "name": "奇鋐"
-            },
-            {
-              "ticker": "3163",
-              "name": "波若威"
-            },
-            {
-              "ticker": "3481",
-              "name": "群創"
-            },
-            {
-              "ticker": "3711",
-              "name": "日月光投控"
-            },
-            {
-              "ticker": "6147",
-              "name": "頎邦"
-            },
-            {
-              "ticker": "6770",
-              "name": "力積電"
-            },
-            {
-              "ticker": "7810",
-              "name": "捷創科技"
-            }
-          ]
-        }
-      ],
-      "AI": [
-        {
-          "dedup_key": "3c43f36e997abdb0cc7e1e822f15cb99",
-          "news_date": "2026-06-03",
-          "ingested_at": "2026-06-04 14:21",
-          "sender": "Fisher Shen <krazefishy@gmail.com>",
-          "ticker": "",
-          "name": "",
-          "tag": "bull",
-          "headline": "Fwd: 【庫存提醒】COMPUTEX持續加持台積電、伺服器代工，櫃買卻遭遇劇烈洗盤?",
-          "snippet": "",
-          "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DNR4jWk6YFV4dRSZXHi8cTq_YqWOBVzAag",
-          "sectors": [
-            "AI",
-            "半導體"
-          ],
-          "mentioned_tickers": [
-            {
-              "ticker": "2337",
-              "name": "旺宏"
-            },
-            {
-              "ticker": "2344",
-              "name": "華邦電"
-            },
-            {
-              "ticker": "3017",
-              "name": "奇鋐"
-            },
-            {
-              "ticker": "3163",
-              "name": "波若威"
-            },
-            {
-              "ticker": "3481",
-              "name": "群創"
-            },
-            {
-              "ticker": "3711",
-              "name": "日月光投控"
-            },
-            {
-              "ticker": "6147",
-              "name": "頎邦"
-            },
-            {
-              "ticker": "6770",
-              "name": "力積電"
-            },
-            {
-              "ticker": "7810",
-              "name": "捷創科技"
-            }
-          ]
-        },
-        {
-          "dedup_key": "bfdeccc16d044f6e58a267a7542db631",
-          "news_date": "2026-06-02",
-          "ingested_at": "2026-06-04 14:21",
-          "sender": "Fisher Shen <krazefishy@gmail.com>",
-          "ticker": "",
-          "name": "",
-          "tag": "watch",
-          "headline": "Fwd: 【庫存提醒】COMPUTEX今日開展!輝達、高通背板效應引爆!",
-          "snippet": "提供您 6月",
-          "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DNmajxPjtLU-0ApQgx_WNu2YuOjVKKSezE",
-          "sectors": [
-            "AI"
-          ],
-          "mentioned_tickers": [
-            {
-              "ticker": "2337",
-              "name": "旺宏"
-            },
-            {
-              "ticker": "2344",
-              "name": "華邦電"
-            },
-            {
-              "ticker": "2408",
-              "name": "南亞科"
-            },
-            {
-              "ticker": "3017",
-              "name": "奇鋐"
-            },
-            {
-              "ticker": "3163",
-              "name": "波若威"
-            },
-            {
-              "ticker": "3481",
-              "name": "群創"
-            },
-            {
-              "ticker": "3711",
-              "name": "日月光投控"
-            },
-            {
-              "ticker": "6770",
-              "name": "力積電"
-            },
-            {
-              "ticker": "7810",
-              "name": "捷創科技"
-            }
-          ]
-        },
-        {
-          "dedup_key": "e62fddc8f02bd0843c5e1f3b64c7cb87",
-          "news_date": "2026-06-02",
-          "ingested_at": "2026-06-04 14:21",
-          "sender": "Fisher Shen <krazefishy@gmail.com>",
-          "ticker": "",
-          "name": "",
-          "tag": "bear",
-          "headline": "Fwd: 【庫存日報】輝達信仰充值了沒？被動元件接棒力守4萬大關！",
-          "snippet": "提供您 5月 21",
-          "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DOowO2EtZe-80dbk4AIX8lSpgHPEVH0ei8",
-          "sectors": [
-            "AI",
-            "被動元件"
-          ],
-          "mentioned_tickers": []
-        }
-      ],
-      "半導體": [
-        {
-          "dedup_key": "3c43f36e997abdb0cc7e1e822f15cb99",
-          "news_date": "2026-06-03",
-          "ingested_at": "2026-06-04 14:21",
-          "sender": "Fisher Shen <krazefishy@gmail.com>",
-          "ticker": "",
-          "name": "",
-          "tag": "bull",
-          "headline": "Fwd: 【庫存提醒】COMPUTEX持續加持台積電、伺服器代工，櫃買卻遭遇劇烈洗盤?",
-          "snippet": "",
-          "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DNR4jWk6YFV4dRSZXHi8cTq_YqWOBVzAag",
-          "sectors": [
-            "AI",
-            "半導體"
-          ],
-          "mentioned_tickers": [
-            {
-              "ticker": "2337",
-              "name": "旺宏"
-            },
-            {
-              "ticker": "2344",
-              "name": "華邦電"
-            },
-            {
-              "ticker": "3017",
-              "name": "奇鋐"
-            },
-            {
-              "ticker": "3163",
-              "name": "波若威"
-            },
-            {
-              "ticker": "3481",
-              "name": "群創"
-            },
-            {
-              "ticker": "3711",
-              "name": "日月光投控"
-            },
-            {
-              "ticker": "6147",
-              "name": "頎邦"
-            },
-            {
-              "ticker": "6770",
-              "name": "力積電"
-            },
-            {
-              "ticker": "7810",
-              "name": "捷創科技"
-            }
-          ]
-        }
-      ],
-      "被動元件": [
-        {
-          "dedup_key": "e62fddc8f02bd0843c5e1f3b64c7cb87",
-          "news_date": "2026-06-02",
-          "ingested_at": "2026-06-04 14:21",
-          "sender": "Fisher Shen <krazefishy@gmail.com>",
-          "ticker": "",
-          "name": "",
-          "tag": "bear",
-          "headline": "Fwd: 【庫存日報】輝達信仰充值了沒？被動元件接棒力守4萬大關！",
-          "snippet": "提供您 5月 21",
-          "gmail_link": "https://mail.google.com/mail?extsrc=sync&client=docs&plid=ACUX6DOowO2EtZe-80dbk4AIX8lSpgHPEVH0ei8",
-          "sectors": [
-            "AI",
-            "被動元件"
-          ],
-          "mentioned_tickers": []
-        }
-      ]
-    }
+    "by_sector": {}
   },
   "analysis": {
     "updated": "2026-05-28T08:40:00+08:00",
