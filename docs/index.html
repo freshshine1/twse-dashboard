@@ -884,8 +884,12 @@ function renderRegime() {
   compEl.innerHTML = order.map(k => {
     const c = (d.components || {})[k];
     if (!c) return '';
-    const ccls = c.chg_pct >= 0 ? 'pos' : 'neg';
-    const csign = c.chg_pct >= 0 ? '+' : '−';
+    // VIX is a fear gauge — a rising VIX (positive chg) is BEARISH for equities,
+    // so we color its chip by IMPACT direction, not raw direction. The displayed
+    // sign/number stays accurate; only the color is inverted for VIX.
+    const impact = k === 'VIX' ? -c.chg_pct : c.chg_pct;
+    const ccls   = impact >= 0 ? 'pos' : 'neg';
+    const csign  = c.chg_pct >= 0 ? '+' : '−';
     return `<div class="regime-comp">
       <div class="regime-comp-label">${k}</div>
       <div class="regime-comp-val ${ccls}">${csign}${Math.abs(c.chg_pct).toFixed(2)}%</div>
