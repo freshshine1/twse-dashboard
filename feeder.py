@@ -672,30 +672,54 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
         t86_by_date[dt] = day_map
         log.info("T86 TWSE %s: %d tickers", dt, len(day_map))
 
-    # TPEx institutional
+    # TPEx institutional -- POST to tpex.org.tw/www/zh-tw/insti/dailyTrade
+    # Discovered 2026-06-08: the old openapi/v1/tpex_institutional_trading_daily
+    # endpoint silently redirects to the TPEx homepage (HTML, not JSON).
+    # Working endpoint: POST with ROC-calendar date + type=Daily.
+    # Response: tables[0].data rows, 24 cols:
+    #   [0]=code [4]=foreign_net [13]=trust_net [22]=dealer_net [23]=inst_net
+    # Verified: 927 rows total, no pagination, column math checks out.
     tpex_by_date = {}
     for dt in fetch_dates:
-        dt_fmt = f"{dt[:4]}/{dt[4:6]}/{dt[6:]}"
-        url = (
-            f"https://www.tpex.org.tw/openapi/v1/tpex_institutional_trading_daily"
-            f"?date={dt_fmt}&lang=zh-tw"
-        )
-        raw = twse_get(url, f"TPEx inst {dt}", retries=2, backoff=3)
-        if not raw or not isinstance(raw, list):
+        roc_year = int(dt[:4]) - 1911
+        month    = int(dt[4:6])
+        day      = int(dt[6:])
+        roc_date = f"{roc_year}/{month}/{day}"
+        try:
+            time.sleep(REQUEST_DELAY)
+            resp = SESSION.post(
+                "https://www.tpex.org.tw/www/zh-tw/insti/dailyTrade",
+                data={"date": roc_date, "type": "Daily"},
+                timeout=30,
+            )
+            resp.raise_for_status()
+            payload = resp.json()
+        except Exception as exc:
+            log.debug("TPEx inst POST %s failed: %s", dt, exc)
             continue
+        if payload.get("stat") != "ok":
+            log.debug("TPEx inst %s stat=%s", dt, payload.get("stat"))
+            continue
+        tables = payload.get("tables", [])
+        if not tables or not tables[0].get("data"):
+            log.debug("TPEx inst %s: empty tables", dt)
+            continue
+        rows = tables[0]["data"]
         day_map = {}
-        for row in raw:
-            code = str(row.get("SecuritiesCompanyCode", "")).strip()
+        for row in rows:
+            if len(row) < 24:
+                continue
+            code = str(row[0]).strip()
             if code not in tpex_codes:
                 continue
             day_map[code] = {
-                "foreign_net": _parse_int(row.get("ForeignInvestorNetBuySell", 0)),
-                "trust_net":   _parse_int(row.get("InvestmentTrustNetBuySell", 0)),
-                "dealer_net":  _parse_int(row.get("DealerNetBuySell", 0)),
-                "inst_net":    _parse_int(row.get("TotalNetBuySell", 0)),
+                "foreign_net": _parse_int(row[4]),   # foreign net
+                "trust_net":   _parse_int(row[13]),  # trust net
+                "dealer_net":  _parse_int(row[22]),  # dealer total net
+                "inst_net":    _parse_int(row[23]),  # three-inst total
             }
         tpex_by_date[dt] = day_map
-        log.info("T86 TPEx %s: %d tickers", dt, len(day_map))
+        log.info("T86 TPEx %s: %d tickers (ROC %s)", dt, len(day_map), roc_date)
 
     # Combine into per-ticker summary
     all_codes = twse_codes | tpex_codes
