@@ -434,6 +434,38 @@ a { color: inherit; text-decoration: none; }
 .sum-radar-detail { font-family: var(--font); font-size: 10px; color: var(--muted); margin-top: 1px; }
 .sum-radar-detail .pos { color: var(--bull); }
 .sum-radar-detail .neg { color: var(--bear); }
+
+/* ── Market verdict ── */
+.sum-verdict {
+  margin-top: 10px; padding: 10px 12px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 600; line-height: 1.5;
+  border-left: 3px solid var(--border);
+}
+.sum-verdict.bull  { background: var(--bull-bg); border-left-color: var(--bull); color: var(--bull); }
+.sum-verdict.bear  { background: var(--bear-bg); border-left-color: var(--bear); color: var(--bear); }
+.sum-verdict.flat  { background: var(--neutral-bg); border-left-color: var(--muted); color: var(--muted); }
+.sum-verdict-detail { font-size: 11px; font-weight: 400; color: var(--muted); margin-top: 3px; }
+/* ── Portfolio movers ── */
+.sum-mover-card {
+  display: flex; align-items: flex-start; gap: 9px; flex-wrap: wrap;
+  padding: 9px 12px; margin-bottom: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); border-left: 3px solid var(--muted);
+  cursor: pointer;
+}
+.sum-mover-card.warn-price { border-left-color: var(--bear); }
+.sum-mover-card.warn-foreign { border-left-color: #b8860b; }
+.sum-mover-card.warn-trend { border-left-color: var(--bear); }
+.sum-mover-card.flag-up { border-left-color: var(--bull); }
+.sum-mover-name { font-family: var(--font); font-size: 12px; font-weight: 700; }
+.sum-mover-meta { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+.sum-mover-meta .pos { color: var(--bull); }
+.sum-mover-meta .neg { color: var(--bear); }
+.sum-mover-meta .warn { color: #b8860b; }
+/* inst % chip */
+.inst-pct { font-family: var(--font); font-size: 10px; margin-left: 5px; }
+.inst-pct.pos { color: var(--bull); }
+.inst-pct.neg { color: var(--bear); }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -472,6 +504,12 @@ a { color: inherit; text-decoration: none; }
       <div class="sum-regime-label" id="sum-regime-label">L4 尚未更新</div>
       <div id="sum-regime-chips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
     </div>
+    <div class="sum-verdict flat" id="sum-verdict">今日研判中…</div>
+  </div>
+
+  <div class="summary-section">
+    <div class="summary-section-label">持倉警示 PORTFOLIO WATCH</div>
+    <div id="sum-movers"></div>
   </div>
 
   <div class="summary-section">
@@ -1140,8 +1178,23 @@ function renderPulse() {
       const pn = Number(prevVal);
       const pcls = pn >= 0 ? 'pos' : 'neg';
       const psign = pn >= 0 ? '+' : '−';
+      // % change vs previous day
+      let pctStr = '';
+      if (n != null && pn !== 0) {
+        if (Math.sign(n) !== Math.sign(pn) && n !== 0) {
+          pctStr = pn > 0
+            ? ' <span class="inst-pct neg">轉空</span>'
+            : ' <span class="inst-pct pos">轉多</span>';
+        } else {
+          const pp = (n - pn) / Math.abs(pn) * 100;
+          if (Math.abs(pp) >= 5) {
+            const pc = pp > 0 ? 'pos' : 'neg';
+            pctStr = ` <span class="inst-pct ${pc}">${pp > 0 ? '+' : ''}${pp.toFixed(0)}%</span>`;
+          }
+        }
+      }
       document.getElementById(prevId).innerHTML =
-        `prev <span class="${pcls}">${psign}${fmt(Math.abs(pn),0)}M</span>`;
+        `prev <span class="${pcls}">${psign}${fmt(Math.abs(pn),0)}M</span>${pctStr}`;
     }
   }
 
@@ -1380,6 +1433,18 @@ function renderSummary() {
   // ── Market Pulse ──
   const m = DATA ? (DATA.market || {}) : {};
 
+  // Helper: % change vs prev (handles direction flips + noise filter <5%)
+  function instPct(today, prev) {
+    const n = Number(today), p = Number(prev);
+    if (today == null || prev == null || isNaN(n) || isNaN(p) || p === 0) return '';
+    if (Math.sign(n) !== Math.sign(p) && n !== 0 && p !== 0)
+      return p > 0 ? '<span class="inst-pct neg">轉空</span>' : '<span class="inst-pct pos">轉多</span>';
+    const pct = (n - p) / Math.abs(p) * 100;
+    if (Math.abs(pct) < 5) return '';
+    const cls = pct > 0 ? 'pos' : 'neg';
+    return `<span class="inst-pct ${cls}">${pct > 0 ? '+' : ''}${pct.toFixed(0)}%</span>`;
+  }
+
   // TAIEX
   const stRow = document.getElementById('sum-taiex-row');
   const stVal = document.getElementById('sum-taiex');
@@ -1396,7 +1461,7 @@ function renderSummary() {
     }
   }
 
-  // Institutional grid
+  // Institutional grid (with % change vs prev)
   const ig = document.getElementById('sum-inst-grid');
   if (ig) {
     const dirOf = n => n == null ? 'flat' : n > 0 ? 'bull' : 'bear';
@@ -1405,12 +1470,13 @@ function renderSummary() {
       const sign = n == null ? '' : n >= 0 ? '+' : '−';
       const cls  = n == null ? '' : n >= 0 ? 'pos' : 'neg';
       const str  = n != null ? `<span class="${cls}">${sign}${fmt(Math.abs(n),0)}M</span>` : '—';
+      const pctChip = prev != null ? instPct(val, prev) : '';
       let deltaHTML = '';
       if (n != null && prev != null) {
         const d = n - Number(prev);
         if (Math.abs(d) >= 1) {
           const ac = d > 0 ? 'pos' : 'neg'; const as = d > 0 ? '↑' : '↓';
-          deltaHTML = `<span class="${ac}">${as}${fmt(Math.abs(d),0)}M</span>`;
+          deltaHTML = `<span class="${ac}">${as}${fmt(Math.abs(d),0)}M</span>${pctChip}`;
         } else { deltaHTML = '<span style="color:var(--muted)">→</span>'; }
       }
       return `<div class="sum-inst-card" data-dir="${dirOf(n)}">
@@ -1464,7 +1530,105 @@ function renderSummary() {
       : '';
   }
 
+  // ── Market Verdict ──
+  const vEl = document.getElementById('sum-verdict');
+  if (vEl && (m.foreign_net_m != null || m.trust_net_m != null)) {
+    let score = 0;
+    const parts = [];
+    // Foreign (weight 1)
+    const fv = Number(m.foreign_net_m);
+    if (fv > 30000)       { score += 2; parts.push('外資大買'); }
+    else if (fv > 0)      { score += 1; parts.push('外資買超'); }
+    else if (fv < -30000) { score -= 2; parts.push('外資大賣'); }
+    else if (fv < 0)      { score -= 1; parts.push('外資賣超'); }
+    // Trust (weight 2 — higher signal)
+    const tv = Number(m.trust_net_m);
+    if (tv > 3000)        { score += 2; parts.push('投信大買'); }
+    else if (tv > 0)      { score += 1; parts.push('投信買超'); }
+    else if (tv < -3000)  { score -= 2; parts.push('投信大賣'); }
+    else if (tv < 0)      { score -= 1; parts.push('投信賣超'); }
+    // TAIEX
+    const tp = Number(m.taiex_chg_pct);
+    if (!isNaN(tp)) {
+      if (tp > 1)        { score += 1; parts.push(`TAIEX +${tp.toFixed(1)}%`); }
+      else if (tp < -1)  { score -= 1; parts.push(`TAIEX ${tp.toFixed(1)}%`); }
+    }
+    // L4
+    if (L4_DATA) {
+      const lt = Number(L4_DATA.tilt_raw);
+      if (L4_DATA.regime_veto) { score -= 3; parts.push('L4 VETO'); }
+      else if (lt >= 4)        { score += 1; parts.push('L4 多'); }
+      else if (lt <= -4)       { score -= 1; parts.push('L4 空'); }
+    }
+    let label, cls;
+    if (score >= 4)      { label = '今日偏多 ✅'; cls = 'bull'; }
+    else if (score >= 2) { label = '今日小多 🟡'; cls = 'bull'; }
+    else if (score <= -4){ label = '今日偏空 ⚠️'; cls = 'bear'; }
+    else if (score <= -2){ label = '今日小空 🔴'; cls = 'bear'; }
+    else                 { label = '今日中性 ⚪'; cls = 'flat'; }
+    vEl.className = 'sum-verdict ' + cls;
+    vEl.innerHTML = `<strong>${label}</strong><div class="sum-verdict-detail">${parts.join(' · ') || '訊號不足'}</div>`;
+  }
+
   if (!DATA) return;
+
+  // ── Portfolio Movers (持倉警示) ──
+  const movEl = document.getElementById('sum-movers');
+  if (movEl) {
+    const port = DATA.portfolio || [];
+    const alerts = [];
+    port.forEach(t => {
+      const rows = [];
+      const chg = Number(t.chg_pct);
+      const fn  = t.foreign_net != null ? Number(t.foreign_net) : null;
+      const ts  = t.trust_streak != null ? Number(t.trust_streak) : null;
+      const l1  = t.l1_score != null ? Number(t.l1_score) : null;
+      // Price: big move today
+      if (!isNaN(chg) && Math.abs(chg) >= 2) {
+        const cls = chg > 0 ? 'pos' : 'neg';
+        const sign = chg > 0 ? '+' : '';
+        rows.push({ icon: chg > 0 ? '📈' : '📉',
+          html: `今日 <span class="${cls}">${sign}${chg.toFixed(2)}%</span>`,
+          warnCls: chg > 0 ? 'flag-up' : 'warn-price' });
+      }
+      // Foreign flow: heavy selling/buying
+      if (fn != null && fn < -100000) {
+        rows.push({ icon: '🚨',
+          html: `外資賣超 <span class="neg">${fmtShares(fn)}</span> 今日 — 注意籌碼鬆動`,
+          warnCls: 'warn-foreign' });
+      } else if (fn != null && fn > 100000) {
+        rows.push({ icon: '💹',
+          html: `外資大買 <span class="pos">${fmtShares(fn)}</span> 今日`,
+          warnCls: 'flag-up' });
+      }
+      // Trust streak: consecutive selling
+      if (ts != null && ts <= -2) {
+        rows.push({ icon: '⚠️',
+          html: `投信連賣 <span class="neg">${Math.abs(ts)} 日</span> — 投信在撤`,
+          warnCls: 'warn-trend' });
+      }
+      // L1 score significantly negative
+      if (l1 != null && l1 <= -0.35 && rows.length === 0) {
+        rows.push({ icon: '🔴',
+          html: `籌碼偏空 L1 <span class="neg">${l1.toFixed(2)}</span>`,
+          warnCls: 'warn-trend' });
+      }
+      if (rows.length) {
+        const topCls = rows[0].warnCls;
+        const details = rows.map(r => `${r.icon} ${r.html}`).join('<br>');
+        alerts.push(`<div class="sum-mover-card ${topCls}" onclick="switchTab('portfolio')">
+          <div>
+            <div class="sum-mover-name">${t.ticker} <span style="font-weight:400;font-size:11px;color:var(--muted)">${t.name_zh || ''}</span></div>
+            <div class="sum-mover-meta">${details}</div>
+          </div>
+          <div style="margin-left:auto">${actionBadge(t.action)}</div>
+        </div>`);
+      }
+    });
+    movEl.innerHTML = alerts.length
+      ? alerts.join('')
+      : '<div class="sum-no-signals">持倉無異常訊號。</div>';
+  }
 
   // ── Top Signals ──
   const sigEl = document.getElementById('sum-signals');
