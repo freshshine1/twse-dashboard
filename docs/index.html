@@ -97,7 +97,7 @@ a { color: inherit; text-decoration: none; }
 .ticker-list { padding: 0 12px; }
 .ticker-card {
   border: 1px solid var(--border); border-radius: var(--radius);
-  background: var(--surface); margin-top: 10px; overflow: hidden;
+  background: var(--surface); margin-top: 10px;
   transition: border-color .15s;
 }
 .ticker-card:hover { border-color: var(--muted); }
@@ -174,7 +174,7 @@ a { color: inherit; text-decoration: none; }
   padding: 10px 14px; display: none;
   background: var(--bg);
 }
-.chip-detail.open { display: block; }
+.chip-detail.open { display: block; border-bottom-left-radius: var(--radius); border-bottom-right-radius: var(--radius); }
 .chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
 .chip-section-label {
   font-family: var(--font); font-size: 10px; font-weight: 700;
