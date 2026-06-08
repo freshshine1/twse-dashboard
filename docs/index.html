@@ -349,6 +349,91 @@ a { color: inherit; text-decoration: none; }
 }
 .tw .tp .tp-t { font-size: 12px; font-weight: 700; color: var(--text); display: block; margin-bottom: 4px; }
 .tw:hover .tp { display: block; }
+
+/* ── Summary tab ── */
+.summary-section { padding: 14px 12px 4px; border-bottom: 1px solid var(--border); }
+.summary-section:last-child { border-bottom: none; }
+.summary-section-label { font-family: var(--font); font-size: 10px; font-weight: 700;
+  letter-spacing: .07em; color: var(--muted); margin-bottom: 10px; }
+/* Veto banner */
+.veto-banner {
+  margin: 12px 12px 0; padding: 10px 14px;
+  background: var(--bear-bg); border: 1px solid var(--bear); border-radius: var(--radius);
+  font-family: var(--font); font-size: 12px; color: var(--bear); line-height: 1.5;
+}
+/* Summary TAIEX compact */
+.sum-taiex { display: flex; align-items: baseline; gap: 10px; padding: 8px 10px;
+  background: var(--surface); border-radius: var(--radius);
+  border-left: 3px solid var(--border); margin-bottom: 10px;
+  transition: border-left-color .15s; }
+.sum-taiex[data-dir="bull"] { border-left-color: var(--bull); background: var(--bull-bg); }
+.sum-taiex[data-dir="bear"] { border-left-color: var(--bear); background: var(--bear-bg); }
+.sum-taiex-val { font-family: var(--font); font-size: 22px; font-weight: 700; }
+.sum-taiex-chg { font-family: var(--font); font-size: 13px; }
+/* Summary inst row (compact 2×2) */
+.sum-inst-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 6px; margin-bottom: 10px; }
+.sum-inst-card { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--border); border-radius: var(--radius);
+  padding: 8px 10px; transition: border-left-color .15s, background .15s; }
+.sum-inst-card[data-dir="bull"] { border-left-color: var(--bull); background: var(--bull-bg); }
+.sum-inst-card[data-dir="bear"] { border-left-color: var(--bear); background: var(--bear-bg); }
+.sum-inst-card[data-dir="flat"] { border-left-color: var(--muted); }
+.sum-inst-label { font-family: var(--font); font-size: 9px; color: var(--muted); letter-spacing: .04em; }
+.sum-inst-val { font-family: var(--font); font-size: 16px; font-weight: 700; margin-top: 2px; }
+.sum-inst-val .pos { color: var(--bull); }
+.sum-inst-val .neg { color: var(--bear); }
+.sum-inst-delta { font-family: var(--font); font-size: 10px; color: var(--muted); margin-top: 2px; }
+.sum-inst-delta .pos { color: var(--bull); }
+.sum-inst-delta .neg { color: var(--bear); }
+/* L4 compact row inside summary */
+.sum-regime { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 10px; background: var(--surface); border-radius: var(--radius);
+  border-left: 3px solid var(--border); transition: border-left-color .15s, background .15s; }
+.sum-regime[data-dir="bull"] { border-left-color: var(--bull); background: var(--bull-bg); }
+.sum-regime[data-dir="bear"] { border-left-color: var(--bear); background: var(--bear-bg); }
+.sum-regime[data-dir="veto"] { border-left-color: var(--bear); background: var(--bear-bg); box-shadow: inset 0 0 0 1px var(--bear); }
+.sum-regime-tilt { font-family: var(--font); font-size: 18px; font-weight: 700; min-width: 60px; }
+.sum-regime-tilt.pos { color: var(--bull); }
+.sum-regime-tilt.neg { color: var(--bear); }
+.sum-regime-label { font-size: 12px; font-weight: 600; flex: 1; }
+/* Signal compact card (Top Signals section) */
+.sum-sig-card {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 9px 12px; margin-bottom: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); border-left: 3px solid var(--border);
+  cursor: pointer; transition: border-color .15s;
+}
+.sum-sig-card.go  { border-left-color: var(--bull); }
+.sum-sig-card.go:hover { background: var(--bull-bg); }
+.sum-sig-card.sell { border-left-color: var(--bear); }
+.sum-sig-card.sell:hover { background: var(--bear-bg); }
+.sum-sig-card.trim { border-left-color: #f4d35e; }
+.sum-sig-card.trim:hover { background: #fdf3e0; }
+.sum-sig-meta { flex: 1; min-width: 0; }
+.sum-sig-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sum-sig-scores { font-family: var(--font); font-size: 10px; color: var(--muted); margin-top: 2px; }
+.sum-sig-scores .pos { color: var(--bull); }
+.sum-sig-scores .neg { color: var(--bear); }
+.sum-no-signals { font-family: var(--font); font-size: 12px; color: var(--muted);
+  padding: 12px 0; text-align: center; }
+/* Radar NEW badge */
+.sum-radar-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 10px; margin-bottom: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--bull);    /* always green — fresh day-1 */
+  box-shadow: inset 3px 0 0 0 var(--bull-bg);
+}
+.sum-radar-new { font-family: var(--font); font-size: 9px; font-weight: 700;
+  letter-spacing: .06em; padding: 2px 6px; background: var(--bull);
+  color: #fff; border-radius: 3px; flex-shrink: 0; }
+.sum-radar-meta { flex: 1; min-width: 0; }
+.sum-radar-name { font-size: 12px; font-weight: 600; }
+.sum-radar-detail { font-family: var(--font); font-size: 10px; color: var(--muted); margin-top: 1px; }
+.sum-radar-detail .pos { color: var(--bull); }
+.sum-radar-detail .neg { color: var(--bear); }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -361,16 +446,50 @@ a { color: inherit; text-decoration: none; }
 </div>
 
 <div class="tabs">
-  <button class="tab active" onclick="switchTab('watch')">Watch</button>
-  <button class="tab" onclick="switchTab('pulse')">Market</button>
+  <button class="tab active" onclick="switchTab('summary')">今日</button>
   <button class="tab" onclick="switchTab('portfolio')">Portfolio</button>
+  <button class="tab" onclick="switchTab('watch')">Watch</button>
+  <button class="tab" onclick="switchTab('pulse')">Market</button>
   <button class="tab" onclick="switchTab('radar')">雷達</button>
   <button class="tab" onclick="switchTab('take')">Take</button>
   <button class="tab" onclick="switchTab('news')">新聞</button>
 </div>
 
 <!-- ══ WATCH TAB ══ -->
-<div class="panel active" id="panel-watch">
+<!-- ══ SUMMARY TAB ══ -->
+<div class="panel active" id="panel-summary">
+  <div id="summary-veto-banner"></div>
+
+  <div class="summary-section">
+    <div class="summary-section-label">MARKET PULSE</div>
+    <div class="sum-taiex" id="sum-taiex-row">
+      <div class="sum-taiex-val" id="sum-taiex">—</div>
+      <div class="sum-taiex-chg" id="sum-taiex-chg"></div>
+    </div>
+    <div class="sum-inst-grid" id="sum-inst-grid"></div>
+    <div class="sum-regime" id="sum-regime-row">
+      <div class="sum-regime-tilt" id="sum-regime-tilt">—</div>
+      <div class="sum-regime-label" id="sum-regime-label">L4 尚未更新</div>
+      <div id="sum-regime-chips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+  </div>
+
+  <div class="summary-section">
+    <div class="summary-section-label">TOP SIGNALS</div>
+    <div id="sum-signals"></div>
+  </div>
+
+  <div class="summary-section">
+    <div class="summary-section-label" id="sum-radar-label">RADAR SPOTLIGHT</div>
+    <div id="sum-radar"></div>
+    <p class="radar-footer" style="margin-top:8px">
+      投信 fresh buy (day 1) · 量 1k-10k 張 · 非 T1/T2 ·
+      <span style="font-style:italic">方舟 價值 + 無升溫 = 加分確認</span>
+    </p>
+  </div>
+</div>
+
+<div class="panel" id="panel-watch">
   <div class="sort-bar">
     <button class="sort-btn active" onclick="setSort('signal')">Signal</button>
     <button class="sort-btn" onclick="setSort('chg')">Day %</button>
@@ -1104,7 +1223,7 @@ function renderNav() {
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  const tabMap = { watch:'Watch', pulse:'Market', portfolio:'Portfolio', radar:'雷達', take:'Take', news:'新聞' };
+  const tabMap = { summary:'今日', watch:'Watch', pulse:'Market', portfolio:'Portfolio', radar:'雷達', take:'Take', news:'新聞' };
   document.querySelectorAll('.tab').forEach(t => {
     if (t.textContent === tabMap[name]) t.classList.add('active');
   });
@@ -1255,8 +1374,186 @@ function renderNews() {
   }).join('');
 }
 
+
+// ── Render Summary tab ──────────────────────────────────────────────────────
+function renderSummary() {
+  // ── Market Pulse ──
+  const m = DATA ? (DATA.market || {}) : {};
+
+  // TAIEX
+  const stRow = document.getElementById('sum-taiex-row');
+  const stVal = document.getElementById('sum-taiex');
+  const stChg = document.getElementById('sum-taiex-chg');
+  if (stVal && m.taiex != null) {
+    stVal.textContent = fmt(m.taiex, 2);
+    const chg = m.taiex_chg, pct = m.taiex_chg_pct;
+    const dir = chg > 0 ? 'bull' : chg < 0 ? 'bear' : 'flat';
+    if (stRow) stRow.setAttribute('data-dir', dir);
+    if (stChg && chg != null) {
+      const cls = chg >= 0 ? 'pos' : 'neg';
+      const sign = chg >= 0 ? '+' : '';
+      stChg.innerHTML = `<span class="${cls}">${sign}${fmt(chg,2)} (${sign}${pct?.toFixed(2)}%)</span>`;
+    }
+  }
+
+  // Institutional grid
+  const ig = document.getElementById('sum-inst-grid');
+  if (ig) {
+    const dirOf = n => n == null ? 'flat' : n > 0 ? 'bull' : 'bear';
+    function instCard(label, val, prev) {
+      const n = val != null ? Number(val) : null;
+      const sign = n == null ? '' : n >= 0 ? '+' : '−';
+      const cls  = n == null ? '' : n >= 0 ? 'pos' : 'neg';
+      const str  = n != null ? `<span class="${cls}">${sign}${fmt(Math.abs(n),0)}M</span>` : '—';
+      let deltaHTML = '';
+      if (n != null && prev != null) {
+        const d = n - Number(prev);
+        if (Math.abs(d) >= 1) {
+          const ac = d > 0 ? 'pos' : 'neg'; const as = d > 0 ? '↑' : '↓';
+          deltaHTML = `<span class="${ac}">${as}${fmt(Math.abs(d),0)}M</span>`;
+        } else { deltaHTML = '<span style="color:var(--muted)">→</span>'; }
+      }
+      return `<div class="sum-inst-card" data-dir="${dirOf(n)}">
+        <div class="sum-inst-label">${label}</div>
+        <div class="sum-inst-val">${str}</div>
+        <div class="sum-inst-delta">${deltaHTML}</div>
+      </div>`;
+    }
+    ig.innerHTML =
+      instCard('外資 Foreign', m.foreign_net_m, m.foreign_net_m_prev) +
+      instCard('投信 Trust',   m.trust_net_m,   m.trust_net_m_prev)   +
+      instCard('自營 Dealer',  m.dealer_net_m,  m.dealer_net_m_prev)  +
+      instCard('合計 Total',   m.three_inst_total_m, null);
+  }
+
+  // L4 regime compact
+  const sReg = document.getElementById('sum-regime-row');
+  const sRegTilt = document.getElementById('sum-regime-tilt');
+  const sRegLabel = document.getElementById('sum-regime-label');
+  const sRegChips = document.getElementById('sum-regime-chips');
+  if (L4_DATA && sReg) {
+    const tilt = Number(L4_DATA.tilt_raw);
+    const dir = L4_DATA.regime_veto ? 'veto' : tilt >= 2 ? 'bull' : tilt <= -2 ? 'bear' : 'flat';
+    sReg.setAttribute('data-dir', dir);
+    const sign = tilt >= 0 ? '+' : '−';
+    if (sRegTilt) {
+      sRegTilt.textContent = sign + Math.abs(tilt).toFixed(2);
+      sRegTilt.className = 'sum-regime-tilt ' + (tilt >= 0 ? 'pos' : 'neg');
+    }
+    if (sRegLabel) {
+      const vetoTag = L4_DATA.regime_veto ? ' <span class="regime-veto-tag">VETO</span>' : '';
+      sRegLabel.innerHTML = (L4_DATA.label || 'L4') + vetoTag;
+    }
+    if (sRegChips) {
+      const order = ['SOX','TSM','GSPC'];
+      sRegChips.innerHTML = order.map(k => {
+        const c = (L4_DATA.components || {})[k]; if (!c) return '';
+        const impact = k === 'VIX' ? -c.chg_pct : c.chg_pct;
+        const ccls = impact >= 0 ? 'pos' : 'neg';
+        const cs = c.chg_pct >= 0 ? '+' : '−';
+        return `<span class="chip ${impact >= 0 ? 'bull' : 'bear'}">${k} <span class="${ccls}">${cs}${Math.abs(c.chg_pct).toFixed(2)}%</span></span>`;
+      }).join('');
+    }
+  }
+
+  // Veto banner
+  const vbEl = document.getElementById('summary-veto-banner');
+  if (vbEl) {
+    vbEl.innerHTML = (L4_DATA && L4_DATA.regime_veto)
+      ? '<div class="veto-banner">⛔ <strong>REGIME VETO 今日生效</strong> — 美股重挫，暫停所有新進場。現有持股停損收緊至 −4% 或跌破 5MA。</div>'
+      : '';
+  }
+
+  if (!DATA) return;
+
+  // ── Top Signals ──
+  const sigEl = document.getElementById('sum-signals');
+  if (sigEl) {
+    const all = [...(DATA.portfolio || []), ...(DATA.watchlist || [])];
+    const gos  = all.filter(t => t.action === 'GO' || t.action === 'GO half' || t.action === 'ADD');
+    const exits = (DATA.portfolio || []).filter(t => t.action === 'SELL' || t.action === 'TRIM');
+
+    function sigCard(t) {
+      const isGo   = t.action === 'GO' || t.action === 'ADD';
+      const isTrim = t.action === 'TRIM';
+      const cls = isGo ? 'go' : isTrim ? 'trim' : 'sell';
+      const scope = t.tier === 'T1' ? 'p' : 'w';
+      const l1s = t.l1_score != null ? t.l1_score.toFixed(2) : '—';
+      const l2s = t.l2_score != null ? t.l2_score.toFixed(2) : '—';
+      const comp = t.composite != null ? (t.composite >= 0 ? '+' : '') + t.composite.toFixed(0) : '—';
+      const l1cls = t.l1_score >= 0.4 ? 'pos' : t.l1_score <= -0.4 ? 'neg' : '';
+      const l2cls = t.l2_score >= 0.4 ? 'pos' : t.l2_score <= -0.4 ? 'neg' : '';
+      const gateStr = t.confluence ? '✓ Gate' : '✗ Gate';
+      const gateCls = t.confluence ? 'pos' : '';
+      return `<div class="sum-sig-card ${cls}" onclick="switchTab('${scope === 'p' ? 'portfolio' : 'watch'}')">
+        <div>${actionBadge(t.action)}</div>
+        <div class="sum-sig-meta">
+          <div class="sum-sig-name"><span style="font-family:var(--font);font-weight:700">${t.ticker}</span> ${t.name_zh || ''}</div>
+          <div class="sum-sig-scores">
+            Composite <strong>${comp}</strong> &nbsp;
+            L1 <span class="${l1cls}">${l1s}</span> &nbsp;
+            L2 <span class="${l2cls}">${l2s}</span> &nbsp;
+            <span class="${gateCls}">${gateStr}</span>
+            ${t.tier === 'T1' ? ' <span style="opacity:.6">· 持股</span>' : ''}
+          </div>
+        </div>
+        ${trendBadge(t.trend)}
+      </div>`;
+    }
+
+    let html = '';
+    if (gos.length) {
+      html += `<div style="font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--bull);margin-bottom:6px">GO SIGNALS (${gos.length})</div>`;
+      html += gos.map(sigCard).join('');
+    }
+    if (exits.length) {
+      html += `<div style="font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--bear);margin:${gos.length?'12px':'0'} 0 6px">EXIT SIGNALS (${exits.length})</div>`;
+      html += exits.map(sigCard).join('');
+    }
+    if (!gos.length && !exits.length) {
+      html = '<div class="sum-no-signals">今日無 GO / EXIT 訊號。持倉觀察中。</div>';
+    }
+    sigEl.innerHTML = html;
+  }
+
+  // ── Radar Spotlight ──
+  const srEl = document.getElementById('sum-radar');
+  const srLabel = document.getElementById('sum-radar-label');
+  if (srEl) {
+    const items = (DATA.radar || []).slice(0, 8);
+    if (srLabel) srLabel.textContent = `RADAR SPOTLIGHT${items.length ? ' · ' + items.length + ' 筆今日新投信' : ''}`;
+    if (!items.length) {
+      srEl.innerHTML = '<div class="sum-no-signals">今日無 Radar 候選（市場休市或無新投信買超）。</div>';
+    } else {
+      const maxT = Math.max(...items.map(x => x.trust_net || 0), 1);
+      srEl.innerHTML = items.map(x => {
+        const chgPct = x.chg_pct != null ? (x.chg_pct >= 0 ? '+' : '') + x.chg_pct.toFixed(2) + '%' : '—';
+        const chgCls = x.chg_pct > 0 ? 'pos' : x.chg_pct < 0 ? 'neg' : '';
+        const trustK = x.trust_net != null ? (x.trust_net >= 1000
+          ? '+' + (x.trust_net/1000).toFixed(1) + 'K 張'
+          : '+' + x.trust_net + ' 張') : '—';
+        const vol = x.volume_k != null ? Math.round(x.volume_k).toLocaleString() + ' 張' : '—';
+        return `<div class="sum-radar-row">
+          <span class="sum-radar-new">NEW</span>
+          <div class="sum-radar-meta">
+            <div class="sum-radar-name">
+              <span style="font-family:var(--font);font-weight:700">${x.ticker}</span> ${x.name_zh || ''}
+            </div>
+            <div class="sum-radar-detail">
+              投信 <span class="pos">${trustK}</span> &nbsp;·&nbsp;
+              日漲跌 <span class="${chgCls}">${chgPct}</span> &nbsp;·&nbsp;
+              量 ${vol}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
 function render() {
   renderNav();
+  renderSummary();
   renderWatch();
   renderPulse();
   renderRegime();
