@@ -842,7 +842,7 @@ function chipDetailHTML(t, isPortfolio) {
     rows.push(statChip('Gate', t.confluence ? '✓ Open' : '✗ Blocked', t.confluence ? 'pos' : 'dim', confTip));
     // Dynamic Regime chip — only shown on veto, with actionable tip
     if (t.regime_veto) {
-      const vetoTip = ['⛔ US Market Veto — no new entries', 'US markets fell sharply overnight (SOX/NASDAQ tilt ≤ −5). This is a market-wide risk-off signal. What to do: (1) No new GO entries today for any stock. (2) For holdings you own: tighten stop-loss from −7% to −4% or breach of 5-day MA on close. (3) Check tonight's T86 (~18:00) — if institutions are net-selling your holdings, that confirms the SELL condition.'];
+      const vetoTip = ['⛔ US Market Veto — no new entries', 'US markets fell sharply overnight (SOX/NASDAQ tilt ≤ −5). This is a market-wide risk-off signal. What to do: (1) No new GO entries today for any stock. (2) For holdings you own: tighten stop-loss from −7% to −4% or breach of 5-day MA on close. (3) Check tonight\'s T86 (~18:00) — if institutions are net-selling your holdings, that confirms the SELL condition.'];
       rows.push(statChip('US Veto', '⛔ Active', 'neg', vetoTip));
     }
     rows.push(`</div>`);
