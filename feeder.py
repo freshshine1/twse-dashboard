@@ -849,11 +849,12 @@ def fetch_margin_all():
             return None
 
         for row in rows:
-            code = str(row.get("Code", "") or row.get("StockNo", "")).strip()
+            # MI_MARGN returns Chinese field names (confirmed from swagger 2026-06-08)
+            code = str(row.get("股票代號", "") or row.get("Code", "") or row.get("StockNo", "")).strip()
             if not code:
                 continue
-            today = pick(row, "MarginPurchaseTodayBalance", "MarginPurchaseTodayBalanceShares")
-            prev  = pick(row, "MarginPurchaseYesterdayBalance", "MarginPurchasePreviousDayBalance")
+            today = pick(row, "融資今日餘額", "MarginPurchaseTodayBalance")
+            prev  = pick(row, "融資前日餘額", "MarginPurchaseYesterdayBalance")
             if today is None or prev is None:
                 continue
             out[code] = {"margin_today": today, "margin_prev": prev}
