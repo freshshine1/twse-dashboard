@@ -335,7 +335,7 @@ a { color: inherit; text-decoration: none; }
   border-bottom: 1.5px dashed currentColor; opacity: 0.9; }
 .tw .tp {
   display: none; position: absolute; bottom: calc(100% + 7px); left: 50%;
-  transform: translateX(-50%); background: var(--surface);
+  transform: translateX(-50%); max-width: 260px; background: var(--surface);
   border: 1px solid var(--border); border-radius: 10px;
   padding: 9px 13px; width: 230px; z-index: 999;
   font-size: 11.5px; font-weight: 400; color: var(--muted);
@@ -423,6 +423,7 @@ a { color: inherit; text-decoration: none; }
         <div class="regime-meta">
           <div class="regime-label" id="regime-label">尚未更新</div>
           <div class="regime-asof" id="regime-asof"></div>
+          <div class="regime-action" id="regime-action" style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;"></div>
         </div>
       </div>
       <div class="regime-components" id="regime-components"></div>
@@ -834,8 +835,16 @@ function chipDetailHTML(t, isPortfolio) {
     rows.push(`<div class="chip-row">`);
     const cCls = t.composite == null ? 'dim' : t.composite >= 40 ? 'pos' : t.composite <= -40 ? 'neg' : '';
     rows.push(statChip('Composite', t.composite != null ? (t.composite >= 0 ? '+' : '') + t.composite.toFixed(0) : '—', cCls));
-    rows.push(statChip('Confluence', t.confluence ? '✓ L1&L2≥.4' : '✗', t.confluence ? 'pos' : 'dim'));
-    if (t.regime_veto) rows.push(statChip('Regime', 'VETO', 'neg'));
+    // Dynamic Confluence chip — tip changes based on met/unmet
+    const confTip = t.confluence
+      ? ['Confluence ✓ — GO is valid', 'Both L1 chip (≥+0.4) AND L2 technical (≥+0.4) agree. This is the entry gate — composite score ≥+40 with confluence met means the GO signal is real. Single-layer signals have a documented sub-30% win rate; confluence is what makes the difference.']
+      : ['Confluence ✗ — GO blocked', 'At least one of L1 chip or L2 technical is below +0.4. Even if the composite score looks high, no GO fires without both layers agreeing. Check L1 and L2 scores above to see which is lagging.'];
+    rows.push(statChip('Gate', t.confluence ? '✓ Open' : '✗ Blocked', t.confluence ? 'pos' : 'dim', confTip));
+    // Dynamic Regime chip — only shown on veto, with actionable tip
+    if (t.regime_veto) {
+      const vetoTip = ['⛔ US Market Veto — no new entries', 'US markets fell sharply overnight (SOX/NASDAQ tilt ≤ −5). This is a market-wide risk-off signal. What to do: (1) No new GO entries today for any stock. (2) For holdings you own: tighten stop-loss from −7% to −4% or breach of 5-day MA on close. (3) Check tonight's T86 (~18:00) — if institutions are net-selling your holdings, that confirms the SELL condition.'];
+      rows.push(statChip('US Veto', '⛔ Active', 'neg', vetoTip));
+    }
     rows.push(`</div>`);
     rows.push(`<div style="font-size:10px;color:var(--muted);margin-top:6px;font-family:var(--font)">
       L1 T86-only (conc/broker/margin stubs) · L5 news not yet folded in
@@ -880,8 +889,8 @@ function tt(label, tipTitle, tipBody) {
   return `<span class="tw">${label}<span class="tp"><span class="tp-t">${tipTitle}</span>${tipBody}</span></span>`;
 }
 
-function statChip(label, val, cls='') {
-  const tip = TIPS[label];
+function statChip(label, val, cls='', customTip=null) {
+  const tip = customTip || TIPS[label];
   const displayLabel = tip ? tt(label, tip[0], tip[1]) : label;
   return `<div class="chip-stat">
     <span class="chip-stat-label">${displayLabel}</span>
@@ -921,6 +930,22 @@ function renderRegime() {
   const asofStr = isNaN(asof) ? d.asof :
     asof.toLocaleString('zh-TW', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false });
   asEl.textContent = `更新於 ${asofStr} · US session ${d.us_session_date} · L4 = ${d.L4 >= 0 ? '+' : ''}${d.L4}`;
+
+  // Actionable guidance below the label
+  const actionEl = document.getElementById('regime-action');
+  if (actionEl) {
+    if (d.regime_veto) {
+      actionEl.innerHTML = '⛔ <strong>今日禁止新進場。</strong> 現有持股：停損收緊至 −4% 或跌破5日線收盤。今晚 18:00 T86 確認法人賣壓後再決定出場。';
+    } else if (tilt >= 4) {
+      actionEl.innerHTML = '✅ 美股強勢。今日突破型進場機會提升，可關注 GO 訊號。';
+    } else if (tilt >= 1) {
+      actionEl.innerHTML = '🟡 美股偏多。訊號正常運作，留意個股 L1+L2 確認。';
+    } else if (tilt <= -2) {
+      actionEl.innerHTML = '🔴 美股偏弱。謹慎新進場，現有持股留意停損。';
+    } else {
+      actionEl.innerHTML = '⚪ 美股中性。依個股訊號操作，無整體加減分。';
+    }
+  }
 
   // Components
   const order = ['SOX','TSM','GSPC','VIX'];
@@ -1242,6 +1267,31 @@ function render() {
 }
 
 loadData();
+
+// ── Tooltip boundary fix: reposition if clipped by viewport edge ──
+document.addEventListener('mouseover', function(e) {
+  const wrap = e.target.closest('.tw');
+  if (!wrap) return;
+  const tp = wrap.querySelector('.tp');
+  if (!tp || tp.style.display === 'none') return;
+  // Reset first
+  tp.style.left = '';
+  tp.style.right = '';
+  tp.style.transform = '';
+  const rect = tp.getBoundingClientRect();
+  const vw = window.innerWidth;
+  if (rect.left < 8) {
+    // Clipped on left — anchor to left edge of wrapper
+    tp.style.left = '0';
+    tp.style.transform = 'none';
+  } else if (rect.right > vw - 8) {
+    // Clipped on right — anchor to right edge of wrapper
+    tp.style.left = 'auto';
+    tp.style.right = '0';
+    tp.style.transform = 'none';
+  }
+});
+
 </script>
 </body>
 </html>
