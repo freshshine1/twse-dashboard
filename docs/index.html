@@ -330,6 +330,25 @@ a { color: inherit; text-decoration: none; }
     .radar-table tr:hover td { background: var(--surface); }
     .radar-trust-bar { display: inline-block; height: 8px; background: var(--bull); border-radius: 3px; min-width: 2px; }
     .radar-empty { color: var(--muted); text-align: center; padding: 2rem; font-size: 0.85rem; }
+/* ── Tooltip system ── */
+.tw { position: relative; display: inline; cursor: help;
+  border-bottom: 1.5px dashed currentColor; opacity: 0.9; }
+.tw .tp {
+  display: none; position: absolute; bottom: calc(100% + 7px); left: 50%;
+  transform: translateX(-50%); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 9px 13px; width: 230px; z-index: 999;
+  font-size: 11.5px; font-weight: 400; color: var(--muted);
+  line-height: 1.55; pointer-events: none; white-space: normal;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.13);
+}
+.tw .tp::after {
+  content: ''; position: absolute; top: 100%; left: 50%;
+  transform: translateX(-50%); border: 6px solid transparent;
+  border-top-color: var(--border);
+}
+.tw .tp .tp-t { font-size: 12px; font-weight: 700; color: var(--text); display: block; margin-bottom: 4px; }
+.tw:hover .tp { display: block; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -839,9 +858,33 @@ function chipDetailHTML(t, isPortfolio) {
   return rows.join('');
 }
 
+// ── Tooltip definitions ──
+const TIPS = {
+  'L1 籌碼':    ['L1 — Chip/Flow (35%)', '三大法人 T86 institutional flow score. Measures whether foreign funds (外資), investment trusts (投信), and dealers (自營商) are net buyers or sellers over 5 days. Range −1 to +1. The highest-weight layer because Taiwan is institutionally driven.'],
+  'L2 技術':    ['L2 — Technical (30%)', 'Price and momentum score from MA crossovers, KD, MACD, RSI, Bollinger Bands, and volume-price relationship. The confirmation layer — chip says "who", technicals say "when". Range −1 to +1.'],
+  'L3 基本':    ['L3 — Fundamentals (10%)', 'Monthly revenue (月營收年增率), EPS direction, and debt ratio. Used as an exclusion filter, not an entry signal. L3 ≤ −0.6 alone is a SELL trigger for inventory.'],
+  'L4 美股':    ['L4 — US/Global Regime (15%)', 'Overnight SOX, NASDAQ, and TSM ADR move translated to a market-wide tilt. Applied uniformly to all stocks. Tilt ≤ −5 fires a VETO — no new GO entries that day regardless of individual stock signals.'],
+  'Composite':  ['Composite score', 'Weighted sum: 35×L1 + 30×L2 + 10×L3 + 15×L4 + 10×L5. Range −100 to +100. ≥+40 with confluence = GO. ≤−40 with 2-layer confirm = SELL. Score alone never triggers action — confluence gate required.'],
+  'Confluence': ['Confluence gate', 'At least 2 independent layers must agree (≥+0.4) for a GO signal. Single-factor chip signals had a documented sub-30% short-term win rate (CMoney backtest). The gate is the main protection against false positives.'],
+  'Regime':     ['Regime veto', 'Fires when the L4 US/global tilt ≤ −5 (e.g. SOX −10%). All new GO entries suspended for the day. Existing holdings: tighten stops, await tonight\'s T86 for sell confirmation.'],
+  '外資今':     ['外資 — Foreign net (today)', 'Net shares bought minus sold today by foreign institutional investors. Positive = net accumulation. Sustained 5-day net buying is the highest-quality signal for large-cap TWSE names.'],
+  '投信今':     ['投信 — Trust net (today)', 'Net shares bought minus sold today by local investment trusts (投信公司). The highest signal-to-noise institutional actor — regulations force them to accumulate through disclosed net buys. 3 consecutive buy days = strong early signal.'],
+  '法人今':     ['三大法人合計 (today)', 'Total net of all three institutional types: 外資 + 投信 + 自營商. A useful aggregate but less precise than the individual components — 自營商 (dealers) is noisiest due to warrant-hedging flows.'],
+  '外資3d':     ['外資 3-day cumulative net', '3-day rolling sum of foreign institutional net buy/sell. More reliable than single-day as it smooths one-off flows.'],
+  '外資5d':     ['外資 5-day cumulative net', '5-day rolling sum — the primary input to the L1 T86 score formula. If null, fewer than 5 trading days of history are available yet.'],
+  '投信3d':     ['投信 3-day cumulative net', '3-day rolling sum of investment trust net buy/sell.'],
+  '投信5d':     ['投信 5-day cumulative net', '5-day rolling sum of investment trust net buy/sell — primary input to L1 T86 score. The most important window for detecting silent accumulation.'],
+};
+
+function tt(label, tipTitle, tipBody) {
+  return `<span class="tw">${label}<span class="tp"><span class="tp-t">${tipTitle}</span>${tipBody}</span></span>`;
+}
+
 function statChip(label, val, cls='') {
+  const tip = TIPS[label];
+  const displayLabel = tip ? tt(label, tip[0], tip[1]) : label;
   return `<div class="chip-stat">
-    <span class="chip-stat-label">${label}</span>
+    <span class="chip-stat-label">${displayLabel}</span>
     <span class="chip-stat-val ${cls}">${val}</span>
   </div>`;
 }
