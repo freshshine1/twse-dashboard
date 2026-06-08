@@ -1012,11 +1012,58 @@ def signal_label(score):
 
 # Bucket weight overrides (IMPLEMENTATION_GUIDE 6.3). Inventory leans more on
 # fundamentals (L3) and news (L5); watchlist leans on chip+technical entry timing.
+# These are the BUILT-IN DEFAULTS; load_weights_override() lets a config file
+# replace them per bucket without code changes.
 WEIGHTS = {
     "T1": {"L1": 30, "L2": 25, "L3": 20, "L4": 10, "L5": 15},   # inventory
     "T2": {"L1": 35, "L2": 35, "L3": 8,  "L4": 15, "L5": 7},    # watchlist
 }
 _WEIGHTS_DEFAULT = {"L1": 35, "L2": 30, "L3": 10, "L4": 15, "L5": 10}
+# Friendly-name -> internal tier-key mapping for config/weights.json overrides.
+_BUCKET_ALIAS = {"inventory": "T1", "watchlist": "T2", "under_radar": "radar"}
+
+
+def load_weights_override(path="config/weights.json"):
+    """If config/weights.json exists, apply its bucket overrides on top of the
+    built-in WEIGHTS dict. Mutates WEIGHTS in place so the rest of the feeder
+    (compute_composite) picks up the new values without further wiring.
+
+    File format: {"inventory": {"L1":30,...}, "watchlist": {...}, ...}. Keys
+    starting with _ are treated as comments and ignored. Unknown buckets and
+    unknown layer names are logged and skipped (fail-safe; the run continues
+    with built-in defaults for whatever wasn't overridden)."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            cfg = json.load(f)
+    except FileNotFoundError:
+        log.info("weights override %s not present -> using built-in WEIGHTS", path)
+        return
+    except Exception as exc:
+        log.warning("weights override %s failed to load (%s) -> using built-in", path, exc)
+        return
+    applied = []
+    for bucket_name, layer_weights in cfg.items():
+        if bucket_name.startswith("_") or not isinstance(layer_weights, dict):
+            continue
+        tier_key = _BUCKET_ALIAS.get(bucket_name)
+        if tier_key is None:
+            log.warning("weights override: unknown bucket '%s' (ignored)", bucket_name)
+            continue
+        merged = dict(WEIGHTS.get(tier_key, _WEIGHTS_DEFAULT))
+        for layer, w in layer_weights.items():
+            if layer not in ("L1", "L2", "L3", "L4", "L5"):
+                log.warning("weights override [%s]: unknown layer '%s' (ignored)",
+                            bucket_name, layer)
+                continue
+            try:
+                merged[layer] = float(w)
+            except Exception:
+                log.warning("weights override [%s.%s]: non-numeric value %r (ignored)",
+                            bucket_name, layer, w)
+        WEIGHTS[tier_key] = merged
+        applied.append(bucket_name)
+    if applied:
+        log.info("weights override applied: %s", applied)
 
 
 def compute_l2_score(techs):
@@ -1294,6 +1341,7 @@ def main():
     history_cache = {}
 
     # Chapter 6 synthesis inputs — loaded once, applied per ticker below.
+    load_weights_override()                    # may replace WEIGHTS in place
     l4_regime = load_l4_regime()               # market-wide L4 + veto flag
     l3_by_ticker, l3_available = load_l3_fundamentals()
 
