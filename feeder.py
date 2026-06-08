@@ -793,9 +793,15 @@ def screen_radar_candidates(market_t86_today, universe_codes, snapshot, float_m_
 
         trust_net = row.get("trust_net", 0) or 0
 
-        # Trust must be net positive today (newly-started accumulation signal)
+        # §8.3 fresh-streak gate: buying today but NOT yesterday = day 1 of a new streak.
+        # prev_trust_map.get(code, 0) defaults to 0 (neutral) when no history
+        # or on first run (no file) -> 0 <= 0 is True -> falls back to trust_net > 0 only.
         if trust_net <= 0:
             skipped_no_trust += 1
+            continue
+        prev_trust = (prev_trust_map or {}).get(code, 0)
+        if prev_trust > 0:
+            skipped_no_trust += 1   # long-running streak, not fresh
             continue
 
         # Volume band: 1,000-10,000 張 (1 張 = 1,000 shares).
@@ -833,7 +839,7 @@ def screen_radar_candidates(market_t86_today, universe_codes, snapshot, float_m_
             "dealer_net":  row.get("dealer_net", 0),
             "inst_net":    row.get("inst_net", 0),
             "l1_score":    round(trust_norm * 0.5, 3),  # trust-only, weight 0.5 of T86
-            "radar_note":  "投信 net-buy + vol 1k-10k Zhang",
+            "radar_note":  "投信 fresh (day 1) + vol 1k-10k Zhang",
         })
 
     # Rank by trust_net descending
@@ -1354,15 +1360,30 @@ def main():
     # 4c: whole-market margin balances (one call/day, gated + fail-safe; {} when off/failed)
     margin_map = fetch_margin_all() if ENABLE_MARGIN else {}
 
-    # P2: Radar screen — discover under-radar names with fresh trust accumulation
+    # P0: load previous-day whole-market trust snapshot for Radar fresh-streak gate (§8.3)
+    _prev_trust_path = Path("docs/raw/t86_market_prev.json")
+    prev_trust_map: dict = {}
+    if _prev_trust_path.exists():
+        try:
+            prev_trust_map = json.loads(_prev_trust_path.read_text(encoding="utf-8"))
+            log.info("P0: loaded prev_trust_map: %d tickers", len(prev_trust_map))
+        except Exception as _pte:
+            log.warning("P0: failed to load t86_market_prev.json: %s", _pte)
+
+    # P0/P2: Radar screen — discover under-radar mid-caps with FRESH trust accumulation
+    # Fresh = trust_net > 0 today AND trust_net_prev <= 0 (day 1 of new streak, §8.3).
+    # Falls back to trust_net > 0 on first run (no prev file yet).
     universe_codes = {t[0] for t in tickers}
-    radar = screen_radar_candidates(market_t86_today, universe_codes, snapshot, FLOAT_M)
+    radar = screen_radar_candidates(
+        market_t86_today, universe_codes, snapshot, FLOAT_M,
+        prev_trust_map=prev_trust_map,
+    )
 
     # 6. Per-ticker loop
     # history_cache avoids re-fetching OHLCV for tickers that appear in both T1 and T2
     watchlist  = []
     portfolio  = []
-    radar      = []   # P2: populated by screen_radar_candidates before loop
+    # radar was populated by screen_radar_candidates above — NOT reinitialised here
     history_cache = {}
 
     # Chapter 6 synthesis inputs — loaded once, applied per ticker below.
@@ -1462,7 +1483,6 @@ def main():
                 "regime_veto":    veto,
                 "signal_score":   sig,
                 "signal_label":   signal_label(sig),
-                "margin_score":   margin_score,
             }
 
             if tier == "T1":
@@ -1545,6 +1565,20 @@ def main():
         "docs/data.json written ÃÂ¢ÃÂÃÂ portfolio:%d watchlist:%d",
         len(portfolio), len(watchlist)
     )
+
+    # P0: persist today's market trust snapshot for next run's fresh-streak gate (§8.3)
+    try:
+        compact = {
+            c: r["trust_net"] for c, r in market_t86_today.items()
+            if r.get("trust_net") is not None
+        }
+        Path("docs/raw").mkdir(parents=True, exist_ok=True)
+        Path("docs/raw/t86_market_prev.json").write_text(
+            json.dumps(compact, ensure_ascii=False), encoding="utf-8"
+        )
+        log.info("P0: saved t86_market_prev.json: %d tickers", len(compact))
+    except Exception as _mte:
+        log.warning("P0: failed to save t86_market_prev.json (non-fatal): %s", _mte)
 
     # Daily snapshot archive - minimal per-ticker view of what the dashboard
     # recommended today, for back-testing the hit-rate review. Without these
