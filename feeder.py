@@ -1462,6 +1462,7 @@ def main():
                 "regime_veto":    veto,
                 "signal_score":   sig,
                 "signal_label":   signal_label(sig),
+                "margin_score":   margin_score,
             }
 
             if tier == "T1":
