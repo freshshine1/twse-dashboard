@@ -51,6 +51,7 @@ import sys
 import time
 from datetime import datetime, timedelta, date as _date
 from zoneinfo import ZoneInfo
+from pathlib import Path
 
 import requests
 
@@ -773,7 +774,7 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
     return result, market_t86_today  # P2: return full market snapshot for Radar
 
 # ── Radar / discovery screen (P2) ──────────────────────────────────────────────────
-def screen_radar_candidates(market_t86_today, universe_codes, snapshot, float_m_map, top_n=40):
+def screen_radar_candidates(market_t86_today, universe_codes, snapshot, float_m_map, prev_trust_map=None, top_n=40):
     """
     P2 Radar v1: surface under-radar mid-caps with newly-started trust accumulation.
     Coverage filter (all Tier-1 clean sources):
