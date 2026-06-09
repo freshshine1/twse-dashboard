@@ -1,5 +1,5 @@
 {
-  "asof": "2026-06-09T12:46:12+08:00",
+  "asof": "2026-06-09T14:11:59+08:00",
   "source": "TWSE OpenAPI + main-site fallbacks",
   "thresholds": {
     "revenue_yoy_pct": -10.0
@@ -11,972 +11,52 @@
     "flagged_total": 251
   },
   "by_ticker": {
-    "1540": {
+    "3027": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -24.1%",
-          "value": -24.12
+          "label": "營收 YoY -79.5%",
+          "value": -79.48
         }
       ],
       "l3_score": -0.3
     },
-    "3056": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -25.0%",
-          "value": -25.03
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4958": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "3532": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "6442": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        },
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -16.2%",
-          "value": -16.21
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "058498": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "1110": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -10.2%",
-          "value": -10.21
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1471": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -52.4%",
-          "value": -52.38
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2390": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -10.8%",
-          "value": -10.78
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3593": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -51.1%",
-          "value": -51.1
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "7730": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -25.8%",
-          "value": -25.76
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "5292": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -28.6%",
-          "value": -28.63
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1315": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -14.2%",
-          "value": -14.17
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2505": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -166.9%",
-          "value": -166.94
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1109": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -21.6%",
-          "value": -21.62
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2466": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -27.2%",
-          "value": -27.21
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3011": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -42.7%",
-          "value": -42.72
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3501": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -18.5%",
-          "value": -18.52
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2038": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -14.7%",
-          "value": -14.72
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1468": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -46.1%",
-          "value": -46.07
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1314": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -10.4%",
-          "value": -10.37
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1108": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -21.4%",
-          "value": -21.38
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6754": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -19.6%",
-          "value": -19.57
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "8422": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -11.5%",
-          "value": -11.49
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "067782": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "2444": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -14.0%",
-          "value": -14.0
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1442": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -76.3%",
-          "value": -76.32
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1337": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -31.3%",
-          "value": -31.33
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3380": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -30.9%",
-          "value": -30.94
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2547": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -17.1%",
-          "value": -17.08
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1340": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -81.2%",
-          "value": -81.22
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4195": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -14.5%",
-          "value": -14.5
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4755": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -12.9%",
-          "value": -12.94
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6658": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -20.6%",
-          "value": -20.64
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3346": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        },
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -15.1%",
-          "value": -15.08
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "8478": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -25.1%",
-          "value": -25.1
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "5546": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -57.9%",
-          "value": -57.85
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1454": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -20.9%",
-          "value": -20.89
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "7711": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -44.2%",
-          "value": -44.22
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1906": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -20.7%",
-          "value": -20.7
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3701": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -30.0%",
-          "value": -29.99
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3090": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "6024": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -60.7%",
-          "value": -60.71
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6405": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        },
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -100.0%",
-          "value": -100.0
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "1437": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -16.1%",
-          "value": -16.14
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4906": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -23.2%",
-          "value": -23.21
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2504": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -10.2%",
-          "value": -10.23
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6794": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -65.5%",
-          "value": -65.53
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2455": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "3015": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -12.7%",
-          "value": -12.74
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2472": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "4536": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -17.2%",
-          "value": -17.22
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2530": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -96.8%",
-          "value": -96.84
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "9907": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -20.1%",
-          "value": -20.05
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3026": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "6591": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -52.8%",
-          "value": -52.82
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4999": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -15.2%",
-          "value": -15.21
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6873": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -35.5%",
-          "value": -35.55
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6919": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -70.8%",
-          "value": -70.8
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1539": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -16.6%",
-          "value": -16.64
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1526": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -22.2%",
-          "value": -22.19
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4938": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -15.2%",
-          "value": -15.24
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "5269": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -17.6%",
-          "value": -17.55
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6116": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "3189": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "4590": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -35.1%",
-          "value": -35.06
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "5225": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -11.3%",
-          "value": -11.28
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2642": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -17.0%",
-          "value": -17.01
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6128": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -13.3%",
-          "value": -13.28
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "7768": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -11.1%",
-          "value": -11.05
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3092": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -15.4%",
-          "value": -15.43
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3049": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -72.1%",
-          "value": -72.14
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2419": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -18.8%",
-          "value": -18.79
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "8101": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -20.7%",
-          "value": -20.7
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4557": {
+    "2247": {
       "flags": [
         {
           "type": "revenue_yoy",
           "label": "營收 YoY -29.1%",
-          "value": -29.11
+          "value": -29.1
         }
       ],
       "l3_score": -0.3
     },
-    "912000": {
+    "2102": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -13.8%",
-          "value": -13.79
+          "label": "營收 YoY -29.9%",
+          "value": -29.93
         }
       ],
       "l3_score": -0.3
     },
-    "1805": {
+    "2482": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -98.6%",
-          "value": -98.6
+          "label": "營收 YoY -11.2%",
+          "value": -11.16
         }
       ],
       "l3_score": -0.3
     },
-    "4588": {
+    "6443": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -83.8%",
-          "value": -83.84
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6120": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -24.3%",
-          "value": -24.3
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3035": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -43.1%",
-          "value": -43.12
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6153": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -14.4%",
-          "value": -14.43
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2031": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -10.7%",
-          "value": -10.72
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6869": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -61.5%",
-          "value": -61.48
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6582": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -35.8%",
-          "value": -35.77
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6142": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -23.0%",
-          "value": -22.98
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1568": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "2913": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -14.1%",
-          "value": -14.09
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4977": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -43.2%",
-          "value": -43.18
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6272": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -25.2%",
-          "value": -25.22
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6698": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -44.6%",
-          "value": -44.63
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2701": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -10.3%",
-          "value": -10.33
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3021": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "4763": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -41.5%",
-          "value": -41.52
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1541": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -43.7%",
-          "value": -43.66
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6573": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -19.6%",
-          "value": -19.64
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1618": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -77.0%",
-          "value": -76.96
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1324": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -24.2%",
-          "value": -24.22
+          "label": "營收 YoY -15.6%",
+          "value": -15.58
         }
       ],
       "l3_score": -0.3
@@ -991,57 +71,47 @@
       ],
       "l3_score": -0.3
     },
-    "4935": {
+    "6243": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -35.5%",
-          "value": -35.5
+          "label": "營收 YoY -59.2%",
+          "value": -59.19
         }
       ],
       "l3_score": -0.3
     },
-    "1605": {
+    "1325": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -12.1%",
-          "value": -12.05
+          "label": "營收 YoY -13.4%",
+          "value": -13.39
         }
       ],
       "l3_score": -0.3
     },
-    "3047": {
+    "1109": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -28.4%",
-          "value": -28.36
+          "label": "營收 YoY -21.6%",
+          "value": -21.62
         }
       ],
       "l3_score": -0.3
     },
-    "6216": {
+    "2534": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -42.1%",
-          "value": -42.07
+          "label": "營收 YoY -96.9%",
+          "value": -96.86
         }
       ],
       "l3_score": -0.3
     },
-    "1809": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -10.7%",
-          "value": -10.68
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3481": {
+    "3189": {
       "flags": [
         {
           "type": "disposition",
@@ -1050,27 +120,7 @@
       ],
       "l3_score": -0.6
     },
-    "6831": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -24.3%",
-          "value": -24.33
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "8011": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -15.5%",
-          "value": -15.53
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "050503": {
+    "2375": {
       "flags": [
         {
           "type": "disposition",
@@ -1079,72 +129,51 @@
       ],
       "l3_score": -0.6
     },
-    "2511": {
+    "6589": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -16.8%",
-          "value": -16.82
+          "label": "營收 YoY -15.8%",
+          "value": -15.77
         }
       ],
       "l3_score": -0.3
     },
-    "2254": {
+    "3515": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -63.0%",
-          "value": -63.05
+          "label": "營收 YoY -46.5%",
+          "value": -46.53
         }
       ],
       "l3_score": -0.3
     },
-    "8466": {
+    "2348": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -30.6%",
-          "value": -30.61
+          "label": "營收 YoY -82.4%",
+          "value": -82.39
         }
       ],
       "l3_score": -0.3
     },
-    "5533": {
+    "4807": {
       "flags": [
         {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -27.6%",
-          "value": -27.59
+          "type": "disposition",
+          "label": "處置股"
         }
       ],
-      "l3_score": -0.3
+      "l3_score": -0.6
     },
-    "2524": {
+    "2438": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -48.8%",
-          "value": -48.78
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "8104": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -24.4%",
-          "value": -24.45
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "9930": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -11.5%",
-          "value": -11.47
+          "label": "營收 YoY -28.0%",
+          "value": -28.01
         }
       ],
       "l3_score": -0.3
@@ -1159,7 +188,47 @@
       ],
       "l3_score": -0.3
     },
-    "2491": {
+    "1598": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -16.3%",
+          "value": -16.34
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1618": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -77.0%",
+          "value": -76.96
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2530": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -96.8%",
+          "value": -96.84
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "8104": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -24.4%",
+          "value": -24.45
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "058462": {
       "flags": [
         {
           "type": "disposition",
@@ -1168,22 +237,310 @@
       ],
       "l3_score": -0.6
     },
-    "2630": {
+    "4119": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -22.9%",
-          "value": -22.88
+          "label": "營收 YoY -46.5%",
+          "value": -46.49
         }
       ],
       "l3_score": -0.3
     },
-    "3376": {
+    "3035": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -10.0%",
-          "value": -10.02
+          "label": "營收 YoY -43.1%",
+          "value": -43.12
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1517": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -15.6%",
+          "value": -15.62
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "4906": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -23.2%",
+          "value": -23.21
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6919": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -70.8%",
+          "value": -70.8
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6754": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -19.6%",
+          "value": -19.57
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "8466": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -30.6%",
+          "value": -30.61
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2524": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -48.8%",
+          "value": -48.78
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "5292": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -28.6%",
+          "value": -28.63
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1442": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -76.3%",
+          "value": -76.32
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6807": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -26.8%",
+          "value": -26.8
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3518": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -38.3%",
+          "value": -38.27
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1526": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -22.2%",
+          "value": -22.19
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "4755": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -12.9%",
+          "value": -12.94
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2511": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -16.8%",
+          "value": -16.82
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1203": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -12.2%",
+          "value": -12.21
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1733": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -19.3%",
+          "value": -19.34
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "5531": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -21.4%",
+          "value": -21.35
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1234": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -14.2%",
+          "value": -14.24
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1319": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -14.1%",
+          "value": -14.11
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2614": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -13.0%",
+          "value": -12.99
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6928": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -20.4%",
+          "value": -20.37
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2444": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -14.0%",
+          "value": -14.0
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3011": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -42.7%",
+          "value": -42.72
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2913": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -14.1%",
+          "value": -14.09
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6645": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -15.5%",
+          "value": -15.52
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2354": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -49.4%",
+          "value": -49.36
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "067782": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "1563": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "6719": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -12.1%",
+          "value": -12.14
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1587": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -11.8%",
+          "value": -11.76
         }
       ],
       "l3_score": -0.3
@@ -1196,6 +553,162 @@
         }
       ],
       "l3_score": -0.6
+    },
+    "1340": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -81.2%",
+          "value": -81.22
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6456": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -34.5%",
+          "value": -34.47
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "7730": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -25.8%",
+          "value": -25.76
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2547": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -17.1%",
+          "value": -17.08
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3528": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "6873": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -35.5%",
+          "value": -35.55
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1568": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "4999": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -15.2%",
+          "value": -15.21
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3607": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -11.2%",
+          "value": -11.2
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6958": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -12.9%",
+          "value": -12.86
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3535": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "2455": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "2904": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -18.5%",
+          "value": -18.53
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2536": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -97.0%",
+          "value": -97.03
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3545": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -14.3%",
+          "value": -14.34
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6225": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -80.4%",
+          "value": -80.36
+        }
+      ],
+      "l3_score": -0.3
     },
     "2911": {
       "flags": [
@@ -1211,7 +724,47 @@
       ],
       "l3_score": -0.6
     },
-    "6239": {
+    "1103": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -23.6%",
+          "value": -23.55
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1541": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -43.7%",
+          "value": -43.66
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1460": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -27.6%",
+          "value": -27.61
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6235": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -13.4%",
+          "value": -13.39
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6271": {
       "flags": [
         {
           "type": "disposition",
@@ -1220,46 +773,71 @@
       ],
       "l3_score": -0.6
     },
-    "6807": {
+    "3661": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -26.8%",
-          "value": -26.8
+          "label": "營收 YoY -32.3%",
+          "value": -32.31
         }
       ],
       "l3_score": -0.3
     },
-    "1529": {
+    "1605": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -72.0%",
-          "value": -71.99
+          "label": "營收 YoY -12.1%",
+          "value": -12.05
         }
       ],
       "l3_score": -0.3
     },
-    "2302": {
+    "6862": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -49.1%",
+          "value": -49.12
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3149": {
       "flags": [
         {
           "type": "disposition",
           "label": "處置股"
+        },
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -19.2%",
+          "value": -19.16
         }
       ],
       "l3_score": -0.6
     },
-    "2247": {
+    "6831": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -29.1%",
-          "value": -29.1
+          "label": "營收 YoY -24.3%",
+          "value": -24.33
         }
       ],
       "l3_score": -0.3
     },
-    "6834": {
+    "3376": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -10.0%",
+          "value": -10.02
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1409": {
       "flags": [
         {
           "type": "disposition",
@@ -1278,42 +856,21 @@
       ],
       "l3_score": -0.3
     },
-    "1733": {
+    "7610": {
       "flags": [
         {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -19.3%",
-          "value": -19.34
+          "type": "disposition",
+          "label": "處置股"
         }
       ],
-      "l3_score": -0.3
+      "l3_score": -0.6
     },
-    "2354": {
+    "1806": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -49.4%",
-          "value": -49.36
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6695": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -25.0%",
-          "value": -24.96
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2535": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -20.4%",
-          "value": -20.42
+          "label": "營收 YoY -10.2%",
+          "value": -10.18
         }
       ],
       "l3_score": -0.3
@@ -1328,57 +885,37 @@
       ],
       "l3_score": -0.3
     },
-    "6719": {
+    "6582": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -12.1%",
-          "value": -12.14
+          "label": "營收 YoY -35.8%",
+          "value": -35.77
         }
       ],
       "l3_score": -0.3
     },
-    "1626": {
+    "1470": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -10.1%",
-          "value": -10.14
+          "label": "營收 YoY -20.5%",
+          "value": -20.52
         }
       ],
       "l3_score": -0.3
     },
-    "1473": {
+    "5706": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -13.6%",
-          "value": -13.6
+          "label": "營收 YoY -20.5%",
+          "value": -20.47
         }
       ],
       "l3_score": -0.3
     },
-    "3515": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -46.5%",
-          "value": -46.53
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2438": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -28.0%",
-          "value": -28.01
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4807": {
+    "2302": {
       "flags": [
         {
           "type": "disposition",
@@ -1387,22 +924,100 @@
       ],
       "l3_score": -0.6
     },
-    "1465": {
+    "2367": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -12.1%",
-          "value": -12.07
+          "label": "營收 YoY -22.5%",
+          "value": -22.5
         }
       ],
       "l3_score": -0.3
     },
-    "2534": {
+    "6128": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -96.9%",
-          "value": -96.86
+          "label": "營收 YoY -13.3%",
+          "value": -13.28
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2492": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "1454": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -20.9%",
+          "value": -20.89
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3056": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -25.0%",
+          "value": -25.03
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1314": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -10.4%",
+          "value": -10.37
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "9933": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -24.2%",
+          "value": -24.2
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "050503": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "4935": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -35.5%",
+          "value": -35.5
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2535": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -20.4%",
+          "value": -20.42
         }
       ],
       "l3_score": -0.3
@@ -1417,63 +1032,35 @@
       ],
       "l3_score": -0.3
     },
-    "1718": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "1598": {
+    "6472": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -16.3%",
-          "value": -16.34
+          "label": "營收 YoY -27.5%",
+          "value": -27.47
         }
       ],
       "l3_score": -0.3
     },
-    "2528": {
+    "8101": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -98.9%",
-          "value": -98.93
+          "label": "營收 YoY -20.7%",
+          "value": -20.7
         }
       ],
       "l3_score": -0.3
     },
-    "1535": {
+    "2474": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -26.1%",
-          "value": -26.07
+          "label": "營收 YoY -36.2%",
+          "value": -36.19
         }
       ],
       "l3_score": -0.3
-    },
-    "1436": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -25.4%",
-          "value": -25.39
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1409": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
     },
     "4526": {
       "flags": [
@@ -1481,6 +1068,252 @@
           "type": "revenue_yoy",
           "label": "營收 YoY -10.2%",
           "value": -10.24
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6706": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -41.8%",
+          "value": -41.84
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "5225": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -11.3%",
+          "value": -11.28
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "050328": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "1809": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -10.7%",
+          "value": -10.68
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "5269": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -17.6%",
+          "value": -17.55
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "7732": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -35.6%",
+          "value": -35.57
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3018": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -23.5%",
+          "value": -23.49
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3481": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "1339": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -10.0%",
+          "value": -10.02
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "7768": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -11.1%",
+          "value": -11.05
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "9914": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -14.3%",
+          "value": -14.32
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6869": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -61.5%",
+          "value": -61.48
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "4919": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "6695": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -25.0%",
+          "value": -24.96
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2468": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -16.7%",
+          "value": -16.69
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1315": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -14.2%",
+          "value": -14.17
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6116": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "1515": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -19.3%",
+          "value": -19.27
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1423": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -34.0%",
+          "value": -33.97
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2328": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -16.6%",
+          "value": -16.55
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2701": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -10.3%",
+          "value": -10.33
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3437": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -22.2%",
+          "value": -22.17
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1440": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -16.3%",
+          "value": -16.29
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2419": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -18.8%",
+          "value": -18.79
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2031": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -10.7%",
+          "value": -10.72
         }
       ],
       "l3_score": -0.3
@@ -1495,27 +1328,275 @@
       ],
       "l3_score": -0.3
     },
-    "6958": {
+    "6153": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -14.4%",
+          "value": -14.43
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6216": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -42.1%",
+          "value": -42.07
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2254": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -63.0%",
+          "value": -63.05
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "9930": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -11.5%",
+          "value": -11.47
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1445": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -64.1%",
+          "value": -64.14
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "4195": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -14.5%",
+          "value": -14.5
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6142": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -23.0%",
+          "value": -22.98
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6449": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "6120": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -24.3%",
+          "value": -24.3
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3380": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -30.9%",
+          "value": -30.94
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6201": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -13.5%",
+          "value": -13.53
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "7711": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -44.2%",
+          "value": -44.22
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2028": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -32.0%",
+          "value": -31.99
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1540": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -24.1%",
+          "value": -24.12
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2540": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -36.5%",
+          "value": -36.53
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "9907": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -20.1%",
+          "value": -20.05
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6573": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -19.6%",
+          "value": -19.64
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "4746": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -25.7%",
+          "value": -25.72
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6272": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -25.2%",
+          "value": -25.22
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6742": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -49.5%",
+          "value": -49.51
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "8478": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -25.1%",
+          "value": -25.1
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2516": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -44.5%",
+          "value": -44.55
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1432": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -39.8%",
+          "value": -39.79
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6409": {
       "flags": [
         {
           "type": "revenue_yoy",
           "label": "營收 YoY -12.9%",
-          "value": -12.86
+          "value": -12.87
         }
       ],
       "l3_score": -0.3
     },
-    "1515": {
+    "2630": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -19.3%",
-          "value": -19.27
+          "label": "營收 YoY -22.9%",
+          "value": -22.88
         }
       ],
       "l3_score": -0.3
     },
-    "050328": {
+    "3686": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -64.1%",
+          "value": -64.13
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3090": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "3026": {
       "flags": [
         {
           "type": "disposition",
@@ -1543,357 +1624,12 @@
       ],
       "l3_score": -0.3
     },
-    "6887": {
+    "6921": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -13.1%",
-          "value": -13.11
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3545": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -14.3%",
-          "value": -14.34
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6552": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -33.8%",
-          "value": -33.81
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1432": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -39.8%",
-          "value": -39.79
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6225": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -80.4%",
-          "value": -80.36
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "8114": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -28.0%",
-          "value": -28.0
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6742": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -49.5%",
-          "value": -49.51
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6271": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "6449": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "9914": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -14.3%",
-          "value": -14.32
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4564": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -33.6%",
-          "value": -33.65
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2348": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -82.4%",
-          "value": -82.39
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1517": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -15.6%",
-          "value": -15.62
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1445": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -64.1%",
-          "value": -64.14
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2375": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "3607": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -11.2%",
-          "value": -11.2
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "5706": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -20.5%",
-          "value": -20.47
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2723": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -15.5%",
-          "value": -15.51
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6589": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -15.8%",
-          "value": -15.77
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2492": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "6243": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -59.2%",
-          "value": -59.19
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2516": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -44.5%",
-          "value": -44.55
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2069": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -14.3%",
-          "value": -14.32
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "058462": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "2367": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -22.5%",
-          "value": -22.5
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3018": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -23.5%",
-          "value": -23.49
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4119": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -46.5%",
-          "value": -46.49
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6550": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -57.1%",
-          "value": -57.12
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "7732": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -35.6%",
-          "value": -35.57
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2028": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -32.0%",
-          "value": -31.99
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "7799": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -100.0%",
-          "value": -100.0
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6862": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -49.1%",
-          "value": -49.12
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3027": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -79.5%",
-          "value": -79.48
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2104": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -15.6%",
-          "value": -15.6
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1806": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -10.2%",
-          "value": -10.18
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2482": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -11.2%",
-          "value": -11.16
+          "label": "營收 YoY -94.8%",
+          "value": -94.8
         }
       ],
       "l3_score": -0.3
@@ -1908,410 +1644,22 @@
       ],
       "l3_score": -0.3
     },
-    "1339": {
+    "6715": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -10.0%",
-          "value": -10.02
+          "label": "營收 YoY -11.6%",
+          "value": -11.58
         }
       ],
       "l3_score": -0.3
     },
-    "6645": {
+    "4590": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -15.5%",
-          "value": -15.52
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1325": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -13.4%",
-          "value": -13.39
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2705": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -10.3%",
-          "value": -10.34
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1470": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -20.5%",
-          "value": -20.52
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3686": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -64.1%",
-          "value": -64.13
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4919": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "1587": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -11.8%",
-          "value": -11.76
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1203": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -12.2%",
-          "value": -12.21
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6235": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -13.4%",
-          "value": -13.39
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3535": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "1103": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -23.6%",
-          "value": -23.55
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6205": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -20.4%",
-          "value": -20.42
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6201": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -13.5%",
-          "value": -13.53
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6969": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -24.1%",
-          "value": -24.12
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3528": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "1234": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -14.2%",
-          "value": -14.24
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6472": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -27.5%",
-          "value": -27.47
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1440": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -16.3%",
-          "value": -16.29
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6689": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -11.2%",
-          "value": -11.23
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2337": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "3661": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -32.3%",
-          "value": -32.31
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1563": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "1460": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -27.6%",
-          "value": -27.61
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3518": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -38.3%",
-          "value": -38.27
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2008": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -21.9%",
-          "value": -21.9
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2904": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -18.5%",
-          "value": -18.53
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "3149": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        },
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -19.2%",
-          "value": -19.16
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "2007": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -21.7%",
-          "value": -21.69
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6921": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -94.8%",
-          "value": -94.8
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "9933": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -24.2%",
-          "value": -24.2
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "4746": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -25.7%",
-          "value": -25.72
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "1423": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -34.0%",
-          "value": -33.97
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2328": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -16.6%",
-          "value": -16.55
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6706": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -41.8%",
-          "value": -41.84
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2474": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -36.2%",
-          "value": -36.19
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6890": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "2468": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -16.7%",
-          "value": -16.69
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2377": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -22.3%",
-          "value": -22.26
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "2540": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -36.5%",
-          "value": -36.53
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6409": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -12.9%",
-          "value": -12.87
+          "label": "營收 YoY -35.1%",
+          "value": -35.06
         }
       ],
       "l3_score": -0.3
@@ -2326,32 +1674,139 @@
       ],
       "l3_score": -0.3
     },
-    "2536": {
+    "8011": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -97.0%",
-          "value": -97.03
+          "label": "營收 YoY -15.5%",
+          "value": -15.53
         }
       ],
       "l3_score": -0.3
     },
-    "6443": {
+    "6834": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "1466": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -15.6%",
-          "value": -15.58
+          "label": "營收 YoY -17.5%",
+          "value": -17.51
         }
       ],
       "l3_score": -0.3
     },
-    "1319": {
+    "4588": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -14.1%",
-          "value": -14.11
+          "label": "營收 YoY -83.8%",
+          "value": -83.84
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2337": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "2642": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -17.0%",
+          "value": -17.01
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2038": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -14.7%",
+          "value": -14.72
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3021": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "8114": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -28.0%",
+          "value": -28.0
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "4536": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -17.2%",
+          "value": -17.22
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6024": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -60.7%",
+          "value": -60.71
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "4763": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -41.5%",
+          "value": -41.52
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3701": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -30.0%",
+          "value": -29.99
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2069": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -14.3%",
+          "value": -14.32
         }
       ],
       "l3_score": -0.3
@@ -2370,32 +1825,355 @@
       ],
       "l3_score": -0.6
     },
-    "6456": {
+    "1324": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -34.5%",
-          "value": -34.47
+          "label": "營收 YoY -24.2%",
+          "value": -24.22
         }
       ],
       "l3_score": -0.3
     },
-    "1466": {
+    "3047": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -17.5%",
-          "value": -17.51
+          "label": "營收 YoY -28.4%",
+          "value": -28.36
         }
       ],
       "l3_score": -0.3
     },
-    "2102": {
+    "1906": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -29.9%",
-          "value": -29.93
+          "label": "營收 YoY -20.7%",
+          "value": -20.7
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1718": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "8454": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "3092": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -15.4%",
+          "value": -15.43
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6794": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -65.5%",
+          "value": -65.53
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6890": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "3346": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        },
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -15.1%",
+          "value": -15.08
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "6689": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -11.2%",
+          "value": -11.23
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2505": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -166.9%",
+          "value": -166.94
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2104": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -15.6%",
+          "value": -15.6
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2466": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -27.2%",
+          "value": -27.21
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6442": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        },
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -16.2%",
+          "value": -16.21
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "1437": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -16.1%",
+          "value": -16.14
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6658": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -20.6%",
+          "value": -20.64
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3049": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -72.1%",
+          "value": -72.14
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3257": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -51.7%",
+          "value": -51.74
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1471": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -52.4%",
+          "value": -52.38
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "5546": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -57.9%",
+          "value": -57.85
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "8422": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -11.5%",
+          "value": -11.49
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2472": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "6550": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -57.1%",
+          "value": -57.12
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1473": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -13.6%",
+          "value": -13.6
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3593": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -51.1%",
+          "value": -51.1
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2390": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -10.8%",
+          "value": -10.78
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6591": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -52.8%",
+          "value": -52.82
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "5533": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -27.6%",
+          "value": -27.59
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2377": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -22.3%",
+          "value": -22.26
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2491": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "4977": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -43.2%",
+          "value": -43.18
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1436": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -25.4%",
+          "value": -25.39
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2008": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -21.9%",
+          "value": -21.9
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1110": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -10.2%",
+          "value": -10.21
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3015": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -12.7%",
+          "value": -12.74
         }
       ],
       "l3_score": -0.3
@@ -2410,61 +2188,22 @@
       ],
       "l3_score": -0.3
     },
-    "6928": {
+    "4938": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -20.4%",
-          "value": -20.37
+          "label": "營收 YoY -15.2%",
+          "value": -15.24
         }
       ],
       "l3_score": -0.3
     },
-    "2614": {
+    "1337": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -13.0%",
-          "value": -12.99
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "5531": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -21.4%",
-          "value": -21.35
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "6715": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -11.6%",
-          "value": -11.58
-        }
-      ],
-      "l3_score": -0.3
-    },
-    "8454": {
-      "flags": [
-        {
-          "type": "disposition",
-          "label": "處置股"
-        }
-      ],
-      "l3_score": -0.6
-    },
-    "3437": {
-      "flags": [
-        {
-          "type": "revenue_yoy",
-          "label": "營收 YoY -22.2%",
-          "value": -22.17
+          "label": "營收 YoY -31.3%",
+          "value": -31.33
         }
       ],
       "l3_score": -0.3
@@ -2479,6 +2218,188 @@
       ],
       "l3_score": -0.3
     },
+    "1529": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -72.0%",
+          "value": -71.99
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6205": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -20.4%",
+          "value": -20.42
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2723": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -15.5%",
+          "value": -15.51
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "4557": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -29.1%",
+          "value": -29.11
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6887": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -13.1%",
+          "value": -13.11
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6239": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "2528": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -98.9%",
+          "value": -98.93
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6969": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -24.1%",
+          "value": -24.12
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "7799": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -100.0%",
+          "value": -100.0
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "2705": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -10.3%",
+          "value": -10.34
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1805": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -98.6%",
+          "value": -98.6
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6405": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        },
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -100.0%",
+          "value": -100.0
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "912000": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -13.8%",
+          "value": -13.79
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "4564": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -33.6%",
+          "value": -33.65
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "058498": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "6698": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -44.6%",
+          "value": -44.63
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1539": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -16.6%",
+          "value": -16.64
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3501": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -18.5%",
+          "value": -18.52
+        }
+      ],
+      "l3_score": -0.3
+    },
     "9912": {
       "flags": [
         {
@@ -2489,7 +2410,47 @@
       ],
       "l3_score": -0.3
     },
-    "7610": {
+    "1535": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -26.1%",
+          "value": -26.07
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1468": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -46.1%",
+          "value": -46.07
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1626": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -10.1%",
+          "value": -10.14
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "6552": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -33.8%",
+          "value": -33.81
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "3532": {
       "flags": [
         {
           "type": "disposition",
@@ -2498,12 +2459,51 @@
       ],
       "l3_score": -0.6
     },
-    "3257": {
+    "2504": {
       "flags": [
         {
           "type": "revenue_yoy",
-          "label": "營收 YoY -51.7%",
-          "value": -51.74
+          "label": "營收 YoY -10.2%",
+          "value": -10.23
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "4958": {
+      "flags": [
+        {
+          "type": "disposition",
+          "label": "處置股"
+        }
+      ],
+      "l3_score": -0.6
+    },
+    "2007": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -21.7%",
+          "value": -21.69
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1108": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -21.4%",
+          "value": -21.38
+        }
+      ],
+      "l3_score": -0.3
+    },
+    "1465": {
+      "flags": [
+        {
+          "type": "revenue_yoy",
+          "label": "營收 YoY -12.1%",
+          "value": -12.07
         }
       ],
       "l3_score": -0.3
