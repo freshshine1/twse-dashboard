@@ -37,13 +37,18 @@ HEADERS = {
 }
 
 ENDPOINTS = {
+    # NOTE: openapi.twse.com.tw has NO /announcement/notice or /announcement/punish
+    # dataset (verified against the full v1 swagger). Those URLs 404 and only emit a
+    # misleading warning before the main-site rwd fallback succeeds — so the working
+    # rwd URL is listed FIRST. An empty notice list ({"stat":"OK","data":[]}) is a
+    # VALID result (0 注意股 that day), not a failure.
     "attention": [
-        "https://openapi.twse.com.tw/v1/announcement/notice",
         "https://www.twse.com.tw/rwd/zh/announcement/notice?response=json",
+        "https://openapi.twse.com.tw/v1/announcement/notice",
     ],
     "disposition": [
-        "https://openapi.twse.com.tw/v1/announcement/punish",
         "https://www.twse.com.tw/rwd/zh/announcement/punish?response=json",
+        "https://openapi.twse.com.tw/v1/announcement/punish",
     ],
     "revenue_twse": [
         "https://openapi.twse.com.tw/v1/opendata/t187ap05_L",
