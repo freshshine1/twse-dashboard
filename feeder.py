@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 feeder.py ÃÂ¢ÃÂÃÂ TWSE daily data feeder for twse-dashboard
-Runs via GitHub Actions at 16:30 TPE on weekdays.
+Runs via GitHub Actions at 19:00 TPE on weekdays (after T86 publishes ~18:00).
 Writes docs/data.json and docs/tickers.json.
 
 Fixes vs previous version (ea1b636 ÃÂ¢ÃÂÃÂ this):
