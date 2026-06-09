@@ -1242,6 +1242,8 @@ def main():
                 "foreign_streak": t86_entry.get("foreign_streak")  if t86_entry else None,
                 "trust_streak":   t86_entry.get("trust_streak")    if t86_entry else None,
                 "l1_score":       l1,
+                "concentration_score": conc_score,
+                "margin_score":   margin_score,
                 "l2_score":       l2,
                 "l3_score":       l3,
                 "l3_flags":       l3flags,
