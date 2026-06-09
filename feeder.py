@@ -475,18 +475,29 @@ def fetch_taiex():
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ BFI82U ÃÂ¢ÃÂÃÂ market-level institutional flow ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def _parse_bfi82u(rows):
     r = {"foreign": 0.0, "dealer": 0.0, "trust": 0.0}
+    dealer_sum = 0.0
+    dealer_seen = False
     for row in rows:
         if not row or len(row) < 4:
             continue
         name = str(row[0]).strip()
         net = safe_float(row[3], 0.0) / 1_000_000
-        # Match by Unicode codepoints (avoids mojibake literal mismatch with live API)
-        if "外資" in name and "陸資" in name and "合計" not in name:
+        # Match by Unicode codepoints (avoids mojibake literal mismatch with live API).
+        if "合計" in name:
+            continue
+        # Dealer: BFI82U's day report splits the dealer into 自營商(自行買賣) +
+        # 自營商(避險) — there is NO single combined 自營商 row, so SUM both. Guard
+        # with "外資 not in name": the 外資自營商 row also contains the substring
+        # 自營商 and would otherwise mis-bind dealer to a foreign line (= the +0M bug).
+        if "自營商" in name and "外資" not in name:
+            dealer_sum += net
+            dealer_seen = True
+        elif "外資" in name and "陸資" in name:
             r["foreign"] = round(net, 2)
-        elif "自營商" in name and "避險" not in name and "自行" not in name and "合計" not in name:
-            r["dealer"] = round(net, 2)
         elif "投信" in name:
             r["trust"] = round(net, 2)
+    if dealer_seen:
+        r["dealer"] = round(dealer_sum, 2)
     return r
 def fetch_institutional_today():
     url = "https://www.twse.com.tw/fund/BFI82U?response=json&dayDate=&type=day"
