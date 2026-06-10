@@ -1,4 +1,20 @@
-# Watchlist System — Implementation Instruction Set (Revised 2026-06-01)
+# Watchlist System — Implementation Instruction Set
+
+**Version:** v2 · **Created:** 2026-06-01 · **Last updated:** 2026-06-10
+
+> **Changelog (newest first).** The title no longer carries a single date — read this block, not the
+> header, to know what is fresh. Major version (v2) tracks *structural* revisions; append-only notes
+> and status flips are minor. Git holds the full per-line history.
+>
+> - **2026-06-10** — Added **Chapter 11** (deferred note: per-bucket disposition/處置股 scoring revision;
+>   parked until after the P0 radar L3 exclusion + L4 audit). Header reworked to version + dual-date +
+>   this changelog.
+> - **2026-06-09** — Synced L3/L4/L5 status across the guide: L3 built & running, L4 built-but-unaudited,
+>   L5 pipeline-built-but-not-scored; Chapter 7 18:30-run fix marked **DONE**.
+> - **2026-06-01** — **v2 structural revision.** Folded in the five 2026-05-31 review decisions
+>   (incremental migration over rewrite + keep HTML dashboard; new Radar discovery tab; Radar v1 on
+>   clean trend data; 方舟/ARK as Tier-3 manual cross-check; two data-validity fixes — L1-halved and
+>   16:30-pre-T86 timing — moved to top of worklist).
 
 ### Building the Watch + Radar tabs on top of the existing Inventory setup
 
