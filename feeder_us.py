@@ -35,12 +35,19 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 TPE  = timezone(timedelta(hours=8))
 YHOO = "https://query1.finance.yahoo.com/v8/finance/chart/{}?interval=1d&range=5d"
 
-# (symbol, weight, label_for_payload, invert_sign)
+# (symbol, weight, label_for_payload, invert_sign, contrib_cap)
+# contrib_cap = max absolute raw contribution this component may add to the tilt
+# (None = uncapped). VIX is capped because its daily % moves are 4-5x larger than
+# index % moves, so even at weight 0.3 it could otherwise dominate the tilt (on
+# 2026-06-08 a -12% VIX day contributed ~46% of the tilt — see Chapter 4 audit note).
+# The cap keeps VIX a mood *garnish* (max ~0.94 tilt pts) so SOX/TSM stay the drivers,
+# matching the intent that L4 tracks US-tech-overnight, not broad risk mood.
+# Future: revisit as Option C (normalise VIX to its own scale) per the guide note.
 COMPONENTS = [
-    ("^SOX",  2.0, "SOX",  False),
-    ("TSM",   2.0, "TSM",  False),
-    ("^GSPC", 1.0, "GSPC", False),
-    ("^VIX",  0.3, "VIX",  True),
+    ("^SOX",  2.0, "SOX",  False, None),
+    ("TSM",   2.0, "TSM",  False, None),
+    ("^GSPC", 1.0, "GSPC", False, None),
+    ("^VIX",  0.3, "VIX",  True,  2.5),
 ]
 
 
@@ -75,11 +82,12 @@ def fetch_quote(symbol, retries=3, backoff=4):
 
 
 def compute_tilt(comps):
-    """Weighted sum of pct moves (VIX inverted). Clipped to ±(sum_of_weights × 5),
+    """Weighted sum of pct moves (VIX inverted), with an optional per-component
+    contribution cap (Option B, 2026-06-10). Clipped to ±(sum_of_weights × 5),
     then scaled to ±10. Returns (tilt, n_contributors)."""
     raw = 0.0
     n = 0
-    for symbol, weight, label, invert in COMPONENTS:
+    for symbol, weight, label, invert, contrib_cap in COMPONENTS:
         c = comps.get(label)
         if c is None:
             log.warning("%s missing — skipping in tilt", label)
@@ -87,12 +95,16 @@ def compute_tilt(comps):
         contrib = c["chg_pct"] * weight
         if invert:
             contrib = -contrib
+        if contrib_cap is not None:
+            contrib = max(-contrib_cap, min(contrib_cap, contrib))
         raw += contrib
         n += 1
     # A "full" ±5% day on every component caps at ±(sum_of_weights × 5).
-    cap = sum(w for _, w, _, _ in COMPONENTS) * 5.0
+    # NB: cap is over ALL weights (the design max), not just fetched ones.
+    cap = sum(w for _, w, _, _, _ in COMPONENTS) * 5.0
     raw = max(-cap, min(cap, raw))
-    # Scale to ±10 (cap = 26.5 with current weights → tilt = raw * 10 / cap)
+    # Scale to ±10. cap = sum_of_weights × 5 (currently 26.5); kept as a formula
+    # so it stays correct if weights are ever retuned.
     tilt = raw * 10.0 / cap
     return round(tilt, 2), n
 
@@ -112,7 +124,7 @@ def main():
     us_session_date = (now_tpe - timedelta(days=1)).strftime("%Y-%m-%d")
 
     comps = {}
-    for symbol, _, label, _ in COMPONENTS:
+    for symbol, _, label, _, _ in COMPONENTS:
         log.info("Fetching %s …", symbol)
         q = fetch_quote(symbol)
         if q:
