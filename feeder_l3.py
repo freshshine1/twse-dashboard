@@ -178,9 +178,39 @@ def main():
 
     out_dir = Path("docs/raw")
     out_dir.mkdir(parents=True, exist_ok=True)
+    latest_path = out_dir / "l3_fundamentals_latest.json"
+
+    # --- Last-known-good guard -------------------------------------------------
+    # The fetch can return an empty result two ways: a genuine quiet day (rare —
+    # there are almost always SOME revenue-decline names) or, far more commonly, a
+    # total endpoint failure where every source returns HTML/empty and we'd write
+    # an all-zero {} (this is exactly what happened on 2026-06-10). Writing that
+    # empty payload over l3_fundamentals_latest.json poisons the fallback chain:
+    # the evening score run reads latest and folds empty L3 into data.json, and
+    # any naive "if blank tomorrow, use yesterday" would then propagate the empty
+    # file forward. So: NEVER overwrite latest with an empty result. Keep the last
+    # known-good latest in place and record why today was skipped. We still write
+    # a small dated stub (marked stale) so the skip is visible in the archive.
+    is_empty = len(by_ticker) == 0
+    if is_empty:
+        # Refuse to clobber latest. Note the reason on the dated stub.
+        payload["stale"] = True
+        payload["stale_reason"] = ("fetch returned 0 flagged tickers across all "
+                                   "sources (likely endpoint failure); kept previous "
+                                   "l3_fundamentals_latest.json")
+        kept = "(no prior latest existed)"
+        if latest_path.exists():
+            kept = "kept existing latest untouched"
+        stub = json.dumps(payload, ensure_ascii=False, indent=2)
+        (out_dir / f"l3_fundamentals_{now.strftime('%Y-%m-%d')}.json").write_text(stub)
+        log.error("L3 fetch EMPTY (attention=%d, disposition=%d, rev_decline=%d) -> "
+                  "NOT overwriting latest; %s. Wrote dated stale stub only.",
+                  len(att_codes), len(disp_codes), len(revenue_decline), kept)
+        return
+
     body = json.dumps(payload, ensure_ascii=False, indent=2)
     (out_dir / f"l3_fundamentals_{now.strftime('%Y-%m-%d')}.json").write_text(body)
-    (out_dir / "l3_fundamentals_latest.json").write_text(body)
+    latest_path.write_text(body)
     log.info("L3 wrote %d flagged tickers (attention=%d, disposition=%d, rev_decline=%d)",
              len(by_ticker), len(att_codes), len(disp_codes), len(revenue_decline))
 
