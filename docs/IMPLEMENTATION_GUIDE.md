@@ -8,7 +8,8 @@
 >
 > - **2026-06-10** — Added **Chapter 11** (deferred note: per-bucket disposition/處置股 scoring revision;
 >   parked until after the P0 radar L3 exclusion + L4 audit). Header reworked to version + dual-date +
->   this changelog.
+>   this changelog. **L4 audited** (§4.1): magnitude confirmed correct; VIX per-component cap added
+>   (Option B) to stop VIX dominating the tilt — *apply at the 2026-07-28 observe boundary, not mid-window*.
 > - **2026-06-09** — Synced L3/L4/L5 status across the guide: L3 built & running, L4 built-but-unaudited,
 >   L5 pipeline-built-but-not-scored; Chapter 7 18:30-run fix marked **DONE**.
 > - **2026-06-01** — **v2 structural revision.** Folded in the five 2026-05-31 review decisions
@@ -213,6 +214,33 @@ Monthly batch. **Not started.** Auto-EXCLUDE: 月營收年增率 < −10% for 2+
 ## Chapter 4 — US / Global Regime Layer (L4, weight 15%) — MARKET-WIDE TILT
 
 One regime number applied uniformly. **Not started — and it forces the architecture split (0.1b).** Sources: Yahoo TW `^SOX`, `TSM`; Anue; MacroMicro premium. Tilt table and regime veto (tilt ≤ −5 suspends new GO) unchanged. Run ~06:00 TPE after US close, writing a **committed** `/raw/us_overnight_*.json` the 18:30 run reads.
+
+### 4.1 L4 audit result (2026-06-10) — magnitude confirmed, VIX capped
+
+L4 was audited live against the 2026-06-09 run. The tilt math is **correct**: it reproduces to the
+byte (`feeder_us.py` `compute_tilt`), the producer/reader/veto/label bands all match this chapter,
+and the file is **fresh** (the 21:44 run consumed an L4 file built that morning from the prior US
+session). The handoff's "L4 un-audited" item is therefore **resolved**.
+
+**One design issue found and fixed (Option B — VIX per-component cap).** The components are
+`^SOX ×2.0`, `TSM ×2.0`, `^GSPC ×1.0`, `^VIX ×0.3 (inverted)`, summed as weighted % moves, scaled to
+±10. VIX has the smallest *weight* but VIX daily % moves are structurally 4–5× larger than index
+moves, so on 2026-06-08 (VIX −12%) it contributed **~46% of the tilt** — behaving like a co-driver,
+not the garnish the 0.3 weight implies. Intent for L4 is **"US-tech-overnight effect on TW"** (SOX/TSM
+dominant), so VIX is now capped at a max absolute raw contribution of **±2.5** (≈ ±0.94 tilt points).
+On normal days (≤ ±8% VIX) the cap doesn't bite; on spikes it prevents VIX from single-handedly moving
+the tilt or triggering a false veto. Effect on the 6/08 example: tilt 7.82 → 7.40 (still Strong
+Bullish, driven by SOX/TSM). The clip cap (`sum_of_weights × 5`) is unchanged, so the scale is stable.
+
+> **Timing discipline:** this changes the L4 magnitude on spike-VIX days, which feeds the composite.
+> Apply at the **next 60-day observe boundary (2026-07-28)**, not mid-window, so the baseline stays
+> comparable — same rule as the §1.7 L1 rescale. On normal days it's a no-op, so the cost of waiting
+> is near zero.
+
+> **Future — Option C (deferred):** the cap is a blunt fix. The statistically cleaner approach is to
+> *normalise VIX to its own scale* (e.g. VIX level vs its recent average, rescaled to index-move
+> units) rather than feeding raw % change. More correct, more to maintain — revisit only if VIX
+> behaviour proves important after the first hit-rate review. Until then, the ±2.5 cap stands.
 
 -----
 
