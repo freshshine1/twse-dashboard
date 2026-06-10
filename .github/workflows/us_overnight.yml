@@ -2,10 +2,15 @@ name: US Overnight L4
 
 on:
   schedule:
-    # 00:00 UTC = 08:00 TPE, Mon–Fri.
-    # US close: 16:00 ET = 04:00 TPE (DST) / 05:00 TPE (standard). Running 08:00
-    # gives Yahoo quotes 3–4 hours to settle and lands ~1 hour before TW open.
-    - cron: '0 0 * * 1-5'
+    # 22:00 UTC = 06:00 TPE NEXT day. The TPE day is one ahead of the UTC day, so
+    # to cover Mon–Fri TPE the UTC weekday field is Sun–Thu (0-4), NOT 1-5.
+    # US close: 16:00 ET = 04:00 TPE (DST) / 05:00 TPE (standard). 06:00 TPE still
+    # sits 1–2h after the US close (quotes settled) and lands ~3h before the 09:00
+    # TW open — a wider cushion than the old 08:00 so GitHub cron drift (jobs fire
+    # late under queue load; observed ~2.5h on 2026-06-10) is far less likely to
+    # push the run past the open. Drift is mitigated, not eliminated — only an
+    # external workflow_dispatch trigger could guarantee on-time firing.
+    - cron: '0 22 * * 0-4'
   workflow_dispatch:
 
 permissions:
