@@ -190,19 +190,19 @@ Confirmation layer. **Done** (KD, MACD, BB, golden cross, MA-stale detection all
 
 ## Chapter 3 — Fundamental Anchor (L3, weight 10%) — EXCLUSION FILTER ONLY
 
-Monthly batch. **Built & running** (`feeder_l3.py` + `l3_fundamentals.yml`, ~08:30 TPE). Live 2026-06-09: 214 revenue-decline + 43 disposition names feed composite. NOTE: an empty 注意股 list (`{stat:OK,data:[]}`) is a *valid* 0, not a failure; openapi.twse.com.tw has no notice/punish dataset, so the main-site rwd URL is primary. Auto-EXCLUDE: 月營收年增率 < −10% for 2+ months; EPS negative latest quarter; 負債比 > 70%; 設質比 > 30%; on 注意股/處置股 list. For inventory, L3 ≤ −0.6 alone is a valid SELL contributor. Sources: MOPS `t05st10_ifrs`, quarterly reports, `mopsfin.twse.com.tw`. Run after the 10th + on quarterly dates.
+Monthly batch. **Not started.** Auto-EXCLUDE: 月營收年增率 < −10% for 2+ months; EPS negative latest quarter; 負債比 > 70%; 設質比 > 30%; on 注意股/處置股 list. For inventory, L3 ≤ −0.6 alone is a valid SELL contributor. Sources: MOPS `t05st10_ifrs`, quarterly reports, `mopsfin.twse.com.tw`. Run after the 10th + on quarterly dates.
 
 -----
 
 ## Chapter 4 — US / Global Regime Layer (L4, weight 15%) — MARKET-WIDE TILT
 
-One regime number applied uniformly. **Built (`us_overnight.yml`, ~08:00 TPE) but UN-AUDITED** — confirm the regime file is fresh and the tilt actually reaches the composite (see backlog). Still forces the architecture split (0.1b). Sources: Yahoo TW `^SOX`, `TSM`; Anue; MacroMicro premium. Tilt table and regime veto (tilt ≤ −5 suspends new GO) unchanged. Run ~06:00 TPE after US close, writing a **committed** `/raw/us_overnight_*.json` the 18:30 run reads.
+One regime number applied uniformly. **Not started — and it forces the architecture split (0.1b).** Sources: Yahoo TW `^SOX`, `TSM`; Anue; MacroMicro premium. Tilt table and regime veto (tilt ≤ −5 suspends new GO) unchanged. Run ~06:00 TPE after US close, writing a **committed** `/raw/us_overnight_*.json` the 18:30 run reads.
 
 -----
 
 ## Chapter 5 — News / Event Layer (L5, weight 10%) — BIAS-AND-VETO OVERLAY
 
-Noisiest. **Pipeline built but NOT yet scored** — Gmail → Sheet B → feeder reads `NEWS_SHEET_ID`; `data.json["news"]` is populated, but L5 is not wired into the composite (weight effectively 0). Scheduled (calendar: 月營收, earnings, 除權息, 股東會, FOMC, CBC, MSCI review, TSMC 法說) → reduce size within 2 days. Unscheduled (重大訊息, geopolitics) → volatility veto, −10..−20 pts, bar entries 1–3 days. MVP = keyword sentinel on MOPS 重大訊息.
+Noisiest. **Not started.** Scheduled (calendar: 月營收, earnings, 除權息, 股東會, FOMC, CBC, MSCI review, TSMC 法說) → reduce size within 2 days. Unscheduled (重大訊息, geopolitics) → volatility veto, −10..−20 pts, bar entries 1–3 days. MVP = keyword sentinel on MOPS 重大訊息.
 
 -----
 
@@ -245,7 +245,7 @@ Read-only columns: `Ticker | Bucket | Composite | L1..L5 | Action | Confluence? 
 
 ## Chapter 7 — GitHub Actions schedule (`daily.yml`)
 
-⚠ **FIX (DONE — cron is now 19:00 TPE): the run must be ≥ 18:30 TPE.** T86 publishes ~18:00; a 16:30 run fetches *today's* T86 as empty, silently walks back, and labels **yesterday's** flows as "今" (today). Either move the run to ≥ 18:30 or relabel the columns. Confirm in the Actions log whether `today_str` returns rows.
+⚠ **FIX: the run must be ≥ 18:30 TPE.** T86 publishes ~18:00; a 16:30 run fetches *today's* T86 as empty, silently walks back, and labels **yesterday's** flows as "今" (today). Either move the run to ≥ 18:30 or relabel the columns. Confirm in the Actions log whether `today_str` returns rows.
 
 |Step|When (TPE, UTC+8)|Script|
 |---|---|---|
@@ -386,12 +386,55 @@ Composite weights, confluence gate, L1–L5 scoring, the Radar fresh-streak gate
 1. **Chapter 1.7 + Chapter 7 fixes FIRST** — rescale L1 (or restart the clock) and move the run to ≥ 18:30. These correct data being collected *now*.
 2. **Chapter 8 — Radar v1** — persist whole-market T86, exclude T1/T2, trend-based coverage filter, new Radar tab.
 3. **Chapter 9 — ARK file** — create `config/ark_crosscheck.md`, reference from tab (manual screenshots).
-4. **Chapter 1 stubs** — concentration_score (BSR), broker_score (隔日沖), margin_score. ◑ margin_score done & surfaced; concentration_score/broker_score still CAPTCHA-blocked stubs.
-5. **Chapter 3 — L3** monthly filter. ✓ built & running (08:30 cron).
-6. **Chapter 4 — L4** regime tilt (forces the `/raw` committed-file split). ◑ built (`us_overnight.yml`), un-audited.
-7. **Chapter 5 — L5** news sentinel. ◑ pipeline built; not yet wired into composite.
-8. **Chapter 7** — full multi-time schedule. ◑ partial: daily.yml 19:00, us_overnight.yml ~08:00, l3_fundamentals.yml 08:30 already split.
+4. **Chapter 1 stubs** — concentration_score (BSR), broker_score (隔日沖), margin_score.
+5. **Chapter 3 — L3** monthly filter.
+6. **Chapter 4 — L4** regime tilt (forces the `/raw` committed-file split).
+7. **Chapter 5 — L5** news sentinel.
+8. **Chapter 7** — full multi-time schedule.
 9. **Observe-only for 60 days**, log every would-be action, compute real hit-rate by bucket *before* trusting it with size.
 10. **Chapter 10 — Summary tab (今日)** — default landing surface: Market Pulse + Verdict + Portfolio Watch + Radar Spotlight. Display-only; no new scores. (Shipped 2026-06-08.)
 
 **Source-tier reminder:** Tier 1 decides; Tier 2 interprets; Tier 3 (incl. 方舟) displays/cross-checks; community = sentiment only. No threshold ever originates below Tier 1.
+
+-----
+
+## Chapter 11 — Disposition (處置股) scoring revision — DEFERRED NOTE (added 2026-06-10)
+
+> **Status: parked. Do not implement yet — pick up after the P0 radar L3 exclusion + L4 audit.**
+> This note records a decision still owed; the current code's uniform `處置股 = −0.6` hard-exclude
+> stays in force until this is implemented.
+
+### The problem with the current treatment
+`feeder_l3.py` assigns `l3_score = −0.6` to **all** 處置股 uniformly, and the radar L3 filter
+hard-drops everything `≤ −0.6`. This conflates two genuinely different populations:
+
+- **"Bad" 處置股** — thin-float / rumour-driven / 隔日沖-dominated, flagged as a consequence of
+  manipulation. Dangerous; the restriction itself dries up liquidity. Correctly excluded.
+- **"Good" 處置股** — a fundamentally sound name flagged because price/volume deviated fast off a
+  *legitimate* catalyst (earnings gap, M&A disclosure, sector rotation). The exchange mechanism is
+  blunt and fires on deviation regardless of cause; the flag expires quickly.
+
+The blunt rule over-excludes the second population.
+
+### Intended per-bucket logic (to implement later)
+- **Watchlist (new entry):** keep the hard exclude either way. The 20-minute call auction makes a
+  swing entry unworkable while the flag is active, good or bad. No new entries during restriction.
+- **Inventory (already holding):** the flag alone is **not** a SELL trigger. L3 = −0.3 (soft warning),
+  hold unless L1/L2 also confirm distribution (the existing confluence gate already enforces this —
+  inventory SELL needs ≥2 of {L1,L2,L3} ≤ −0.4, so an administrative flag alone can't force it).
+- **Radar (discovery):** differentiate. Hard-exclude if the disposition flag co-occurs with a
+  revenue-decline flag; otherwise soften to −0.3, keep in radar with a ⚠️ badge, and block the GO
+  action but don't hide the name (worth watching for after the flag expires).
+
+### ⚠ Honest caveat on the proposed differentiator
+A draft of the radar rule keyed "good vs bad" partly on `trust_net > 0`. **This does no work for
+radar:** every radar candidate has already passed the §8.3 fresh-streak gate, so they are *all*
+trust-positive by construction. For radar names the differentiator therefore collapses to the
+**revenue-decline co-flag** alone. The trust-sign test is only meaningful in buckets that don't
+pre-filter on it (i.e. inventory). State this explicitly when implementing so the rule isn't built on
+a condition that's always true.
+
+### Why deferred
+This is a scoring-metric revision, not a data-validity fix, so it does not affect the observe-only
+clock. Implement after P0 (radar L3 exclusion) and the L4 audit. Requires no new data source — it
+reorganises existing L3 flags + the radar filter only.
