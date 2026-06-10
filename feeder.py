@@ -1171,6 +1171,25 @@ def main():
     l4_regime = load_l4_regime()               # market-wide L4 + veto flag
     l3_by_ticker, l3_available = load_l3_fundamentals()
 
+    # P0 FIX (2026-06-10): apply the L3 EXCLUSION filter to radar discovery candidates.
+    # Radar is assembled before L3 loads and never enters the main scoring loop, so
+    # disposition / severe-decline names would otherwise leak into the discovery list.
+    if l3_available:
+        _before = len(radar)
+        _kept = []
+        for rc in radar:
+            _l3row = l3_by_ticker.get(rc["ticker"], {})
+            rc["l3_score"] = _l3row.get("l3_score", 0.0)   # annotate so the tab can show it
+            rc["l3_flags"] = _l3row.get("flags", [])
+            _is_disposition = any(f.get("type") == "disposition" for f in rc["l3_flags"])
+            # Hard-exclude disposition / severe (<= -0.6). Keep soft -0.3 (revenue decline)
+            # but it now carries l3_flags so the Radar tab can badge it as a warning.
+            if _is_disposition or rc["l3_score"] <= -0.6:
+                continue
+            _kept.append(rc)
+        radar = _kept
+        log.info("Radar L3 exclusion: %d -> %d (dropped disposition/severe)", _before, len(radar))
+
     for ticker_entry in tickers:
         code     = ticker_entry[0]
         name_en  = ticker_entry[1]
