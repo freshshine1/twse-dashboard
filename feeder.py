@@ -784,8 +784,65 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
     log.info("T86 combined: %d tickers with data (market_today=%d)", len(result), len(market_t86_today))
     return result, market_t86_today  # P2: return full market snapshot for Radar
 
+# ── Industry map (上市 TWSE numeric codes + 上櫃 TPEx names) ──────────────────────────
+TWSE_INDUSTRY = {
+    "01": "水泥", "02": "食品", "03": "塑膠", "04": "紡織纖維",
+    "05": "電機機械", "06": "電器電纜", "08": "玻璃陶瓷", "09": "造紙",
+    "10": "鋼鐵", "11": "橡膠", "12": "汽車", "14": "建材營造",
+    "15": "航運", "16": "觀光餐旅", "17": "金融保險", "18": "貿易百貨",
+    "19": "綜合", "20": "其他", "21": "化學", "22": "生技醫療",
+    "23": "油電燃氣", "24": "半導體", "25": "電腦及週邊", "26": "光電",
+    "27": "通信網路", "28": "電子零組件", "29": "電子通路", "30": "資訊服務",
+    "31": "其他電子", "32": "文化創意", "33": "農業科技", "34": "電子商務",
+    "35": "綠能環保", "36": "數位雲端", "37": "運動休閒", "38": "居家生活",
+    "80": "管理股票",
+}
+
+def _norm_industry(raw):
+    """TWSE gives a numeric 產業別 code; TPEx usually gives a name. Normalise to a name."""
+    if raw is None:
+        return ""
+    s = str(raw).strip()
+    if not s:
+        return ""
+    code = s.zfill(2) if s.isdigit() else s
+    return TWSE_INDUSTRY.get(code, s)   # numeric -> name; already-a-name passes through
+
+def fetch_industry_map():
+    """
+    {ticker_code: industry_name} from TWSE 上市 + TPEx 上櫃 basic-info OpenAPI.
+    Industry is static-ish; one cheap call each per run. Returns {} on total failure
+    so the caller can apply a last-known-good guard (same pattern as L3).
+    """
+    out = {}
+    try:                                  # TWSE 上市公司基本資料 (產業別 = numeric code)
+        time.sleep(REQUEST_DELAY)
+        r = SESSION.get("https://openapi.twse.com.tw/v1/opendata/t187ap03_L", timeout=30)
+        r.raise_for_status()
+        for row in r.json():
+            code = (row.get("公司代號") or "").strip()
+            if code:
+                out[code] = _norm_industry(row.get("產業別"))
+        log.info("Industry map TWSE: %d codes", len(out))
+    except Exception as exc:
+        log.error("Industry map TWSE failed: %s", exc)
+    _tpex_n = 0
+    try:                                  # TPEx 上櫃股票基本資料 (產業別 usually a name)
+        time.sleep(REQUEST_DELAY)
+        r = SESSION.get("https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O", timeout=30)
+        r.raise_for_status()
+        for row in r.json():
+            code = (row.get("公司代號") or row.get("SecuritiesCompanyCode") or "").strip()
+            if code and code not in out:
+                out[code] = _norm_industry(row.get("產業別"))
+                _tpex_n += 1
+        log.info("Industry map TPEx: +%d codes", _tpex_n)
+    except Exception as exc:
+        log.warning("Industry map TPEx failed: %s", exc)
+    return out
+
 # ── Radar / discovery screen (P2) ──────────────────────────────────────────────────
-def screen_radar_candidates(market_t86_today, universe_codes, snapshot, float_m_map, prev_trust_map=None, top_n=40):
+def screen_radar_candidates(market_t86_today, universe_codes, snapshot, float_m_map, prev_trust_map=None, industry_map=None, top_n=40):
     """
     P2 Radar v1: surface under-radar mid-caps with newly-started trust accumulation.
     Coverage filter (all Tier-1 clean sources):
@@ -858,8 +915,9 @@ def screen_radar_candidates(market_t86_today, universe_codes, snapshot, float_m_
             "foreign_net": row.get("foreign_net", 0),
             "dealer_net":  row.get("dealer_net", 0),
             "inst_net":    row.get("inst_net", 0),
+            "industry":    (industry_map or {}).get(code, ""),
             "l1_score":    round(trust_norm * 0.5, 3),  # trust-only, weight 0.5 of T86
-            "radar_note":  "投信 fresh (day 1) + vol 1k-10k Zhang",
+            "radar_note":  f"投信首日淨買 {round(trust_net/1000):,} 張",
         })
 
     # Rank by trust_net descending
@@ -1150,13 +1208,33 @@ def main():
         except Exception as _pte:
             log.warning("P0: failed to load t86_market_prev.json: %s", _pte)
 
+    # P2: industry map for the Radar 產業 column (TWSE codes + TPEx names).
+    # Last-known-good guard: an empty fetch keeps the prior docs/industry.json (same
+    # discipline as the L3 latest-file guard) so a bad endpoint day can't blank the column.
+    industry_map = fetch_industry_map()
+    _ind_path = Path("docs/industry.json")
+    if industry_map:
+        try:
+            _ind_path.parent.mkdir(parents=True, exist_ok=True)
+            _ind_path.write_text(json.dumps(industry_map, ensure_ascii=False), encoding="utf-8")
+            log.info("Wrote docs/industry.json: %d codes", len(industry_map))
+        except Exception as _iwe:
+            log.warning("industry.json write failed: %s", _iwe)
+    else:
+        log.warning("Industry map empty — keeping prior docs/industry.json (last-known-good)")
+        if _ind_path.exists():
+            try:
+                industry_map = json.loads(_ind_path.read_text(encoding="utf-8"))
+            except Exception:
+                industry_map = {}
+
     # P0/P2: Radar screen — discover under-radar mid-caps with FRESH trust accumulation
     # Fresh = trust_net > 0 today AND trust_net_prev <= 0 (day 1 of new streak, §8.3).
     # Falls back to trust_net > 0 on first run (no prev file yet).
     universe_codes = {t[0] for t in tickers}
     radar = screen_radar_candidates(
         market_t86_today, universe_codes, snapshot, FLOAT_M,
-        prev_trust_map=prev_trust_map,
+        prev_trust_map=prev_trust_map, industry_map=industry_map,
     )
 
     # 6. Per-ticker loop
@@ -1175,20 +1253,21 @@ def main():
     # Radar is assembled before L3 loads and never enters the main scoring loop, so
     # disposition / severe-decline names would otherwise leak into the discovery list.
     if l3_available:
-        _before = len(radar)
-        _kept = []
+        # Display change (2026-06-11, per Fisher): DO NOT drop disposition / severe names
+        # from radar. Keep them in the top list so 處置股 stay visible with a red 處置 badge
+        # (read-with-caution) instead of silently vanishing. Annotate l3_score + l3_flags so
+        # the Radar tab can render the badge. This REVERSES the 2026-06-10 P0 hard-exclude,
+        # by request. Display-only: scoring / action / confluence logic is untouched (the
+        # deferred Ch.11 per-bucket disposition revision is still owed and not done here).
+        _disp = 0
         for rc in radar:
             _l3row = l3_by_ticker.get(rc["ticker"], {})
-            rc["l3_score"] = _l3row.get("l3_score", 0.0)   # annotate so the tab can show it
+            rc["l3_score"] = _l3row.get("l3_score", 0.0)
             rc["l3_flags"] = _l3row.get("flags", [])
-            _is_disposition = any(f.get("type") == "disposition" for f in rc["l3_flags"])
-            # Hard-exclude disposition / severe (<= -0.6). Keep soft -0.3 (revenue decline)
-            # but it now carries l3_flags so the Radar tab can badge it as a warning.
-            if _is_disposition or rc["l3_score"] <= -0.6:
-                continue
-            _kept.append(rc)
-        radar = _kept
-        log.info("Radar L3 exclusion: %d -> %d (dropped disposition/severe)", _before, len(radar))
+            if any(f.get("type") == "disposition" for f in rc["l3_flags"]):
+                _disp += 1
+        log.info("Radar L3 annotate: %d candidates kept (%d flagged 處置, badged not dropped)",
+                 len(radar), _disp)
 
     for ticker_entry in tickers:
         code     = ticker_entry[0]
