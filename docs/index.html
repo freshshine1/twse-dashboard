@@ -330,6 +330,9 @@ a { color: inherit; text-decoration: none; }
     .radar-table tr:hover td { background: var(--surface); }
     .radar-trust-bar { display: inline-block; height: 8px; background: var(--bull); border-radius: 3px; min-width: 2px; }
     .radar-empty { color: var(--muted); text-align: center; padding: 2rem; font-size: 0.85rem; }
+    .radar-table tr.disp-row td:first-child { border-left: 3px solid var(--bear, #c0392b); }
+    .sum-datestrip { font-family: var(--font); font-size: 11px; color: var(--muted); margin: 2px 0 12px; letter-spacing: .02em; }
+    .sum-datestrip strong { color: var(--text); font-weight: 600; }
 /* ── Tooltip system ── */
 .tw { position: relative; display: inline; cursor: help;
   border-bottom: 1.5px dashed currentColor; opacity: 0.9; }
@@ -491,6 +494,7 @@ a { color: inherit; text-decoration: none; }
 <!-- ══ SUMMARY TAB ══ -->
 <div class="panel active" id="panel-summary">
   <div id="summary-veto-banner"></div>
+  <div class="sum-datestrip" id="sum-datestrip"></div>
 
   <div class="summary-section">
     <div class="summary-section-label">MARKET PULSE</div>
@@ -573,7 +577,7 @@ a { color: inherit; text-decoration: none; }
     </div>
   </div>
   <div class="pulse-section">
-    <div class="pulse-label">L4 · 美股海外 Regime（每日 08:00 TPE 更新）</div>
+    <div class="pulse-label">L4 · 美股海外 Regime（前一交易日收盤 · 每日 06:00 TPE 更新）</div>
     <div class="regime-card" id="regime-card" data-dir="flat">
       <div class="regime-head">
         <div class="regime-tilt" id="regime-tilt">—</div>
@@ -1086,7 +1090,7 @@ function renderRegime() {
   const asof = new Date(d.asof);
   const asofStr = isNaN(asof) ? d.asof :
     asof.toLocaleString('zh-TW', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false });
-  asEl.textContent = `更新於 ${asofStr} · US session ${d.us_session_date} · L4 = ${d.L4 >= 0 ? '+' : ''}${d.L4}`;
+  asEl.textContent = `美股 ${d.us_session_date} 收盤 · 更新於 ${asofStr} · L4 = ${d.L4 >= 0 ? '+' : ''}${d.L4}`;
 
   // Actionable guidance below the label
   const actionEl = document.getElementById('regime-action');
@@ -1303,9 +1307,12 @@ function renderRadar() {
     const chgColor = x.chg_pct > 0 ? 'color:var(--bull)' : x.chg_pct < 0 ? 'color:var(--bear,#c0392b)' : '';
     const trustK = x.trust_net != null ? (x.trust_net/1000).toFixed(1) + 'K' : '—';
     const volZhang = x.volume_k != null ? Math.round(x.volume_k).toLocaleString() : '—';
-    return `<tr>
+    const isDisp = (x.l3_flags || []).some(f => f.type === 'disposition');
+    const dispBadge = isDisp ? ' <span class="l3-flag hard" title="處置股">處置</span>' : '';
+    return `<tr${isDisp ? ' class="disp-row"' : ''}>
       <td><strong>${x.ticker}</strong></td>
-      <td>${x.name_zh || '—'}</td>
+      <td>${x.name_zh || '—'}${dispBadge}</td>
+      <td style="color:var(--muted);font-size:0.78rem">${x.industry || '—'}</td>
       <td style="${chgColor}">${chgPct}</td>
       <td>${volZhang} 張</td>
       <td>
@@ -1317,7 +1324,7 @@ function renderRadar() {
   }).join('');
   list.innerHTML = `<table class="radar-table">
     <thead><tr>
-      <th>代號</th><th>名稱</th><th>漲跌</th><th>成交量</th><th>投信淨買</th><th>備注</th>
+      <th>代號</th><th>名稱</th><th>產業</th><th>漲跌</th><th>成交量</th><th>投信淨買</th><th>備注</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
@@ -1432,6 +1439,16 @@ function renderNews() {
 function renderSummary() {
   // ── Market Pulse ──
   const m = DATA ? (DATA.market || {}) : {};
+
+  // Closing-data date strip — we run on a 1-day delay (TWSE morning read = last close,
+  // US = its last close). Make the data date explicit so nothing looks "live".
+  const dsEl = document.getElementById('sum-datestrip');
+  if (dsEl) {
+    const md = s => s ? `${parseInt(s.slice(5,7))}/${parseInt(s.slice(8,10))}` : '—';
+    const twseD = (DATA && DATA.updated) ? md(DATA.updated.slice(0,10)) : '—';
+    const usD = (L4_DATA && L4_DATA.us_session_date) ? md(L4_DATA.us_session_date) : '—';
+    dsEl.innerHTML = `📅 資料日期 · TWSE <strong>${twseD}</strong> 收盤 · 美股 <strong>${usD}</strong> 收盤`;
+  }
 
   // Helper: % change vs prev (handles direction flips + noise filter <5%)
   function instPct(today, prev) {
