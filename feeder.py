@@ -58,8 +58,6 @@ import requests
 # Scoring layer (carved out 2026-06-09; see score.py). Leaf import, no cycle.
 from score import (
     compute_margin_score,
-    compute_concentration,
-    compute_concentration_score,
     compute_l1_score,
     compute_signal_score,
     signal_label,
@@ -68,6 +66,9 @@ from score import (
     compute_composite,
     compute_action,
 )
+
+# L1 concentration sub-score (BSR), carved into its own module; reads docs/bsr/*.csv.
+from feeder_concentration import compute_all as compute_concentration_all
 
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Config ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 TZ = ZoneInfo("Asia/Taipei")
@@ -110,8 +111,11 @@ SESSION.headers.update({
 })
 REQUEST_DELAY = 1.0
 
-# 4a: concentration is wired but OFF by default until the BSR fetch is verified in CI.
-# Flip to "1" in the workflow env only after fetch_concentration() is implemented/tested.
+# 4a: concentration sub-score (BSR via feeder_concentration). Fail-safe by design --
+# compute_concentration_all() over an empty/missing docs/bsr returns {}, so every ticker
+# scores None and L1 == T86-only (compute_l1_score rescales by filled sub-weight). OFF by
+# default: flipping ENABLE_CONCENTRATION=1 folds concentration into L1 for any ticker with
+# a BSR file -- a baseline-shifting change, so enable at an observe boundary, not mid-window.
 ENABLE_CONCENTRATION = os.getenv("ENABLE_CONCENTRATION") == "1"
 
 # 4c: margin (MI_MARGN, whole-market one call/day, Tier-1, no captcha). Wired but OFF
@@ -973,33 +977,6 @@ def fetch_margin_all():
     return out
 
 
-def fetch_concentration(code, exchange):
-    """4a: fetch broker-branch detail from TWSE BSR and return (c5, c60) concentration %.
-
-    *** NEEDS CI VERIFICATION ***  bsr.twse.com.tw is a stateful two-step ASP.NET flow
-    (GET bsMenu.aspx for the form/token -> POST stockNo -> GET the generated CSV at a
-    tokenized URL). It cannot be exercised from the build sandbox. This is a fail-safe
-    scaffold: ANY error returns (None, None), so concentration stays unfilled and L1 is
-    unchanged. Implement/verify the scrape against the live endpoint and the Actions log,
-    then flip ENABLE_CONCENTRATION. Spend this slow per-stock scrape ONLY on the curated
-    universe + radar survivors (per agent_ops) -- never the whole market.
-    """
-    try:
-        # TODO(4a): implement the two-step BSR scrape + per-branch buy/sell aggregation,
-        # then call compute_concentration(...) per window. Until then, no-op.
-        #   menu = SESSION.get("https://bsr.twse.com.tw/bshtm/bsMenu.aspx", ...)
-        #   token = parse(menu)
-        #   csv  = SESSION.post(".../bsMenu.aspx", data={... 'stockNo': code, token ...})
-        #   buyers, sellers, vol_5d, vol_60d = aggregate(csv)
-        #   c5  = compute_concentration(buyers_5d, sellers_5d, vol_5d)
-        #   c60 = compute_concentration(buyers_60d, sellers_60d, vol_60d)
-        #   return c5, c60
-        return None, None
-    except Exception as exc:
-        log.debug("%s concentration fetch failed: %s", code, exc)
-        return None, None
-
-
 def load_l4_regime():
     """Read the L4 file written by feeder_us.py (08:00 TPE). Market-wide, applied
     uniformly to every ticker. Fail-safe: returns all-None when the file is absent."""
@@ -1237,6 +1214,14 @@ def main():
         prev_trust_map=prev_trust_map, industry_map=industry_map,
     )
 
+    # 4a: pre-compute concentration once over the curated universe (one parse pass of
+    # docs/bsr/*.csv, per agent_ops batch rule). Fail-safe: empty/missing dir -> {}.
+    conc_all = {}
+    if ENABLE_CONCENTRATION:
+        conc_all = compute_concentration_all("docs/bsr", tickers=all_unique_codes)
+        log.info("Concentration: scored %d/%d curated tickers from docs/bsr",
+                 len(conc_all), len(all_unique_codes))
+
     # 6. Per-ticker loop
     # history_cache avoids re-fetching OHLCV for tickers that appear in both T1 and T2
     watchlist  = []
@@ -1298,11 +1283,10 @@ def main():
             # BUG3 FIX: renamed to t86_entry (no longer shadows inst_market)
             t86_entry = t86.get(code)
             float_m   = FLOAT_M.get(code)
-            # 4a: concentration sub-score (gated; no-op + fail-safe until BSR verified).
-            conc_score = None
-            if ENABLE_CONCENTRATION:
-                c5, c60 = fetch_concentration(code, exchange)
-                conc_score = compute_concentration_score(c5, c60)
+            # 4a: concentration sub-score from the pre-computed BSR map (conc_all).
+            # Absent file -> no entry -> score None -> compute_l1_score rescales L1.
+            conc_entry = conc_all.get(code)
+            conc_score = conc_entry.get("score") if conc_entry else None
             # 4c: margin sub-score (gated; no-op + fail-safe until MI_MARGN fields verified).
             margin_score = None
             if ENABLE_MARGIN:
@@ -1351,7 +1335,11 @@ def main():
                 "foreign_streak": t86_entry.get("foreign_streak")  if t86_entry else None,
                 "trust_streak":   t86_entry.get("trust_streak")    if t86_entry else None,
                 "l1_score":       l1,
-                "concentration_score": conc_score,
+                "concentration_score":  conc_score,
+                "conc_window":    (conc_entry or {}).get("score_window"),
+                "conc_present":   (conc_entry or {}).get("present", False),
+                "conc_direction": (conc_entry or {}).get("direction", 0),
+                "conc_asof":      (conc_entry or {}).get("asof"),
                 "margin_score":   margin_score,
                 "l2_score":       l2,
                 "l3_score":       l3,
