@@ -1,0 +1,1 @@
+docs/bsr/ — single purpose, clearly named, keeps the per-stock-per-day dumps out of raw/. Inside it, your bsr_<code>_<YYYYMMDD>.csv convention sorts cleanly by ticker and date.
