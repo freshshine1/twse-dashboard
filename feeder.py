@@ -176,46 +176,87 @@ def twse_get(url, label="", retries=3, backoff=5):
     return None
 
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Snapshot ÃÂ¢ÃÂÃÂ TWSE + TPEx ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
+class SnapshotFetchError(RuntimeError):
+    """Raised when the TWSE snapshot endpoint fails on a TRADING DAY (503 /
+    empty body / parse error) — as distinct from a genuine holiday. Lets
+    main() exit RED so the failure alerts, instead of the old silent green
+    sys.exit(0) that left a stale data.json looking fine."""
+
+
 def fetch_snapshot():
     snap = {}
     raw_rows = []
     twse_codes = set()
     tpex_codes = set()
 
-    # TWSE
+    # TWSE — retry the flaky OpenAPI snapshot, then SPLIT the outcome:
+    #   * stat == "No Data"  -> genuine holiday / off-hours -> exit GREEN (return None sentinel)
+    #   * 503 / empty body / parse error after retries on a trading day -> raise
+    #     SnapshotFetchError -> main() exits RED so the failure ALERTS, instead of
+    #     the old behaviour where any fetch error silently exited green and left
+    #     a stale data.json in place (root cause of the 2026-06-11 stale dashboard).
     twse_url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
-    try:
-        time.sleep(REQUEST_DELAY)
-        r = SESSION.get(twse_url, timeout=30)
-        r.raise_for_status()
-        rows = r.json()
-        if isinstance(rows, dict) and rows.get("stat") == "No Data":
-            log.info("TWSE Snapshot: No Data (holiday or off-hours)")
+    rows = None
+    last_exc = None
+    for attempt in range(1, 4):
+        try:
+            time.sleep(REQUEST_DELAY)
+            r = SESSION.get(twse_url, timeout=30)
+            r.raise_for_status()
+            parsed = r.json()
+        except Exception as exc:
+            last_exc = exc
+            log.warning("TWSE snapshot attempt %d/3 failed: %s", attempt, exc)
+            if attempt < 3:
+                time.sleep(5 * attempt)
+            continue
+        # Genuine holiday answer — do NOT retry, do NOT fail red.
+        if isinstance(parsed, dict) and parsed.get("stat") == "No Data":
+            log.info("TWSE Snapshot: No Data (genuine holiday / off-hours) — exiting green.")
             return None, [], set(), set()
-        for row in rows:
-            code = row.get("Code", "").strip()
-            if not code:
-                continue
-            close = safe_float(row.get("ClosingPrice"))
-            change = safe_float(row.get("Change"))
-            chg_pct = None
-            if close is not None and change is not None:
-                base = close - change
-                chg_pct = round(change / base * 100, 2) if base else None
-            snap[code] = {
-                "close": close,
-                "chg": change,
-                "chg_pct": chg_pct,
-                "volume": safe_float(row.get("TradeVolume")),
-                "name_zh": row.get("Name", "").strip(),
-                "exchange": "TWSE",
-            }
-            twse_codes.add(code)
-            raw_rows.append(row)
-        log.info("TWSE snapshot: %d tickers", len(twse_codes))
-    except Exception as exc:
-        log.error("TWSE snapshot failed: %s", exc)
-        return None, [], set(), set()
+        # Good payload.
+        if isinstance(parsed, list) and parsed:
+            rows = parsed
+            break
+        # 200 but empty list / unexpected shape -> endpoint not ready, retry.
+        last_exc = ValueError("empty or unexpected payload (%s)" % type(parsed).__name__)
+        log.warning("TWSE snapshot attempt %d/3: empty/unexpected payload, retrying", attempt)
+        if attempt < 3:
+            time.sleep(5 * attempt)
+
+    if rows is None:
+        # All attempts failed to yield usable data. UPSTREAM error, not a holiday.
+        # Weekday -> fail RED (alert); weekend (manual dispatch / cron misfire) ->
+        # treat as off-hours and exit green.
+        if datetime.now(TZ).weekday() >= 5:
+            log.warning("TWSE snapshot unavailable on a weekend — treating as off-hours (green).")
+            return None, [], set(), set()
+        raise SnapshotFetchError(
+            "TWSE STOCK_DAY_ALL unusable after 3 attempts on a trading day "
+            "(last error: %s)" % last_exc
+        )
+
+    for row in rows:
+        code = row.get("Code", "").strip()
+        if not code:
+            continue
+        close = safe_float(row.get("ClosingPrice"))
+        change = safe_float(row.get("Change"))
+        chg_pct = None
+        if close is not None and change is not None:
+            base = close - change
+            chg_pct = round(change / base * 100, 2) if base else None
+        snap[code] = {
+            "close": close,
+            "chg": change,
+            "chg_pct": chg_pct,
+            "volume": safe_float(row.get("TradeVolume")),
+            "name_zh": row.get("Name", "").strip(),
+            "exchange": "TWSE",
+        }
+        twse_codes.add(code)
+        raw_rows.append(row)
+    log.info("TWSE snapshot: %d tickers", len(twse_codes))
 
     # TPEx
     tpex_url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes"
@@ -1122,11 +1163,24 @@ def load_tickers_from_sheet(snapshot):
     return tickers if tickers else None
 
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Main ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
+def _fetch_snapshot_or_exit():
+    """Translate the holiday/fetch-error split into process exit codes:
+    a SnapshotFetchError (trading-day upstream failure) exits RED (1) so the
+    GitHub job fails and alerts; a holiday returns the None sentinel and main()
+    exits GREEN (0) without overwriting data.json."""
+    try:
+        return fetch_snapshot()
+    except SnapshotFetchError as exc:
+        log.error("ABORT (red exit 1): %s. data.json left untouched; failing the "
+                  "run so it alerts instead of going silently stale.", exc)
+        sys.exit(1)
+
+
 def main():
     log.info("=== feeder start %s ===", now_iso())
 
     # 1. Snapshots (TWSE + TPEx)
-    snapshot, raw_rows, twse_codes, tpex_codes = fetch_snapshot()
+    snapshot, raw_rows, twse_codes, tpex_codes = _fetch_snapshot_or_exit()
     if snapshot is None:
         log.info("No market data today ÃÂ¢ÃÂÃÂ exiting without overwriting data.json")
         sys.exit(0)
