@@ -266,6 +266,158 @@ def compute_action(composite, l1, l2, l3, bucket, veto=False):
     return ("NO-GO", conf)
 
 
+# --- Chapter 12.2: action why-line + distance-to-flip -----------------------
+# Compress the reasoning behind each on-screen action into a few scannable
+# strings so the human doesn't have to reverse-engineer five sub-scores:
+#   driver  -- the dominant L1 reason (largest-magnitude chip sub-signal)
+#   confirm -- the dominant L2 reason (trend structure + volume)
+#   risk    -- the highest-severity active flag, else "-"
+#   flip    -- for near-boundary non-actions, the binding gap to the next state
+# DISPLAY HEURISTIC ONLY: these live in score output + HTML, never in
+# thresholds.json, and never feed the composite or the confluence gate (same
+# wall as the Ch.10 verdict / Ch.9 ARK). See IMPLEMENTATION_GUIDE Chapter 12.2.
+#
+# Honesty notes (verified against the live feeder, 2026-06-13):
+#  * The scored `techs` dict carries only trend / rsi14 / vol_ratio / MAs --
+#    there is NO macd/kd/golden_cross field, so `confirm` is built from MA
+#    structure + volume and deliberately does NOT claim "MACD>0軸 / KD低檔轉折"
+#    (those would be fabricated). Add them here only once they're scored.
+#  * churn (隔日沖), 季底作帳, and scheduled-event countdown are not computed
+#    yet -> not surfaced in `risk`. Hooks are marked TODO below.
+
+_GO_COMPOSITE = 40.0   # display mirror of compute_action's GO threshold
+_GATE = 0.4            # display mirror of the confluence gate
+
+
+def _float_pct(net, float_m):
+    """Signed net shares as % of free float (float_m in MILLIONS of shares),
+    or None. Independent of L1's internal cap -- this is a plain display %."""
+    if net is None or not float_m or float_m <= 0:
+        return None
+    return net / (float_m * 1_000_000) * 100.0
+
+
+def _fmt_flow(net, float_m):
+    """'+1.40% float' when float is known, else '+3,000張' (lots = shares/1000)."""
+    pct = _float_pct(net, float_m)
+    if pct is not None:
+        return f"{pct:+.2f}% float"
+    lots = (net or 0) / 1000.0
+    return f"{lots:+,.0f}張"
+
+
+def _norm_mag(net, float_m, cap_pct):
+    """Magnitude in [0,1] mirroring compute_l1_score.norm, for ranking drivers."""
+    if net is None:
+        return 0.0
+    if float_m and float_m > 0:
+        cap = float_m * 1000 * cap_pct
+        return min(1.0, abs(net) / cap) if cap else 0.0
+    return min(1.0, abs(net) / 10000)
+
+
+def _driver_string(trust_5d, foreign_5d, float_m,
+                   concentration_score, margin_score):
+    """Pick the dominant L1 sub-signal and format it. Ranking mirrors the L1
+    sub-weighting (trust highest-signal, then foreign, then concentration,
+    then margin); ties break in that order. '' when nothing meaningful."""
+    cands = []  # (magnitude, priority, label)
+    if trust_5d:
+        cands.append((_norm_mag(trust_5d, float_m, 0.02), 4,
+                      f"投信5日 {_fmt_flow(trust_5d, float_m)}"))
+    if foreign_5d:
+        cands.append((_norm_mag(foreign_5d, float_m, 0.005), 3,
+                      f"外資5日 {_fmt_flow(foreign_5d, float_m)}"))
+    if concentration_score:
+        d = "升" if concentration_score > 0 else "降"
+        cands.append((abs(concentration_score), 2, f"集中度{d}"))
+    if margin_score is not None and margin_score:
+        if margin_score < 0:
+            cands.append((abs(margin_score), 1, "融資背離"))
+        elif margin_score >= 0.6:
+            cands.append((abs(margin_score), 1, "融資未追高"))
+    if not cands:
+        return ""
+    cands.sort(key=lambda c: (c[0], c[1]), reverse=True)
+    return cands[0][2]
+
+
+def _confirm_string(techs):
+    """Dominant L2 reason from MA structure + volume (no macd/kd available)."""
+    if not techs:
+        return ""
+    trend = techs.get("trend")
+    vr = techs.get("vol_ratio")
+    vol_tag = " +量" if (vr is not None and vr >= 1.5) else ""
+    if trend == "BULL":
+        return "均線多頭排列" + vol_tag
+    if trend == "MIXED+":
+        return "站上20MA" + vol_tag
+    if trend == "BEAR":
+        return "均線空頭排列"
+    if trend == "MIXED-":
+        return "20MA之下"
+    return ""  # None / STALE -> no claim
+
+
+def _risk_string(l3_flags, regime_veto):
+    """Highest-severity active flag, else '-'. Order: 處置股 > L4 veto > 營收旗標."""
+    flags = l3_flags or []
+    if any(f.get("type") == "disposition" for f in flags):
+        return "處置股"
+    # TODO(when scored): churn 疑似隔日沖 (broker_score), 季底作帳 (holding data),
+    #                    事件{n}日內 (L5 calendar) slot in above L4 veto.
+    if regime_veto:
+        return "L4 veto"
+    rev = [f for f in flags if f.get("type") == "revenue_yoy" and f.get("label")]
+    if rev:
+        worst = min(rev, key=lambda f: (f.get("value")
+                                        if f.get("value") is not None else 0))
+        return worst["label"]
+    return "—"
+
+
+def _flip_string(tier, action, composite, l1, l2, l3):
+    """Distance-to-flip for near-boundary NON-actions, else ''.
+    Watchlist NO-GO (composite>=30): the binding gate leg (worst of L1/L2) or
+    the composite gap. Inventory HOLD/TRIM: closest leg approaching a SELL leg."""
+    if tier == "T2" and action == "NO-GO" and composite is not None \
+            and composite >= 30:
+        legs = []
+        if l1 is None or l1 < _GATE:
+            legs.append(("L1", _GATE - (l1 or 0.0)))
+        if l2 is None or l2 < _GATE:
+            legs.append(("L2", _GATE - (l2 or 0.0)))
+        if legs:                                   # gate is binding (AND-gate)
+            name, gap = max(legs, key=lambda x: x[1])   # worst leg = true blocker
+            return f"差 {name} +{gap:.2f}"
+        if composite < _GO_COMPOSITE:
+            return f"差 綜合 +{_GO_COMPOSITE - composite:.0f}"
+        return ""
+    if tier == "T1" and action in ("HOLD", "TRIM"):
+        near = [(nm, val + _GATE) for nm, val in (("L1", l1), ("L2", l2), ("L3", l3))
+                if val is not None and -_GATE < val <= -0.25]
+        if near:
+            name, gap = min(near, key=lambda x: x[1])   # closest to a SELL leg
+            return f"SELL距 {name} −{gap:.2f}"
+    return ""
+
+
+def build_action_strings(*, tier, action, composite, l1, l2, l3,
+                         trust_5d, foreign_5d, float_m,
+                         concentration_score, margin_score,
+                         techs, l3_flags, regime_veto):
+    """Assemble the four 12.2 display strings for one ticker. Pure; safe to
+    feed straight into the entry dict / data.json."""
+    return {
+        "driver":  _driver_string(trust_5d, foreign_5d, float_m,
+                                  concentration_score, margin_score),
+        "confirm": _confirm_string(techs),
+        "risk":    _risk_string(l3_flags, regime_veto),
+        "flip":    _flip_string(tier, action, composite, l1, l2, l3),
+    }
+
+
 # --- Chapter 12.1: signal attribution log -----------------------------------
 # Append-only decision-quality log: one row per fired action and per near-miss,
 # carrying the full L1-L5 vector, confluence degree, and forward 5/10/20-day

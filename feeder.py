@@ -65,6 +65,7 @@ from score import (
     compute_l2_score,
     compute_composite,
     compute_action,
+    build_action_strings,
     update_signal_log,
 )
 
@@ -585,6 +586,7 @@ def fetch_institutional_today():
                     break
         prev -= timedelta(days=1)
 
+    r["data_date"] = today_str   # 12.3: real T86 session date (YYYYMMDD or "")
     return r
 
 def pressure_label(v):
@@ -1027,25 +1029,27 @@ def load_l4_regime():
             d = json.load(f)
         log.info("L4 loaded: tilt=%s veto=%s label=%s", d.get("tilt_raw"),
                  d.get("regime_veto"), d.get("label"))
-        return {"l4": d.get("L4"), "veto": bool(d.get("regime_veto"))}
+        return {"l4": d.get("L4"), "veto": bool(d.get("regime_veto")),
+                "asof": d.get("asof")}
     except Exception as exc:
         log.info("L4 file not available (%s) -> L4 unfilled", exc)
-        return {"l4": None, "veto": False}
+        return {"l4": None, "veto": False, "asof": None}
 
 
 def load_l3_fundamentals():
     """Read the L3 file written by feeder_l3.py (08:30 TPE). Returns
-    (by_ticker, available). When available, an unflagged ticker scores L3 = 0
-    (neutral, filled); when the file is absent L3 stays None (unfilled)."""
+    (by_ticker, available, asof). When available, an unflagged ticker scores
+    L3 = 0 (neutral, filled); when the file is absent L3 stays None (unfilled).
+    `asof` is the file's own timestamp (for the 12.3 data-health strip)."""
     try:
         with open("docs/raw/l3_fundamentals_latest.json", encoding="utf-8") as f:
             d = json.load(f)
         bt = d.get("by_ticker", {})
         log.info("L3 loaded: %d flagged tickers", len(bt))
-        return bt, True
+        return bt, True, d.get("asof")
     except Exception as exc:
         log.info("L3 file not available (%s) -> L3 unfilled", exc)
-        return {}, False
+        return {}, False, None
 
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Google Sheets reader ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 def get_gsheet_token():
@@ -1287,7 +1291,7 @@ def main():
     # Chapter 6 synthesis inputs — loaded once, applied per ticker below.
     load_weights_override()                    # may replace WEIGHTS in place
     l4_regime = load_l4_regime()               # market-wide L4 + veto flag
-    l3_by_ticker, l3_available = load_l3_fundamentals()
+    l3_by_ticker, l3_available, l3_asof = load_l3_fundamentals()
 
     # P0 FIX (2026-06-10): apply the L3 EXCLUSION filter to radar discovery candidates.
     # Radar is assembled before L3 loads and never enters the main scoring loop, so
@@ -1367,6 +1371,19 @@ def main():
             composite = compute_composite(l1, l2, l3, l4, None, tier)   # L5 not folded yet
             action, confluence = compute_action(composite, l1, l2, l3, tier, veto)
 
+            # Chapter 12.2: why-line + distance-to-flip (display only; never feeds
+            # the composite or the gate). Built from already-computed values.
+            act_strings = build_action_strings(
+                tier=tier, action=action, composite=composite,
+                l1=l1, l2=l2, l3=l3,
+                trust_5d=(t86_entry.get("trust_5d") if t86_entry else None),
+                foreign_5d=(t86_entry.get("foreign_5d") if t86_entry else None),
+                float_m=float_m,
+                concentration_score=conc_score, margin_score=margin_score,
+                techs=techs, l3_flags=(l3flags if l3_available else []),
+                regime_veto=veto,
+            )
+
             entry = {
                 "ticker":    code,
                 "name":      name_en,
@@ -1406,6 +1423,10 @@ def main():
                 "regime_veto":    veto,
                 "signal_score":   sig,
                 "signal_label":   signal_label(sig),
+                "driver":         act_strings["driver"],
+                "confirm":        act_strings["confirm"],
+                "risk":           act_strings["risk"],
+                "flip":           act_strings["flip"],
             }
 
             if tier == "T1":
@@ -1473,9 +1494,23 @@ def main():
     log.info("L5 news: %d recent rows, %d tickers with news", len(news_recent), len(news_by_ticker))
 
     # 8. Write data.json
+    # Chapter 12.3 data-health strip source: one timestamp per input so the
+    # human never needs the Actions tab to know which day they're looking at.
+    _t86_dd = inst_market.get("data_date") or ""
+    _t86_iso = (f"{_t86_dd[:4]}-{_t86_dd[4:6]}-{_t86_dd[6:8]}"
+                if len(_t86_dd) == 8 else None)
+    health = {
+        "t86":      _t86_iso,                 # real T86 session date (BFI82U)
+        "price":    now_iso(),                # snapshot/技術 computed this run
+        "l3":       l3_asof,                  # L3 file's own asof
+        "l4":       l4_regime.get("asof"),    # L4 file's own asof
+        "analysis": analysis.get("updated"),  # 早報/SinoPac summary
+        "data":     now_iso(),                # this data.json
+    }
     data_out = {
         "updated":   now_iso(),
         "market":    market,
+        "health":    health,
         "watchlist": watchlist,
         "portfolio": portfolio,
         "radar":     radar,      # P2: under-radar Radar tab
