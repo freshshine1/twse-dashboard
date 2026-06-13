@@ -469,6 +469,27 @@ a { color: inherit; text-decoration: none; }
 .inst-pct { font-family: var(--font); font-size: 10px; margin-left: 5px; }
 .inst-pct.pos { color: var(--bull); }
 .inst-pct.neg { color: var(--bear); }
+/* ── 12.2 action why-line ── */
+.why-line { font-family: var(--font); font-size: 10px; color: var(--muted);
+  margin-top: 3px; display: flex; flex-wrap: wrap; align-items: center;
+  gap: 5px; line-height: 1.45; }
+.why-line .why-driver  { color: var(--text); }
+.why-line .why-confirm { color: var(--bull); }
+.why-line .why-sep     { color: var(--border); }
+.why-line .why-risk    { color: var(--bear); background: var(--bear-bg);
+  padding: 0 5px; border-radius: 3px; }
+.why-line .why-flip    { color: var(--muted); font-style: italic; }
+/* ── 12.3 data-health strip ── */
+.health-strip { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px;
+  font-family: var(--font); font-size: 10px; }
+.health-chip { padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border);
+  background: var(--neutral-bg); color: var(--muted); white-space: nowrap; }
+.health-chip.fresh { color: var(--bull); border-color: var(--bull); }
+.health-chip.stale { color: #9a7a1a; border-color: #c79a2a; }
+.health-chip.old   { color: var(--bear); border-color: var(--bear);
+  background: var(--bear-bg); }
+.health-warn { font-family: var(--font); font-size: 10px; color: var(--bear);
+  margin: -6px 0 12px; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -495,6 +516,8 @@ a { color: inherit; text-decoration: none; }
 <div class="panel active" id="panel-summary">
   <div id="summary-veto-banner"></div>
   <div class="sum-datestrip" id="sum-datestrip"></div>
+  <div class="health-strip" id="sum-health"></div>
+  <div class="health-warn" id="sum-health-warn"></div>
 
   <div class="summary-section">
     <div class="summary-section-label">MARKET PULSE</div>
@@ -784,6 +807,25 @@ function l3Flag(ticker) {
   }).join('');
 }
 
+// 12.2 why-line: compress the action's reasoning into one scannable row.
+// driver (L1) · confirm (L2) · ⚠risk · flip-distance. Display-only; these
+// strings are emitted by score.py and never feed the score or the gate.
+function whyLine(t) {
+  const esc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const driver  = t.driver  || '';
+  const confirm = t.confirm || '';
+  const risk    = (t.risk && t.risk !== '—') ? t.risk : '';
+  const flip    = t.flip || '';
+  if (!driver && !confirm && !risk && !flip) return '';
+  const parts = [];
+  if (driver)  parts.push(`<span class="why-driver">↪ ${esc(driver)}</span>`);
+  if (confirm) parts.push(`<span class="why-confirm">${esc(confirm)}</span>`);
+  let html = parts.join('<span class="why-sep">·</span>');
+  if (risk) html += `<span class="why-risk">⚠ ${esc(risk)}</span>`;
+  if (flip) html += `<span class="why-flip">${esc(flip)}</span>`;
+  return `<div class="why-line">${html}</div>`;
+}
+
 function newsLine(t) {
   const n = t.news;
   if (!n || !n.latest || !n.latest.headline) return '';
@@ -940,6 +982,7 @@ function tickerCard(t, isPortfolio) {
         ${expandBtn}
       </div>
       <div class="ticker-chips">${l3Flag(t.ticker)}${chips}</div>
+      ${whyLine(t)}
       ${newsLine(t)}
     </div>
     <div class="ticker-right">
@@ -1436,6 +1479,62 @@ function renderNews() {
 
 
 // ── Render Summary tab ──────────────────────────────────────────────────────
+// 12.3 data-health strip: one freshness chip per input on the 今日 tab, so the
+// human never needs the Actions tab to know which day they're looking at.
+// Coloring is by business-day age vs the data.json date (display heuristic).
+function _healthDateOnly(ts) {
+  if (!ts || typeof ts !== 'string' || ts.length < 10) return null;
+  const d = new Date(ts.slice(0, 10));
+  return isNaN(d) ? null : d;
+}
+function _bizDaysBetween(fromD, toD) {   // weekdays in (fromD, toD]
+  let d = new Date(fromD), n = 0;
+  d.setDate(d.getDate() + 1);
+  while (d <= toD) {
+    const wd = d.getDay();
+    if (wd !== 0 && wd !== 6) n++;
+    d.setDate(d.getDate() + 1);
+  }
+  return n;
+}
+function renderHealthStrip() {
+  const el = document.getElementById('sum-health');
+  const warnEl = document.getElementById('sum-health-warn');
+  if (!el) return;
+  const h = (DATA && DATA.health) || {};
+  const ref = _healthDateOnly(DATA && DATA.updated) || new Date();
+  const md = ts => ts ? `${parseInt(ts.slice(5,7))}/${parseInt(ts.slice(8,10))}` : '—';
+  const specs = [
+    ['T86', h.t86], ['價量', h.price], ['L3', h.l3],
+    ['L4', h.l4], ['早報', h.analysis], ['data.json', h.data],
+  ];
+  const chips = [], warns = [];
+  for (const [name, ts] of specs) {
+    const d = _healthDateOnly(ts);
+    let cls = 'old', mark = '⚠', label = '—';
+    if (d) {
+      label = md(ts);
+      const bd = (d > ref) ? 0 : _bizDaysBetween(d, ref);
+      cls = bd <= 0 ? 'fresh' : bd === 1 ? 'stale' : 'old';
+      mark = cls === 'fresh' ? '✓' : cls === 'stale' ? '·' : '⚠';
+      if (cls === 'old') warns.push(name);
+    } else {
+      warns.push(name);
+    }
+    chips.push(`<span class="health-chip ${cls}">${name} ${mark} ${label}</span>`);
+  }
+  el.innerHTML = chips.join('');
+  if (warnEl) {
+    if (warns.length) {
+      warnEl.textContent = `⚠ ${warns.join('、')} 未更新 — 分數可能反映舊資料`;
+      warnEl.style.display = '';
+    } else {
+      warnEl.textContent = '';
+      warnEl.style.display = 'none';
+    }
+  }
+}
+
 function renderSummary() {
   // ── Market Pulse ──
   const m = DATA ? (DATA.market || {}) : {};
@@ -1449,6 +1548,8 @@ function renderSummary() {
     const usD = (L4_DATA && L4_DATA.us_session_date) ? md(L4_DATA.us_session_date) : '—';
     dsEl.innerHTML = `📅 資料日期 · TWSE <strong>${twseD}</strong> 收盤 · 美股 <strong>${usD}</strong> 收盤`;
   }
+
+  renderHealthStrip();
 
   // Helper: % change vs prev (handles direction flips + noise filter <5%)
   function instPct(today, prev) {
