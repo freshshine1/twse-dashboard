@@ -65,6 +65,7 @@ from score import (
     compute_l2_score,
     compute_composite,
     compute_action,
+    update_signal_log,
 )
 
 # L1 concentration sub-score (BSR), carved into its own module; reads docs/bsr/*.csv.
@@ -1486,6 +1487,15 @@ def main():
     log.info(
         "docs/data.json written ÃÂ¢ÃÂÃÂ portfolio:%d watchlist:%d",
         len(portfolio), len(watchlist)
+    )
+
+    # Chapter 12.1: append today's fired actions + near-misses to the signal
+    # attribution log and backfill forward returns. Display/bookkeeping only --
+    # it never feeds a score or the confluence gate. Non-fatal on error.
+    update_signal_log(
+        portfolio + watchlist,
+        history_cache,
+        datetime.now(TZ).date().isoformat(),
     )
 
     # P0: persist today's market trust snapshot for next run's fresh-streak gate (§8.3)

@@ -9,8 +9,11 @@ with no circular dependency. Logic is byte-identical to the pre-carve feeder.
 Source-tier / confluence discipline is unchanged -- see IMPLEMENTATION_GUIDE
 Chapter 1 (L1), Chapter 2 (L2), Chapter 6 (synthesis + confluence gate).
 """
+import csv
 import json
 import logging
+import os
+from datetime import datetime
 
 # Child of the "feeder" logger configured in feeder.setup_logging(); it
 # propagates to the same handlers, so log output is unchanged.
@@ -261,3 +264,171 @@ def compute_action(composite, l1, l2, l3, bucket, veto=False):
     if composite >= 40 and conf and not veto: return ("GO", conf)
     if composite >= 20 and conf and not veto: return ("GO half", conf)
     return ("NO-GO", conf)
+
+
+# --- Chapter 12.1: signal attribution log -----------------------------------
+# Append-only decision-quality log: one row per fired action and per near-miss,
+# carrying the full L1-L5 vector, confluence degree, and forward 5/10/20-day
+# returns backfilled idempotently on later runs. This is display/bookkeeping
+# only -- it never feeds a score or the confluence gate. It exists so the
+# 2026-07-28 hit-rate review can attribute outcomes per layer instead of by
+# feel. See IMPLEMENTATION_GUIDE Chapter 12.1.
+
+_SIGNAL_LOG_FIELDS = [
+    "date", "ticker", "bucket", "action", "composite",
+    "l1", "l2", "l3", "l4", "l5",
+    "confluence_n", "near_miss", "gate_fail_reason",
+    "signal_close", "fwd_5d", "fwd_10d", "fwd_20d",
+]
+_TIER_TO_BUCKET = {"T1": "inventory", "T2": "watchlist", "T3": "under_radar"}
+_FIRED_ACTIONS = {"GO", "GO half", "SELL", "TRIM", "ADD"}
+_FWD_WINDOWS = [(5, "fwd_5d"), (10, "fwd_10d"), (20, "fwd_20d")]
+
+
+def _agree_count(scores, sells):
+    """Layers agreeing with the action direction: >= +0.4 for buys, <= -0.4 for
+    sells. None layers (unfilled, e.g. L5) don't count. Mirrors 12.6 agree_n."""
+    out = 0
+    for s in scores:
+        if s is None:
+            continue
+        if (s <= -0.4) if sells else (s >= 0.4):
+            out += 1
+    return out
+
+
+def build_signal_log_row(entry, run_date):
+    """Return a log row dict for `entry` if it fired an action or is a near-miss,
+    else None. Pure (no I/O). `entry` is a scored T1/T2 dict from feeder.main()."""
+    action    = entry.get("action")
+    composite = entry.get("composite")
+    tier      = entry.get("tier")
+    l1 = entry.get("l1_score"); l2 = entry.get("l2_score")
+    l3 = entry.get("l3_score"); l4 = entry.get("l4_score")
+    l5 = None  # not folded into the composite yet (Chapter 5)
+
+    fired = action in _FIRED_ACTIONS
+    near_miss = (
+        composite is not None and composite >= 30 and not fired
+        and tier in ("T1", "T2")
+    )
+    if not (fired or near_miss):
+        return None
+
+    sells = action in ("SELL", "TRIM") or (composite is not None and composite < 0)
+    agree_n = _agree_count([l1, l2, l3, l4, l5], sells)
+
+    reason = ""
+    if near_miss:
+        miss = []
+        if l1 is None or l1 < 0.4: miss.append("L1")
+        if l2 is None or l2 < 0.4: miss.append("L2")
+        reason = "+".join(miss)
+
+    return {
+        "date": run_date,
+        "ticker": entry.get("ticker"),
+        "bucket": _TIER_TO_BUCKET.get(tier, tier),
+        "action": action,
+        "composite": composite,
+        "l1": l1, "l2": l2, "l3": l3, "l4": l4, "l5": l5,
+        "confluence_n": agree_n,
+        "near_miss": 1 if near_miss else 0,
+        "gate_fail_reason": reason,
+        "signal_close": entry.get("price"),
+        "fwd_5d": "", "fwd_10d": "", "fwd_20d": "",
+    }
+
+
+def _as_date(d):
+    """Normalise a history 'date' (datetime / date / str) to a date, or None."""
+    if d is None:
+        return None
+    if isinstance(d, datetime):
+        return d.date()
+    if hasattr(d, "year") and not isinstance(d, str):  # already a date
+        return d
+    for fmt in ("%Y-%m-%d", "%Y%m%d", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(str(d), fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _read_signal_log(path):
+    if not os.path.exists(path):
+        return []
+    with open(path, newline="", encoding="utf-8") as f:
+        return list(csv.DictReader(f))
+
+
+def _empty_fwd_count(rows):
+    return sum(1 for r in rows for _, c in _FWD_WINDOWS if r.get(c) in ("", None))
+
+
+def _backfill_forward_returns(rows, history_cache):
+    """Idempotently fill empty fwd_5d/10d/20d using each ticker's dated closes.
+    Windows are counted in TRADING sessions present in history, so a cell only
+    fills once that many real sessions have elapsed past the signal date."""
+    for row in rows:
+        if all(row.get(c) not in ("", None) for _, c in _FWD_WINDOWS):
+            continue
+        hist = history_cache.get(row.get("ticker"))
+        sig_close = row.get("signal_close")
+        if not hist or sig_close in ("", None):
+            continue
+        try:
+            sig_close = float(sig_close)
+            sig_d = datetime.strptime(row["date"], "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            continue
+        if sig_close <= 0:
+            continue
+        future = [h for h in hist
+                  if h.get("close") and _as_date(h.get("date"))
+                  and _as_date(h["date"]) > sig_d]
+        future.sort(key=lambda h: _as_date(h["date"]))
+        for n, col in _FWD_WINDOWS:
+            if row.get(col) in ("", None) and len(future) >= n:
+                row[col] = round((future[n - 1]["close"] / sig_close - 1.0) * 100, 2)
+    return rows
+
+
+def update_signal_log(entries, history_cache, run_date,
+                      path="processed/signal_log.csv"):
+    """Append today's fires + near-misses (dedup on date+ticker), backfill
+    forward returns, and rewrite the CSV. Stateless-CI-safe: the file is the
+    only state, so the workflow must commit it. Returns (n_appended,
+    n_backfilled). Never raises into the caller -- bookkeeping must not break
+    the pipeline."""
+    try:
+        rows = _read_signal_log(path)
+        seen = {(r.get("date"), r.get("ticker")) for r in rows}
+
+        appended = 0
+        for entry in entries:
+            new = build_signal_log_row(entry, run_date)
+            if new is None or (new["date"], new["ticker"]) in seen:
+                continue
+            rows.append(new)
+            seen.add((new["date"], new["ticker"]))
+            appended += 1
+
+        before = _empty_fwd_count(rows)
+        _backfill_forward_returns(rows, history_cache)
+        filled = before - _empty_fwd_count(rows)
+
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=_SIGNAL_LOG_FIELDS)
+            w.writeheader()
+            for r in rows:
+                w.writerow({k: r.get(k, "") for k in _SIGNAL_LOG_FIELDS})
+
+        log.info("signal_log: +%d new, %d fwd-returns backfilled (%d rows total)",
+                 appended, filled, len(rows))
+        return appended, filled
+    except Exception as exc:  # never let bookkeeping break the run
+        log.warning("signal_log update failed (non-fatal): %s", exc)
+        return 0, 0
