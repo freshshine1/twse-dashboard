@@ -448,6 +448,11 @@ a { color: inherit; text-decoration: none; }
 .sum-verdict.bear  { background: var(--bear-bg); border-left-color: var(--bear); color: var(--bear); }
 .sum-verdict.flat  { background: var(--neutral-bg); border-left-color: var(--muted); color: var(--muted); }
 .sum-verdict-detail { font-size: 11px; font-weight: 400; color: var(--muted); margin-top: 3px; }
+.verdict-hit { display:inline-block; margin-left:8px; padding:1px 7px; border-radius:9px;
+  font-size:10px; font-weight:600; background:var(--neutral-bg); color:var(--muted);
+  vertical-align:middle; }
+.verdict-hit.verdict-hit-low { background:var(--bear-bg); color:var(--bear); }
+.sum-verdict.demoted { font-size:13px; opacity:0.78; }
 /* ── Portfolio movers ── */
 .sum-mover-card {
   display: flex; align-items: flex-start; gap: 9px; flex-wrap: wrap;
@@ -1684,8 +1689,15 @@ function renderSummary() {
     else if (score <= -4){ label = '今日偏空 ⚠️'; cls = 'bear'; }
     else if (score <= -2){ label = '今日小空 🔴'; cls = 'bear'; }
     else                 { label = '今日中性 ⚪'; cls = 'flat'; }
-    vEl.className = 'sum-verdict ' + cls;
-    vEl.innerHTML = `<strong>${label}</strong><div class="sum-verdict-detail">${parts.join(' · ') || '訊號不足'}</div>`;
+    const vh = m.verdict_hit;
+    let hitChip = '', demote = false;
+    if (vh && vh.graded_n != null) {
+      demote = (vh.graded_n >= 20 && vh.hit_pct <= 50);
+      hitChip = `<span class="verdict-hit${demote ? ' verdict-hit-low' : ''}">研判命中率 (60d): ${vh.hit_pct}% · n=${vh.graded_n}</span>`;
+    }
+    vEl.className = 'sum-verdict ' + cls + (demote ? ' demoted' : '');
+    const vCaveat = demote ? '<div class="sum-verdict-detail">⚠ 命中率偏低，僅供參考</div>' : '';
+    vEl.innerHTML = `<strong>${label}</strong> ${hitChip}<div class="sum-verdict-detail">${parts.join(' · ') || '訊號不足'}</div>${vCaveat}`;
   }
 
   if (!DATA) return;
