@@ -373,6 +373,11 @@ a { color: inherit; text-decoration: none; }
 .sum-taiex[data-dir="bear"] { border-left-color: var(--bear); background: var(--bear-bg); }
 .sum-taiex-val { font-family: var(--font); font-size: 22px; font-weight: 700; }
 .sum-taiex-chg { font-family: var(--font); font-size: 13px; }
+.sum-breadth { font-family: var(--font); font-size: 12.5px; color: var(--muted);
+  padding: 3px 10px 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.sum-breadth .b-up { color: var(--bull); } .sum-breadth .b-dn { color: var(--bear); }
+.sum-breadth .b-diverge { color: var(--bear); font-weight: 600; }
+.sum-breadth .b-diverge.b-bull { color: var(--bull); }
 /* Summary inst row (compact 2×2) */
 .sum-inst-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 6px; margin-bottom: 10px; }
 .sum-inst-card { background: var(--surface); border: 1px solid var(--border);
@@ -531,6 +536,7 @@ a { color: inherit; text-decoration: none; }
       <div class="sum-taiex-chg" id="sum-taiex-chg"></div>
     </div>
     <div class="sum-inst-grid" id="sum-inst-grid"></div>
+    <div class="sum-breadth" id="sum-breadth-row"></div>
     <div class="sum-regime" id="sum-regime-row">
       <div class="sum-regime-tilt" id="sum-regime-tilt">—</div>
       <div class="sum-regime-label" id="sum-regime-label">L4 尚未更新</div>
@@ -1615,6 +1621,25 @@ function renderSummary() {
       instCard('合計 Total',   m.three_inst_total_m, null);
   }
 
+  // ── Breadth (Ch.12.4 v1 advance-ratio) ──
+  const brEl = document.getElementById('sum-breadth-row');
+  if (brEl) {
+    const bd = m.breadth || {};
+    const ap = bd.advance_pct;
+    if (ap == null) { brEl.innerHTML = ''; }
+    else {
+      const tp2 = Number(m.taiex_chg_pct);
+      let badge = '';
+      if (!isNaN(tp2) && tp2 > 0.5 && ap < 40)
+        badge = '<span class="b-diverge">⚠ 指數背離 — 大盤強、廣度弱</span>';
+      else if (!isNaN(tp2) && tp2 < -0.5 && ap > 60)
+        badge = '<span class="b-diverge b-bull">指數背離 — 大盤弱、廣度強</span>';
+      brEl.innerHTML =
+        `廣度(上市) <span class="b-up">↑${bd.adv}</span> · <span class="b-dn">↓${bd.dec}</span> · 平${bd.flat}`
+        + ` · 上漲佔比 <strong>${ap}%</strong> <span style="opacity:.55">(漲跌家數比, 非20MA)</span> ${badge}`;
+    }
+  }
+
   // L4 regime compact
   const sReg = document.getElementById('sum-regime-row');
   const sRegTilt = document.getElementById('sum-regime-tilt');
@@ -1682,6 +1707,12 @@ function renderSummary() {
       if (L4_DATA.regime_veto) { score -= 3; parts.push('L4 VETO'); }
       else if (lt >= 4)        { score += 1; parts.push('L4 多'); }
       else if (lt <= -4)       { score -= 1; parts.push('L4 空'); }
+    }
+    // Breadth (Ch.12.4 v1 advance-ratio) — reads m.breadth (same source as log)
+    const bdv = (m.breadth && m.breadth.advance_pct != null) ? Number(m.breadth.advance_pct) : null;
+    if (bdv != null) {
+      if (bdv < 40)      { score -= 1; parts.push('廣度弱<40%'); }
+      else if (bdv > 60) { score += 1; parts.push('廣度強>60%'); }
     }
     let label, cls;
     if (score >= 4)      { label = '今日偏多 ✅'; cls = 'bull'; }
