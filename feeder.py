@@ -67,6 +67,8 @@ from score import (
     compute_action,
     build_action_strings,
     update_signal_log,
+    compute_verdict,
+    update_verdict_log,
 )
 
 # L1 concentration sub-score (BSR), carved into its own module; reads docs/bsr/*.csv.
@@ -1030,10 +1032,10 @@ def load_l4_regime():
         log.info("L4 loaded: tilt=%s veto=%s label=%s", d.get("tilt_raw"),
                  d.get("regime_veto"), d.get("label"))
         return {"l4": d.get("L4"), "veto": bool(d.get("regime_veto")),
-                "asof": d.get("asof")}
+                "tilt_raw": d.get("tilt_raw"), "asof": d.get("asof")}
     except Exception as exc:
         log.info("L4 file not available (%s) -> L4 unfilled", exc)
-        return {"l4": None, "veto": False, "asof": None}
+        return {"l4": None, "veto": False, "tilt_raw": None, "asof": None}
 
 
 def load_l3_fundamentals():
@@ -1499,6 +1501,19 @@ def main():
     _t86_dd = inst_market.get("data_date") or ""
     _t86_iso = (f"{_t86_dd[:4]}-{_t86_dd[4:6]}-{_t86_dd[6:8]}"
                 if len(_t86_dd) == 8 else None)
+    # Chapter 12.7: grade the 今日研判 verdict. Append today's verdict + TAIEX
+    # direction to processed/verdict_log.csv and surface the rolling hit-rate.
+    # Mirrors the index.html heuristic; display-only, never feeds the composite
+    # or the confluence gate (same wall as ARK Ch.9 / the Ch.10 verdict).
+    _verdict = compute_verdict(market, l4_regime.get("tilt_raw"),
+                               l4_regime.get("veto"))
+    _vhit = update_verdict_log(
+        _verdict, market.get("taiex_chg_pct"),
+        datetime.now(TZ).date().isoformat(),
+    )
+    market["verdict"] = _verdict
+    market["verdict_hit"] = _vhit
+
     health = {
         "t86":      _t86_iso,                 # real T86 session date (BFI82U)
         "price":    now_iso(),                # snapshot/技術 computed this run

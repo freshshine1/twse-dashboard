@@ -584,3 +584,131 @@ def update_signal_log(entries, history_cache, run_date,
     except Exception as exc:  # never let bookkeeping break the run
         log.warning("signal_log update failed (non-fatal): %s", exc)
         return 0, 0
+
+
+# ---- Chapter 12.7: 今日研判 verdict scoreboard (display/bookkeeping only) ----
+# Mirrors the LIVE index.html verdict heuristic. NOTE this diverges from the guide
+# Ch.10.2 table (which lists 外資 weight-1 / 投信 weight-2 single bands); the shipped
+# JS uses graded +/-1 / +/-2 bands for BOTH, so we mirror the JS -- it is what the
+# human actually sees. The verdict never feeds the composite or the confluence gate
+# (same wall as ARK Ch.9 / the Ch.10 verdict itself).
+_VERDICT_LOG_FIELDS = ["date", "verdict_score", "verdict_label",
+                       "verdict_dir", "taiex_chg_pct", "taiex_dir"]
+
+
+def compute_verdict(market, l4_tilt_raw=None, l4_veto=False):
+    """Reproduce the on-screen 今日研判 lean from the same inputs index.html uses:
+    外資/投信 net (M NT$), TAIEX day %, L4 raw tilt / veto. Returns
+    {score, label, dir, parts} or None when both flows are missing (matches the JS
+    render guard). `dir` is +1 bull / -1 bear / 0 neutral, keyed off the same bands
+    as the label. Pure, display-only -- never a score input.
+    L4 caveat: this uses the L4 file present at the 19:00 run; if the human views
+    pre-market after a fresher overnight L4 lands, the displayed L4 leg can differ
+    on veto/boundary days (at most the +/-1 or -3 L4 contribution)."""
+    fv = market.get("foreign_net_m")
+    tv = market.get("trust_net_m")
+    if fv is None and tv is None:
+        return None
+    score = 0
+    parts = []
+    if fv is not None:
+        fv = float(fv)
+        if   fv >  30000: score += 2; parts.append("外資大買")
+        elif fv >      0: score += 1; parts.append("外資買超")
+        elif fv < -30000: score -= 2; parts.append("外資大賣")
+        elif fv <      0: score -= 1; parts.append("外資賣超")
+    if tv is not None:
+        tv = float(tv)
+        if   tv >  3000: score += 2; parts.append("投信大買")
+        elif tv >     0: score += 1; parts.append("投信買超")
+        elif tv < -3000: score -= 2; parts.append("投信大賣")
+        elif tv <     0: score -= 1; parts.append("投信賣超")
+    tp = market.get("taiex_chg_pct")
+    if tp is not None:
+        try:
+            tp = float(tp)
+            if   tp >  1: score += 1; parts.append("TAIEX +%.1f%%" % tp)
+            elif tp < -1: score -= 1; parts.append("TAIEX %.1f%%" % tp)
+        except (TypeError, ValueError):
+            pass
+    if l4_veto:
+        score -= 3; parts.append("L4 VETO")
+    elif l4_tilt_raw is not None:
+        if   l4_tilt_raw >=  4: score += 1; parts.append("L4 多")
+        elif l4_tilt_raw <= -4: score -= 1; parts.append("L4 空")
+
+    if   score >=  4: label, d = "今日偏多 ✅", 1
+    elif score >=  2: label, d = "今日小多 🟡", 1
+    elif score <= -4: label, d = "今日偏空 ⚠️", -1
+    elif score <= -2: label, d = "今日小空 🔴", -1
+    else:             label, d = "今日中性 ⚪", 0
+    return {"score": score, "label": label, "dir": d, "parts": parts}
+
+
+def _read_verdict_log(path):
+    if not os.path.exists(path):
+        return []
+    with open(path, newline="", encoding="utf-8") as f:
+        return list(csv.DictReader(f))
+
+
+def compute_verdict_hitrate(rows, window=60):
+    """Grade each row's verdict_dir against the NEXT row's taiex_dir (the verdict is
+    a forward lean for the next session). Neutral verdicts (dir 0) make no
+    directional claim and are excluded. Returns {hit_pct, graded_n} over the most
+    recent `window` graded pairs, or None if nothing is gradeable yet."""
+    pairs = []
+    for i in range(len(rows) - 1):
+        try:
+            vd = int(rows[i].get("verdict_dir"))
+            od = int(rows[i + 1].get("taiex_dir"))
+        except (TypeError, ValueError):
+            continue
+        if vd == 0 or od == 0:
+            continue
+        pairs.append(1 if vd == od else 0)
+    pairs = pairs[-window:]
+    if not pairs:
+        return None
+    return {"hit_pct": round(100.0 * sum(pairs) / len(pairs), 1),
+            "graded_n": len(pairs)}
+
+
+def update_verdict_log(verdict, taiex_chg_pct, run_date,
+                       path="processed/verdict_log.csv"):
+    """Append today's verdict + TAIEX direction (dedup on date), rewrite the CSV,
+    and return the rolling hit-rate dict (or None). Stateless-CI-safe: the file is
+    the only state, so the workflow must commit it. Never raises into the caller --
+    bookkeeping must not break the pipeline. Display-only; never a score input."""
+    try:
+        rows = _read_verdict_log(path)
+        seen = {r.get("date") for r in rows}
+        if verdict is not None and run_date not in seen:
+            try:
+                tp = float(taiex_chg_pct)
+                tdir = 1 if tp > 0 else (-1 if tp < 0 else 0)
+            except (TypeError, ValueError):
+                tp, tdir = "", 0
+            rows.append({
+                "date":          run_date,
+                "verdict_score": verdict["score"],
+                "verdict_label": verdict["label"],
+                "verdict_dir":   verdict["dir"],
+                "taiex_chg_pct": tp,
+                "taiex_dir":     tdir,
+            })
+            os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+            with open(path, "w", newline="", encoding="utf-8") as f:
+                w = csv.DictWriter(f, fieldnames=_VERDICT_LOG_FIELDS)
+                w.writeheader()
+                for r in rows:
+                    w.writerow({k: r.get(k, "") for k in _VERDICT_LOG_FIELDS})
+            log.info("verdict_log: +1 row (%s dir=%+d), %d rows total",
+                     run_date, verdict["dir"], len(rows))
+        else:
+            log.info("verdict_log: no append (have_verdict=%s dup=%s)",
+                     verdict is not None, run_date in seen)
+        return compute_verdict_hitrate(rows)
+    except Exception as exc:  # never let bookkeeping break the run
+        log.warning("verdict_log update failed (non-fatal): %s", exc)
+        return None
