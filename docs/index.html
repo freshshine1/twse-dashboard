@@ -1055,6 +1055,14 @@ function chipDetailHTML(t, isPortfolio) {
       ? ['Confluence ✓ — GO is valid', 'Both L1 chip (≥+0.4) AND L2 technical (≥+0.4) agree. This is the entry gate — composite score ≥+40 with confluence met means the GO signal is real. Single-layer signals have a documented sub-30% win rate; confluence is what makes the difference.']
       : ['Confluence ✗ — GO blocked', 'At least one of L1 chip or L2 technical is below +0.4. Even if the composite score looks high, no GO fires without both layers agreeing. Check L1 and L2 scores above to see which is lagging.'];
     rows.push(statChip('Gate', t.confluence ? '✓ Open' : '✗ Blocked', t.confluence ? 'pos' : 'dim', confTip));
+    // 12.6 confluence degree (display-only) — dots = layers agreeing with the
+    // action; 弱腳 = weaker of L1/L2 (the binding gate leg). Never feeds score/gate.
+    if (t.agree_n != null) {
+      const dots = '●'.repeat(t.agree_n) + '○'.repeat(Math.max(0, 5 - t.agree_n));
+      const mg = (t.min_gate != null) ? (t.min_gate >= 0 ? '+' : '') + t.min_gate.toFixed(2) : '—';
+      rows.push(statChip('一致度', dots + '  弱腳 ' + mg, t.agree_n >= 3 ? 'pos' : '',
+        ['Confluence degree (Ch.12.6)', 'Dots = layers agreeing with the action direction (≥+0.4 for buys, ≤−0.4 for sells). 弱腳 = the weaker of L1/L2, which is the binding gate leg. Reading rule: prefer a +42 with 3 dots over a +55 carried by a single layer. Display-only — never changes the composite or the confluence gate.']));
+    }
     // Dynamic Regime chip — only shown on veto, with actionable tip
     if (t.regime_veto) {
       const vetoTip = ['⛔ US Market Veto — no new entries', 'US markets fell sharply overnight (SOX/NASDAQ tilt ≤ −5). This is a market-wide risk-off signal. What to do: (1) No new GO entries today for any stock. (2) For holdings you own: tighten stop-loss from −7% to −4% or breach of 5-day MA on close. (3) Check tonight\'s T86 (~18:00) — if institutions are net-selling your holdings, that confirms the SELL condition.'];
