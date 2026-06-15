@@ -66,6 +66,7 @@ from score import (
     compute_composite,
     compute_action,
     build_action_strings,
+    build_agreement,
     update_signal_log,
     compute_verdict,
     update_verdict_log,
@@ -1414,6 +1415,12 @@ def main():
                 regime_veto=veto,
             )
 
+            # Chapter 12.6: confluence-degree (display only). agree_n mirrors the
+            # 12.1 confluence_n; min_gate is the weaker of L1/L2. Direction matches
+            # the signal-log convention so the dots == the logged confluence_n.
+            _sells = action in ("SELL", "TRIM") or (composite is not None and composite < 0)
+            agreement = build_agreement(l1, l2, l3, l4, None, sells=_sells)
+
             entry = {
                 "ticker":    code,
                 "name":      name_en,
@@ -1457,6 +1464,8 @@ def main():
                 "confirm":        act_strings["confirm"],
                 "risk":           act_strings["risk"],
                 "flip":           act_strings["flip"],
+                "agree_n":        agreement["agree_n"],
+                "min_gate":       agreement["min_gate"],
             }
 
             if tier == "T1":

@@ -449,6 +449,17 @@ def _agree_count(scores, sells):
     return out
 
 
+def build_agreement(l1, l2, l3, l4, l5, *, sells):
+    """Chapter 12.6: confluence-degree display. Returns agree_n (layers agreeing
+    with the action direction, == confluence_n from the 12.1 log) and min_gate
+    (the weaker of the two gate legs L1/L2). Display-only -- never feeds the
+    composite or the confluence gate."""
+    agree_n = _agree_count([l1, l2, l3, l4, l5], sells)
+    legs = [x for x in (l1, l2) if x is not None]
+    min_gate = min(legs) if legs else None
+    return {"agree_n": agree_n, "min_gate": min_gate}
+
+
 def build_signal_log_row(entry, run_date):
     """Return a log row dict for `entry` if it fired an action or is a near-miss,
     else None. Pure (no I/O). `entry` is a scored T1/T2 dict from feeder.main()."""
