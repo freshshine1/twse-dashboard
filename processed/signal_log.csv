@@ -1,1 +1,6 @@
 date,ticker,bucket,action,composite,l1,l2,l3,l4,l5,confluence_n,near_miss,gate_fail_reason,signal_close,fwd_5d,fwd_10d,fwd_20d
+2026-06-16,3363,inventory,TRIM,-39.4,-1.0,-0.25,0.0,0.279,,1,0,,707.0,,,
+2026-06-16,2330,watchlist,NO-GO,34.0,0.433,0.35,0.0,0.279,,1,1,L2,2310.0,,,
+2026-06-16,2454,watchlist,NO-GO,34.0,0.433,0.35,0.0,0.279,,1,1,L2,4180.0,,,
+2026-06-16,3131,watchlist,NO-GO,30.8,0.0,0.7,0.0,0.279,,1,1,L1,3215.0,,,
+2026-06-16,00830,watchlist,NO-GO,41.5,0.183,0.8,0.0,0.279,,1,1,L1,92.85,,,
