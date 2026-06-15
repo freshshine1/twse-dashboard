@@ -119,9 +119,13 @@ def label_for_tilt(tilt):
 
 def main():
     now_tpe = datetime.now(TPE)
-    # The US session that closed overnight is "yesterday" in TPE terms — coarse but fine
-    # for labelling; the actual close time depends on EDT/EST and isn't load-bearing here.
-    us_session_date = (now_tpe - timedelta(days=1)).strftime("%Y-%m-%d")
+    # US session that just closed = last US trading day before this TPE run.
+    # now-1d, then skip back over Sat/Sun (Mon run -> Fri). US holidays not
+    # handled (rare; off-by-one at most, vs the systematic 2-day weekend error).
+    _sd = now_tpe - timedelta(days=1)
+    while _sd.weekday() >= 5:        # 5=Sat, 6=Sun
+        _sd -= timedelta(days=1)
+    us_session_date = _sd.strftime("%Y-%m-%d")
 
     comps = {}
     for symbol, _, label, _, _ in COMPONENTS:
