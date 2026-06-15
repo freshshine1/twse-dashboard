@@ -637,6 +637,14 @@ def compute_verdict(market, l4_tilt_raw=None, l4_veto=False):
         if   l4_tilt_raw >=  4: score += 1; parts.append("L4 多")
         elif l4_tilt_raw <= -4: score -= 1; parts.append("L4 空")
 
+    # Chapter 12.4 breadth leg (v1 advance-ratio). Reads market["breadth"]
+    # (computed once in feeder -> logged verdict == displayed verdict). Display
+    # heuristic only; same wall as the rest of the verdict.
+    _bd = (market.get("breadth") or {}).get("advance_pct")
+    if _bd is not None:
+        if   _bd < 40: score -= 1; parts.append("廣度弱<40%")
+        elif _bd > 60: score += 1; parts.append("廣度強>60%")
+
     if   score >=  4: label, d = "今日偏多 ✅", 1
     elif score >=  2: label, d = "今日小多 🟡", 1
     elif score <= -4: label, d = "今日偏空 ⚠️", -1

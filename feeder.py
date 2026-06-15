@@ -1225,6 +1225,34 @@ def main():
         "trust_net_m_prev":   inst_market.get("trust_net_m_prev"),
     }
 
+    # Chapter 12.4 (v1): market breadth from the whole-market snapshot already in
+    # hand (zero extra calls). v1 = ADVANCE-RATIO fallback per the guide; full
+    # breadth_20ma needs per-ticker 20MA over the whole market (too heavy for the
+    # daily rate guard / SS8.2 "history only on survivors") and is deferred.
+    # TWSE-only so it mirrors the TAIEX it is compared against. Display + a
+    # verdict-tally leg only -- never feeds the composite or the confluence gate.
+    _adv = _dec = _flat = 0
+    for _s in snapshot.values():
+        if _s.get("exchange") != "TWSE":
+            continue
+        _ch = _s.get("chg")
+        if _ch is None:
+            continue
+        if _ch > 0:
+            _adv += 1
+        elif _ch < 0:
+            _dec += 1
+        else:
+            _flat += 1
+    _ad = _adv + _dec
+    market["breadth"] = {
+        "adv": _adv, "dec": _dec, "flat": _flat,
+        "advance_pct": round(_adv / _ad * 100, 1) if _ad else None,
+        "basis": "advance_ratio_twse_v1",   # NOT 20MA breadth -- labelled on-screen
+    }
+    log.info("breadth(TWSE): adv=%d dec=%d flat=%d advance_pct=%s",
+             _adv, _dec, _flat, market["breadth"]["advance_pct"])
+
     # 5. Per-ticker T86 ÃÂ¢ÃÂÃÂ BEFORE the per-ticker loop (BUG1 FIX)
     # Collect unique codes across T1+T2 for T86 fetch
     all_unique_codes = {t[0] for t in tickers}
