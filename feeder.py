@@ -47,6 +47,7 @@ import json
 import logging
 import logging.handlers
 import os
+import re
 import sys
 import time
 from datetime import datetime, timedelta, date as _date
@@ -1184,6 +1185,147 @@ def _fetch_snapshot_or_exit():
         sys.exit(1)
 
 
+# ---------------------------------------------------------------------------
+# Chapter 12.5 — 外資 台指期 (TX) 淨未平倉口數 : forward-positioning chip
+# Tier-1 (期交所). DISPLAY-ONLY: feeds the 今日 chip + (later) the verdict tally.
+# NOT an L4 / composite / confluence component. Headline = TX big contract only
+# (the universally-quoted 外資台指期未平倉淨口); MTX/MXF stored for reference but
+# never summed (different contract multipliers). Best-effort: any failure returns
+# None and the chip degrades gracefully (shows nothing). Endpoint/format verified
+# against a live response 2026-06-16; see handoff.
+# ---------------------------------------------------------------------------
+TAIFEX_OI_URL         = "https://www.taifex.com.tw/cht/3/futContractsDate"
+TAIFEX_OI_RAW_LATEST  = "docs/raw/taifex_oi_latest.json"
+TAIFEX_OI_RAW_SERIES  = "docs/raw/taifex_oi_series.json"
+
+_OI_TAG_RE = re.compile(r"<[^>]+>")
+_OI_TR_RE  = re.compile(r"<tr\b[^>]*>(.*?)</tr>", re.I | re.S)
+_OI_TD_RE  = re.compile(r"<td\b[^>]*>(.*?)</td>", re.I | re.S)
+
+
+def _oi_cell(raw):
+    t = _OI_TAG_RE.sub("", raw).replace("&nbsp;", " ").replace("\xa0", " ")
+    return t.strip()
+
+
+def _oi_int(s):
+    try:
+        return int(s.replace(",", ""))
+    except Exception:
+        return None
+
+
+def _parse_taifex_oi(html):
+    """Parse futContractsDate HTML -> (report_date_yyyymmdd, {product:{identity:net_oi_lots}}).
+    Net OI lots = 11th numeric after the identity cell. Row shapes (verified live):
+      header row -> 15 <td> [序號, 商品(rowspan=3), 身份別, +12 numerics]
+      cont row   -> 13 <td> [身份別, +12 numerics]
+    Subtotal/total blocks (期貨小計/期貨合計) fall outside WANT and are dropped."""
+    WANT = {"臺股期貨", "小型臺指期貨", "微型臺指期貨"}
+    IDS = ("自營商", "投信", "外資")
+    out, cur = {}, None
+    for trm in _OI_TR_RE.finditer(html):
+        cells = [_oi_cell(m.group(1)) for m in _OI_TD_RE.finditer(trm.group(1))]
+        if not cells:
+            continue
+        if len(cells) >= 15 and cells[2] in IDS:
+            cur, identity, nums = cells[1], cells[2], cells[3:]
+        elif len(cells) >= 13 and cells[0] in IDS:
+            identity, nums = cells[0], cells[1:]
+        else:
+            continue
+        if cur not in WANT or len(nums) <= 10:
+            continue
+        v = _oi_int(nums[10])
+        if v is not None:
+            out.setdefault(cur, {})[identity] = v
+    dm = re.search(r"(20\d\d/\d\d/\d\d)", html)
+    return (dm.group(1).replace("/", "") if dm else None), out
+
+
+def fetch_taifex_oi(spot_foreign_m=None):
+    """Fetch + persist 外資 TX net OI; return the display record (or None).
+    `spot_foreign_m` is today's whole-market 外資 spot net (NT$ millions) used only
+    for the spot-vs-futures divergence note."""
+    try:
+        r = SESSION.get(TAIFEX_OI_URL, timeout=20)
+        r.encoding = "big5"
+        rdate, parsed = _parse_taifex_oi(r.text)
+    except Exception as exc:
+        log.warning("taifex OI fetch/parse failed (non-fatal): %s", exc)
+        return None
+    tx = parsed.get("臺股期貨", {})
+    tx_net = tx.get("外資")
+    if tx_net is None:
+        log.warning("taifex OI: 臺股期貨 外資 net OI not found -> chip unfilled")
+        return None
+
+    rec = {
+        "date":            rdate,
+        "tx_net_oi":       tx_net,
+        "tx_trust_net_oi": tx.get("投信"),
+        "tx_dealer_net_oi": tx.get("自營商"),
+        "mtx_net_oi":      parsed.get("小型臺指期貨", {}).get("外資"),
+        "mxf_net_oi":      parsed.get("微型臺指期貨", {}).get("外資"),
+        "basis":           "TX_big_contract_only",
+        "asof":            now_iso(),
+    }
+
+    # Persist latest + rolling series. Committed files -> survive stateless CI and
+    # feed the 5-day trend. (daily.yml MUST git-add both, else the series never grows.)
+    series = []
+    try:
+        Path("docs/raw").mkdir(parents=True, exist_ok=True)
+        Path(TAIFEX_OI_RAW_LATEST).write_text(
+            json.dumps(rec, ensure_ascii=False, indent=2), encoding="utf-8")
+        sp = Path(TAIFEX_OI_RAW_SERIES)
+        if sp.exists():
+            try:
+                series = json.loads(sp.read_text(encoding="utf-8"))
+            except Exception:
+                series = []
+        series = [s for s in series if s.get("date") != rdate]
+        series.append({"date": rdate, "tx_net_oi": tx_net})
+        series.sort(key=lambda s: s.get("date") or "")
+        series = series[-30:]
+        sp.write_text(json.dumps(series, ensure_ascii=False), encoding="utf-8")
+    except Exception as exc:
+        log.warning("taifex OI persist failed (non-fatal): %s", exc)
+        if not series:
+            series = [{"date": rdate, "tx_net_oi": tx_net}]
+
+    # 5-day trend: today vs up to 5 sessions back.
+    trend, arrow = None, "→"
+    if len(series) >= 2:
+        prev = series[max(0, len(series) - 6)]
+        trend = tx_net - (prev.get("tx_net_oi") or 0)
+        arrow = "↑" if trend > 0 else "↓" if trend < 0 else "→"
+    rec["trend_5d_delta"] = trend
+    rec["trend_5d_arrow"] = arrow
+    rec["series_len"] = len(series)
+
+    # Spot-vs-futures divergence note (12.5 read-rule). Compares 外資 spot sign
+    # (today's whole-market net) against TX OI sign. Skipped if spot ~flat.
+    kind = note = None
+    if spot_foreign_m is not None and abs(spot_foreign_m) >= 1000:
+        spot_buy = spot_foreign_m > 0
+        oi_long = tx_net > 0
+        if spot_buy and oi_long:
+            kind, note = "conviction", "現貨買超＋期貨建多 → 有信心"
+        elif spot_buy and not oi_long:
+            kind, note = "hedge", "現貨買超＋期貨偏空 → 避險，打折"
+        elif (not spot_buy) and (not oi_long):
+            kind, note = "bear", "現貨賣超＋期貨偏空 → 一致偏空"
+        else:
+            kind, note = "mixed", "現貨賣超＋期貨建多 → 分歧"
+    rec["divergence_kind"] = kind
+    rec["divergence_note"] = note
+
+    log.info("taifex OI: TX 外資 net=%d 口 trend5d=%s (%s) series=%d div=%s",
+             tx_net, trend, arrow, len(series), kind)
+    return rec
+
+
 def main():
     log.info("=== feeder start %s ===", now_iso())
 
@@ -1253,6 +1395,12 @@ def main():
     }
     log.info("breadth(TWSE): adv=%d dec=%d flat=%d advance_pct=%s",
              _adv, _dec, _flat, market["breadth"]["advance_pct"])
+
+    # Chapter 12.5: 外資台指期 (TX) 淨未平倉 — forward-positioning chip (display-only,
+    # NOT an L4/composite component). Spot 外資 net feeds only the divergence note.
+    _oi = fetch_taifex_oi(spot_foreign_m=market.get("foreign_net_m"))
+    if _oi:
+        market["futures_oi"] = _oi
 
     # 5. Per-ticker T86 ÃÂ¢ÃÂÃÂ BEFORE the per-ticker loop (BUG1 FIX)
     # Collect unique codes across T1+T2 for T86 fetch
