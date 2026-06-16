@@ -51,6 +51,39 @@ def compute_margin_score(margin_today, margin_prev, price_chg_pct, inst_net):
     return round(max(-1.0, min(1.0, score)), 3)
 
 
+def compute_lending_score(lending_series, price_chg_pct=None,
+                          min_days=5, window=20, full_scale=0.5):
+    """A2: institutional short-interest read in [-1, +1] from 借券賣出餘額 trend.
+
+    Research Report 1.5: 借券賣出餘額 is real short interest (法人 short via 借券, not
+    融券). A rising balance -- especially on flat/up price -- signals distribution /
+    short pressure building [-]; a falling balance signals covering [+]. The report's
+    rule is "20-day trend > single day". New-issue guard: needs >= min_days valid
+    points and a positive baseline (借券 opens at 0, so early values distort the trend).
+    Magnitudes/thresholds here INTERPRET the report's qualitative rules (tunable later
+    via thresholds.json); they are not Tier-1-originated rules.
+
+    NOTE: display-only until the 2026-07-28 observe boundary -- not yet passed into
+    compute_l1_score. At the boundary it merges with margin into one combined
+    leverage/short-posture L1 sub-component (the report groups 融資融券/借券 as one
+    10%-of-L1 line). `lending_series` is most-recent-last daily 借券賣出餘額 values.
+    """
+    vals = [v for v in (lending_series or []) if v is not None]
+    if len(vals) < min_days:
+        return None                      # insufficient history / new-issue baseline-0
+    recent = vals[-window:]
+    base, cur = recent[0], recent[-1]
+    if base <= 0:
+        return None                      # baseline-0 distortion -> trend undefined
+    chg = (cur - base) / base            # short-balance trend over the window
+    raw = -max(-1.0, min(1.0, chg / full_scale))   # rising balance => bearish
+    pc = price_chg_pct or 0
+    if chg > 0 and pc < 0:
+        raw *= 0.5                       # shorts rising while price already falling = partly priced in
+    out = round(max(-1.0, min(1.0, raw)), 3)
+    return 0.0 if out == 0 else out      # normalise -0.0
+
+
 def compute_concentration(buyer_nets, seller_nets, total_volume):
     """4a: chip concentration % for one window.
 
