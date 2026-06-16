@@ -46,7 +46,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/data.json docs/tickers.json docs/raw/t86_market_prev.json processed/signal_log.csv
+          git add docs/data.json docs/tickers.json docs/raw/t86_market_prev.json docs/raw/taifex_oi_latest.json docs/raw/taifex_oi_series.json processed/signal_log.csv
           if git diff --cached --quiet; then
             echo "Nothing to commit"
             exit 0
