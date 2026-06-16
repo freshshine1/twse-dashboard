@@ -378,6 +378,10 @@ a { color: inherit; text-decoration: none; }
 .sum-breadth .b-up { color: var(--bull); } .sum-breadth .b-dn { color: var(--bear); }
 .sum-breadth .b-diverge { color: var(--bear); font-weight: 600; }
 .sum-breadth .b-diverge.b-bull { color: var(--bull); }
+.sum-futoi { font-family: var(--font); font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.sum-futoi .b-up { color: var(--bull); font-weight: 700; }
+.sum-futoi .b-dn { color: var(--bear); font-weight: 700; }
+.sum-futoi .foi-q { font-weight: 700; font-size: 11px; }
 /* Summary inst row (compact 2×2) */
 .sum-inst-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 6px; margin-bottom: 10px; }
 .sum-inst-card { background: var(--surface); border: 1px solid var(--border);
@@ -542,6 +546,7 @@ a { color: inherit; text-decoration: none; }
       <div class="sum-regime-label" id="sum-regime-label">L4 尚未更新</div>
       <div id="sum-regime-chips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
     </div>
+    <div class="sum-futoi" id="sum-futoi-row" style="display:none;"></div>
     <div class="sum-verdict flat" id="sum-verdict">今日研判中…</div>
   </div>
 
@@ -1675,6 +1680,35 @@ function renderSummary() {
         const cs = c.chg_pct >= 0 ? '+' : '−';
         return `<span class="chip ${impact >= 0 ? 'bull' : 'bear'}">${k} <span class="${ccls}">${cs}${Math.abs(c.chg_pct).toFixed(2)}%</span></span>`;
       }).join('');
+    }
+  }
+
+  // ── Ch.12.5: 外資台指期 (TX) 淨未平倉 — forward positioning (display-only) ──
+  const foiEl = document.getElementById('sum-futoi-row');
+  if (foiEl) {
+    const oi = m.futures_oi;
+    if (!oi || oi.tx_net_oi == null) {
+      foiEl.style.display = 'none'; foiEl.innerHTML = '';
+    } else {
+      const n = Number(oi.tx_net_oi);
+      const cls = n >= 0 ? 'b-up' : 'b-dn';
+      const sign = n >= 0 ? '+' : '−';
+      const arrow = oi.trend_5d_arrow || '→';
+      const young = (oi.series_len || 0) < 5 ? ' <span style="opacity:.55">(趨勢建置中)</span>' : '';
+      let note = '';
+      if (oi.divergence_note) {
+        const col = oi.divergence_kind === 'conviction' ? 'var(--bull)'
+                  : oi.divergence_kind === 'bear'       ? 'var(--bear)'
+                  : 'var(--muted)';
+        const w = (oi.divergence_kind === 'conviction' || oi.divergence_kind === 'bear') ? '600' : '400';
+        note = ` · <span style="color:${col};font-weight:${w}">${oi.divergence_note}</span>`;
+      }
+      const help = tt('<span class="foi-q">?</span>',
+        '外資台指期淨未平倉 (TX)',
+        '外資在「臺股期貨」大台的未平倉多空淨額（口數）。正=偏多、負=偏空。<br><br>L1／現貨看法人「今天做了什麼」；期貨淨未平倉看法人「對明天的部位押注」。<br><br>判讀：<br>• 現貨買超＋期貨偏空 → 避險，打折看待<br>• 現貨買超＋期貨建多 → 有信心<br>• 現貨賣超＋期貨偏空 → 一致偏空<br><br>僅大台(TX)，小／微台契約乘數不同不加總。來源：期交所(Tier-1)。<strong>僅供判讀，不進入 composite 或 confluence。</strong>');
+      foiEl.style.display = '';
+      foiEl.innerHTML = `外資期淨OI ${help} <span class="${cls}">${sign}${Math.abs(n).toLocaleString()}</span> 口 `
+        + `<span style="opacity:.6">${arrow} 5日</span>${young}${note}`;
     }
   }
 
