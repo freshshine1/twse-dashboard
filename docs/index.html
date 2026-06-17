@@ -102,15 +102,21 @@ a { color: inherit; text-decoration: none; }
 }
 .ticker-card:hover { border-color: var(--muted); }
 
-/* ── Stale-data overlay ────────────────────────────────────────────────────
-   When data.json is older than the latest expected ~19:00 run (e.g. a failed
-   daily run or a pre-T86 self-heal snapshot), the per-ticker lists get the
-   .is-stale class: the card greys to #E8E6E2 and its neutral chrome dims,
-   while the action call, price ▲▼ and ⚠ risk flags (.keep-bright) punch
-   through at full colour. Toggled by boardStale() in JS; display-only —
-   never touches scoring or the confluence gate. */
+/* ── Stale-data overlay (3-tier colour) ────────────────────────────────────
+   When data.json is older than the latest expected ~19:00 run, per-ticker
+   lists get .is-stale. The card greys to #E8E6E2, then colour returns in tiers:
+     • CONSTANTS (處置/注意 disposition, ⚠ churn) — true whether the data is
+       stale or not → FULL colour.
+     • DAY-VARYING (GO/SELL call, 買/賣 streak + signal, price ▲▼) — change
+       daily → PARTIAL colour (saturate .55): legible but reads "yesterday's".
+     • STRUCTURE (code, name, price number, MA/why text) — greyed.
+   PROMOTION: a card whose confluence gate is open (t.confluence → .supported)
+   is corroborated by >=2 independent layers, so its day-varying tier is pulled
+   forward to FULL colour. Toggled by boardStale(); display-only — never
+   touches scoring or the confluence gate. */
 .is-stale .ticker-card { position: relative; isolation: isolate;
   background: #E8E6E2; border-color: #dcd9d3; }
+/* structure — grey + dim */
 .is-stale .ticker-card .ticker-code,
 .is-stale .ticker-card .ticker-name,
 .is-stale .ticker-card .price-main,
@@ -118,16 +124,27 @@ a { color: inherit; text-decoration: none; }
 .is-stale .ticker-card .why-confirm,
 .is-stale .ticker-card .why-sep,
 .is-stale .ticker-card .why-flip,
-.is-stale .ticker-card .badge-signal,
-.is-stale .ticker-card .chip,
-.is-stale .ticker-card .l3-flag.soft,
 .is-stale .ticker-card .chip-detail { opacity: .72; }
-/* saturation layer — strips colour from the chrome underneath; markers at
-   z-index 2 (.keep-bright) sit above it and keep their colour. */
+/* desaturation layer — strips colour from everything not lifted above it */
 .is-stale .ticker-card::before { content: ""; position: absolute; inset: 0;
   border-radius: var(--radius); background: #7c7a74; mix-blend-mode: saturation;
   pointer-events: none; z-index: 1; }
-.is-stale .keep-bright { position: relative; z-index: 2; }
+/* TIER 1 — constants: full colour */
+.is-stale .ticker-card .l3-flag.hard,
+.is-stale .ticker-card .why-risk { position: relative; z-index: 2; }
+/* TIER 2 — day-varying: partial colour (55%) */
+.is-stale .ticker-card .badge-action,
+.is-stale .ticker-card .price-chg,
+.is-stale .ticker-card .chip.bull,
+.is-stale .ticker-card .chip.bear,
+.is-stale .ticker-card .badge-signal { position: relative; z-index: 2;
+  filter: saturate(.55); opacity: .92; }
+/* PROMOTION — confluence-supported card pulls its day-varying tier to full colour */
+.is-stale .ticker-card.supported .badge-action,
+.is-stale .ticker-card.supported .price-chg,
+.is-stale .ticker-card.supported .chip.bull,
+.is-stale .ticker-card.supported .chip.bear,
+.is-stale .ticker-card.supported .badge-signal { filter: none; opacity: 1; }
 @media (prefers-color-scheme: dark) {
   .is-stale .ticker-card { background: #23211c; border-color: #34302a; }
 }
@@ -828,7 +845,7 @@ function actionBadge(action) {
     'TRIM': 'act-trim', 'SELL': 'act-sell', 'EXCLUDE': 'act-sell',
   };
   const cls = map[action] || 'act-hold';
-  return `<span class="badge-action ${cls} keep-bright">${action}</span>`;
+  return `<span class="badge-action ${cls}">${action}</span>`;
 }
 
 // Per-card latest-news line (今日焦點). Self-hides when the entry has no attached news.
@@ -848,7 +865,7 @@ function l3Flag(ticker) {
   const esc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
   return row.flags.map(f => {
     const hard = f.type === 'attention' || f.type === 'disposition';
-    const cls  = hard ? 'l3-flag hard keep-bright' : 'l3-flag soft';
+    const cls  = hard ? 'l3-flag hard' : 'l3-flag soft';
     return `<span class="${cls}" title="${esc(f.type)}">${esc(f.label)}</span>`;
   }).join('');
 }
@@ -867,7 +884,7 @@ function whyLine(t) {
   if (driver)  parts.push(`<span class="why-driver">↪ ${esc(driver)}</span>`);
   if (confirm) parts.push(`<span class="why-confirm">${esc(confirm)}</span>`);
   let html = parts.join('<span class="why-sep">·</span>');
-  if (risk) html += `<span class="why-risk keep-bright">⚠ ${esc(risk)}</span>`;
+  if (risk) html += `<span class="why-risk">⚠ ${esc(risk)}</span>`;
   if (flip) html += `<span class="why-flip">${esc(flip)}</span>`;
   return `<div class="why-line">${html}</div>`;
 }
@@ -1020,7 +1037,7 @@ function tickerCard(t, isPortfolio) {
   const expandBtn = hasDetail ? `<span id="arrow-${key}" style="font-size:10px;color:var(--muted);margin-left:6px">▼</span>` : '';
 
   return `
-<div class="ticker-card">
+<div class="ticker-card ${t.confluence ? 'supported' : ''}">
   <div class="ticker-main" onclick="toggleCard('${key}')">
     <div class="ticker-left">
       <div class="ticker-top">
@@ -1034,7 +1051,7 @@ function tickerCard(t, isPortfolio) {
     </div>
     <div class="ticker-right">
       <div class="price-main">${priceStr}</div>
-      <div class="price-chg ${chgCls} keep-bright">${chgStr}</div>
+      <div class="price-chg ${chgCls}">${chgStr}</div>
     </div>
   </div>
   <div class="chip-detail ${OPEN[key] ? 'open' : ''}" id="detail-${key}">
