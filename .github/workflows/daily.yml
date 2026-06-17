@@ -46,9 +46,27 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/data.json docs/tickers.json docs/raw/t86_market_prev.json docs/raw/taifex_oi_latest.json docs/raw/taifex_oi_series.json processed/signal_log.csv processed/verdict_log.csv
+
+          # MANDATORY outputs — feeder.py writes these on every successful run.
+          # (If feeder errored before writing them, the "Run feeder" step above
+          # already failed red, so we never reach here.)
+          git add docs/data.json docs/tickers.json docs/raw/t86_market_prev.json processed/signal_log.csv
+
+          # OPTIONAL outputs — produced only when their upstream succeeds
+          # (taifex OI fetch+parse; verdict_log once seeded). Stage each only if it
+          # exists, so a missing optional file can NEVER abort the core commit.
+          # NOTE: use `if [ -f ]` not `[ -f ] && git add` — the latter returns
+          # non-zero on a missing file and trips Actions' `set -e`, failing the step.
+          for f in \
+            docs/raw/taifex_oi_latest.json \
+            docs/raw/taifex_oi_series.json \
+            processed/verdict_log.csv \
+          ; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+
           if git diff --cached --quiet; then
-            echo "Nothing to commit"
+            echo "::warning::Nothing staged — data.json unchanged this run"
             exit 0
           fi
           git commit -m "chore: daily data update $(date -u +'%Y-%m-%d %H:%M UTC')"
