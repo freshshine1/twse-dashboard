@@ -105,12 +105,12 @@ a { color: inherit; text-decoration: none; }
 /* ── Stale-data overlay ────────────────────────────────────────────────────
    When data.json is older than the latest expected ~19:00 run (e.g. a failed
    daily run or a pre-T86 self-heal snapshot), the per-ticker lists get the
-   .is-stale class: the card greys to #D8D5CF and its neutral chrome dims,
+   .is-stale class: the card greys to #E8E6E2 and its neutral chrome dims,
    while the action call, price ▲▼ and ⚠ risk flags (.keep-bright) punch
    through at full colour. Toggled by boardStale() in JS; display-only —
    never touches scoring or the confluence gate. */
 .is-stale .ticker-card { position: relative; isolation: isolate;
-  background: #D8D5CF; border-color: #cbc7c0; }
+  background: #E8E6E2; border-color: #dcd9d3; }
 .is-stale .ticker-card .ticker-code,
 .is-stale .ticker-card .ticker-name,
 .is-stale .ticker-card .price-main,
