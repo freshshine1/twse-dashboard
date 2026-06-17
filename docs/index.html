@@ -101,6 +101,36 @@ a { color: inherit; text-decoration: none; }
   transition: border-color .15s;
 }
 .ticker-card:hover { border-color: var(--muted); }
+
+/* ── Stale-data overlay ────────────────────────────────────────────────────
+   When data.json is older than the latest expected ~19:00 run (e.g. a failed
+   daily run or a pre-T86 self-heal snapshot), the per-ticker lists get the
+   .is-stale class: the card greys to #D8D5CF and its neutral chrome dims,
+   while the action call, price ▲▼ and ⚠ risk flags (.keep-bright) punch
+   through at full colour. Toggled by boardStale() in JS; display-only —
+   never touches scoring or the confluence gate. */
+.is-stale .ticker-card { position: relative; isolation: isolate;
+  background: #D8D5CF; border-color: #cbc7c0; }
+.is-stale .ticker-card .ticker-code,
+.is-stale .ticker-card .ticker-name,
+.is-stale .ticker-card .price-main,
+.is-stale .ticker-card .why-driver,
+.is-stale .ticker-card .why-confirm,
+.is-stale .ticker-card .why-sep,
+.is-stale .ticker-card .why-flip,
+.is-stale .ticker-card .badge-signal,
+.is-stale .ticker-card .chip,
+.is-stale .ticker-card .l3-flag.soft,
+.is-stale .ticker-card .chip-detail { opacity: .72; }
+/* saturation layer — strips colour from the chrome underneath; markers at
+   z-index 2 (.keep-bright) sit above it and keep their colour. */
+.is-stale .ticker-card::before { content: ""; position: absolute; inset: 0;
+  border-radius: var(--radius); background: #7c7a74; mix-blend-mode: saturation;
+  pointer-events: none; z-index: 1; }
+.is-stale .keep-bright { position: relative; z-index: 2; }
+@media (prefers-color-scheme: dark) {
+  .is-stale .ticker-card { background: #23211c; border-color: #34302a; }
+}
 .ticker-main {
   display: grid; grid-template-columns: 1fr auto;
   gap: 8px; padding: 12px 14px; cursor: pointer;
@@ -798,7 +828,7 @@ function actionBadge(action) {
     'TRIM': 'act-trim', 'SELL': 'act-sell', 'EXCLUDE': 'act-sell',
   };
   const cls = map[action] || 'act-hold';
-  return `<span class="badge-action ${cls}">${action}</span>`;
+  return `<span class="badge-action ${cls} keep-bright">${action}</span>`;
 }
 
 // Per-card latest-news line (今日焦點). Self-hides when the entry has no attached news.
@@ -818,7 +848,7 @@ function l3Flag(ticker) {
   const esc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
   return row.flags.map(f => {
     const hard = f.type === 'attention' || f.type === 'disposition';
-    const cls  = hard ? 'l3-flag hard' : 'l3-flag soft';
+    const cls  = hard ? 'l3-flag hard keep-bright' : 'l3-flag soft';
     return `<span class="${cls}" title="${esc(f.type)}">${esc(f.label)}</span>`;
   }).join('');
 }
@@ -837,7 +867,7 @@ function whyLine(t) {
   if (driver)  parts.push(`<span class="why-driver">↪ ${esc(driver)}</span>`);
   if (confirm) parts.push(`<span class="why-confirm">${esc(confirm)}</span>`);
   let html = parts.join('<span class="why-sep">·</span>');
-  if (risk) html += `<span class="why-risk">⚠ ${esc(risk)}</span>`;
+  if (risk) html += `<span class="why-risk keep-bright">⚠ ${esc(risk)}</span>`;
   if (flip) html += `<span class="why-flip">${esc(flip)}</span>`;
   return `<div class="why-line">${html}</div>`;
 }
@@ -945,6 +975,7 @@ function toggleCard(key) {
 function renderWatch() {
   if (!DATA) return;
   const list = document.getElementById('watch-list');
+  list.classList.toggle('is-stale', boardStale());
   const items = DATA.watchlist || [];
   if (items.length === 0) {
     list.innerHTML = '<div class="empty">No data yet.<br>Runs weekdays after 16:30 TPE.</div>';
@@ -1003,7 +1034,7 @@ function tickerCard(t, isPortfolio) {
     </div>
     <div class="ticker-right">
       <div class="price-main">${priceStr}</div>
-      <div class="price-chg ${chgCls}">${chgStr}</div>
+      <div class="price-chg ${chgCls} keep-bright">${chgStr}</div>
     </div>
   </div>
   <div class="chip-detail ${OPEN[key] ? 'open' : ''}" id="detail-${key}">
@@ -1293,6 +1324,7 @@ function renderPortfolio() {
   if (!DATA) return;
   const items = DATA.portfolio || [];
   const list  = document.getElementById('portfolio-list');
+  list.classList.toggle('is-stale', boardStale());
   if (items.length === 0) {
     list.innerHTML = '<div class="empty">No holdings found.<br>Add tickers to T1 Inventory sheet.</div>';
     return;
@@ -1357,6 +1389,7 @@ function switchTab(name) {
 // ── Master render ──
 function renderRadar() {
   const list = document.getElementById('radar-list');
+  if (list) list.classList.toggle('is-stale', boardStale());
   const hint = document.getElementById('radar-hint');
   if (!list) return;
   const items = (DATA && DATA.radar) ? DATA.radar : [];
@@ -1521,6 +1554,29 @@ function _bizDaysBetween(fromD, toD) {   // weekdays in (fromD, toD]
   }
   return n;
 }
+// ── Stale-board detector (wall-clock based) ──────────────────────────────
+// data.json is a COMPLETE daily snapshot only if it was written at/after the
+// ~18:30 TPE T86 publish, on a weekday whose 19:00 run has passed. A snapshot
+// stamped before 18:30 (e.g. a pre-T86 self-heal) did NOT ingest that day's
+// institutional flows, so we treat it as stale even when its date looks current
+// — that is the failure the health strip alone could not catch.
+// Caveat: TWSE holidays can produce a 1-day false "stale"; acceptable (errs safe).
+function boardStale() {
+  try {
+    const u = DATA && DATA.updated;            // "2026-06-16T00:20:35+08:00"
+    if (!u || u.length < 16) return false;     // no timestamp -> don't grey
+    const updDate = u.slice(0, 10);
+    const updMin  = parseInt(u.slice(11,13),10)*60 + parseInt(u.slice(14,16),10);
+    if (updMin < (18*60+30)) return true;      // incomplete / pre-T86 snapshot
+    const tpe = new Date(Date.now() + 8*3600000);   // UTC fields = TPE wall clock
+    const tpeMin = tpe.getUTCHours()*60 + tpe.getUTCMinutes();
+    let exp = new Date(Date.UTC(tpe.getUTCFullYear(), tpe.getUTCMonth(), tpe.getUTCDate()));
+    if (tpeMin < (19*60+30)) exp.setUTCDate(exp.getUTCDate()-1);   // today's run not yet due
+    while (exp.getUTCDay()===0 || exp.getUTCDay()===6) exp.setUTCDate(exp.getUTCDate()-1);
+    return updDate < exp.toISOString().slice(0,10);   // a full trading day behind
+  } catch (e) { return false; }
+}
+
 function renderHealthStrip() {
   const el = document.getElementById('sum-health');
   const warnEl = document.getElementById('sum-health-warn');
@@ -1545,6 +1601,7 @@ function renderHealthStrip() {
     } else {
       warns.push(name);
     }
+    if (name === 'data.json' && boardStale()) { cls = 'old'; mark = '⚠'; if (!warns.includes(name)) warns.push(name); }
     chips.push(`<span class="health-chip ${cls}">${name} ${mark} ${label}</span>`);
   }
   el.innerHTML = chips.join('');
