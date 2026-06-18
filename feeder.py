@@ -117,6 +117,15 @@ SESSION.headers.update({
 })
 REQUEST_DELAY = 1.0
 
+# TWSE OpenAPI snapshot (STOCK_DAY_ALL) is intermittently flaky — it can return a
+# 200 with an empty/non-JSON body for a few minutes (a server-side refresh window),
+# then recover on its own. This is most likely when the scheduled run drifts late
+# into TWSE's night hours. Retry deep enough to ride out a multi-minute blip inside
+# a single run before failing red. (Was 3 attempts / ~15s total, which lost to the
+# 2026-06-17 blip and stranded the board for a day.)
+SNAPSHOT_ATTEMPTS = 5
+SNAPSHOT_BACKOFF = [30, 60, 120, 240]  # seconds slept BETWEEN attempts; len == ATTEMPTS-1
+
 # 4a: concentration sub-score (BSR via feeder_concentration). Fail-safe by design --
 # compute_concentration_all() over an empty/missing docs/bsr returns {}, so every ticker
 # scores None and L1 == T86-only (compute_l1_score rescales by filled sub-weight). OFF by
@@ -204,7 +213,7 @@ def fetch_snapshot():
     twse_url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
     rows = None
     last_exc = None
-    for attempt in range(1, 4):
+    for attempt in range(1, SNAPSHOT_ATTEMPTS + 1):
         try:
             time.sleep(REQUEST_DELAY)
             r = SESSION.get(twse_url, timeout=30)
@@ -212,9 +221,9 @@ def fetch_snapshot():
             parsed = r.json()
         except Exception as exc:
             last_exc = exc
-            log.warning("TWSE snapshot attempt %d/3 failed: %s", attempt, exc)
-            if attempt < 3:
-                time.sleep(5 * attempt)
+            log.warning("TWSE snapshot attempt %d/%d failed: %s", attempt, SNAPSHOT_ATTEMPTS, exc)
+            if attempt < SNAPSHOT_ATTEMPTS:
+                time.sleep(SNAPSHOT_BACKOFF[attempt - 1])
             continue
         # Genuine holiday answer — do NOT retry, do NOT fail red.
         if isinstance(parsed, dict) and parsed.get("stat") == "No Data":
@@ -226,9 +235,9 @@ def fetch_snapshot():
             break
         # 200 but empty list / unexpected shape -> endpoint not ready, retry.
         last_exc = ValueError("empty or unexpected payload (%s)" % type(parsed).__name__)
-        log.warning("TWSE snapshot attempt %d/3: empty/unexpected payload, retrying", attempt)
-        if attempt < 3:
-            time.sleep(5 * attempt)
+        log.warning("TWSE snapshot attempt %d/%d: empty/unexpected payload, retrying", attempt, SNAPSHOT_ATTEMPTS)
+        if attempt < SNAPSHOT_ATTEMPTS:
+            time.sleep(SNAPSHOT_BACKOFF[attempt - 1])
 
     if rows is None:
         # All attempts failed to yield usable data. UPSTREAM error, not a holiday.
@@ -238,8 +247,8 @@ def fetch_snapshot():
             log.warning("TWSE snapshot unavailable on a weekend — treating as off-hours (green).")
             return None, [], set(), set()
         raise SnapshotFetchError(
-            "TWSE STOCK_DAY_ALL unusable after 3 attempts on a trading day "
-            "(last error: %s)" % last_exc
+            "TWSE STOCK_DAY_ALL unusable after %d attempts on a trading day "
+            "(last error: %s)" % (SNAPSHOT_ATTEMPTS, last_exc)
         )
 
     for row in rows:
