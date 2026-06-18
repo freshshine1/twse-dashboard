@@ -6,6 +6,10 @@
 > header, to know what is fresh. Major version (v2) tracks *structural* revisions; append-only notes
 > and status flips are minor. Git holds the full per-line history.
 >
+> - **2026-06-18** — Added **Chapter 13** (reliability & legibility, sessions 17–18): stale-board
+>   grey overlay (13.1), deepened TWSE snapshot retry 3→5 + exp backoff (13.2), off-`:00` primary +
+>   two gated self-heal backup crons (13.3, **supersedes Ch.7 timing**), Market-tab dynamic tooltips
+>   (13.4). All display/reliability-only — no scoring math, not observe-boundary-gated.
 > - **2026-06-12** — Added **Chapter 12** (decision-quality & legibility upgrades): signal
 >   attribution log (12.1, prerequisite for all future tuning), action why-line + distance-to-flip
 >   (12.2), data-health strip (12.3), market breadth leg (12.4), Taifex OI display chip (12.5),
@@ -310,6 +314,10 @@ Read-only columns: `Ticker | Bucket | Composite | L1..L5 | Action | Confluence? 
 |Score + write data.json|~19:00|`score.py`|
 
 Rate guard: ~1 req/sec, cache aggressively. **Whole-market T86 (`selectType=ALL`) is one call/day — cheap; only history fetches are expensive.** Store Google service-account creds as a GitHub **Secret**.
+
+> **Update (2026-06-18, Ch.13):** the single ~19:00 `:00` schedule above is **superseded** — the
+> primary now runs **19:13 TPE** (off `:00` to dodge top-of-hour contention) plus two gated self-heal
+> backup crons (23:37 / 02:43 TPE). See §13.3.
 
 -----
 
@@ -662,3 +670,83 @@ predictive — it makes it **measurable and inspectable**, which is the realisti
 5. **12.4 breadth (display)** → **12.5 Taifex chip (display)**.
 6. **12.6 confluence dots.**
 7. **12.8 recency decay** — code last, **commit at the 2026-07-28 boundary**.
+
+-----
+
+## Chapter 13 — Reliability & Legibility Hardening (sessions 17–18) — NEW (2026-06-18)
+
+Two consecutive stale-board days (6/16, 6/17) plus a backlog of un-documented display work prompted
+this chapter. Everything here is **reliability or display only**: no scoring math changes, nothing
+touches the composite / confluence gate / observe baseline, so none of it is observe-boundary-gated
+(unlike the VIX cap or §12.8). This chapter also discharges the §6 "state any divergence" debt for the
+session-17/18 changes, which shipped to the repo ahead of their guide entries.
+
+Tags: **[RELIABILITY]** = CI/fetch robustness · **[DISPLAY]** = dashboard surface, Ch.10 wall applies.
+
+### 13.1 [DISPLAY] Stale-board grey overlay (session 17)
+
+**Problem.** A failed or skipped run can leave `data.json` showing a prior trading day with no visible
+signal that the numbers are old — the session-7 silent-stale class, on the *display* side.
+
+**Build.** `boardStale()` in `index.html` flags the board stale on **wall-clock TPE time**, not on
+`data.json`'s own timestamp (aging a file against its own stamp can never flag the file itself — the
+health-strip blind spot). Stale = `data.json.updated` is before 18:30 TPE for the current trading day,
+or a full trading day behind. A stale board renders under a grey overlay. The `.supported` class (cards
+where `t.confluence === true`) snaps the day-varying tier back to full colour so confluence reads stay
+legible through the overlay.
+
+**Acceptance:** on a stale `data.json` the board greys and a confluence card stays full-colour. *(Fired
+correctly across the 6/16–6/17 stale days.)*
+
+### 13.2 [RELIABILITY] Deepened TWSE snapshot retry (session 18)
+
+**Root cause it fixes.** 6/17 run #61 hard-failed at `Run feeder`: TWSE `STOCK_DAY_ALL` returned an
+empty/non-JSON body (transient night-refresh blip); the old 3-attempt / ~23s retry exhausted and the
+feeder correctly exited **red** rather than overwrite `data.json` with nothing (session-7 guard working
+as designed).
+
+**Build.** Snapshot retry deepened **3→5 attempts**, backoff `SNAPSHOT_BACKOFF = [30, 60, 120, 240]`s
+(~7.5 min of knocking before failing red, vs ~23s). Rides out a multi-minute TWSE outage inside one run.
+Hard-fail-red on final exhaustion is unchanged — fail loudly, never silently green.
+
+> **Open follow-up:** the **TPEx** snapshot block (`feeder.py` ~L279) still uses the old 3-try loop. It
+> wasn't the failing path, so it was left out of scope — mirror the deep ladder there when convenient.
+
+### 13.3 [RELIABILITY] Off-`:00` primary + gated self-heal backups (session 18) — supersedes Ch.7 timing
+
+**Root cause.** Scheduled 19:00, runs consistently landed 21:57–23:48 TPE (3–5h late) — magnitude well
+beyond top-of-hour jitter, most likely **free-tier scheduled-job deprioritization**. Late landings drop
+the fetch into TWSE's flaky night-refresh window. There is **no quiet pre-market slot**: pre-market TPE
+(00:00–08:00) = 16:00–24:00 UTC = GitHub's US-busy hours. So the real fix is not on-time landing
+(unachievable on free tier) but a **gate + deep retry**.
+
+**Build (`daily.yml` + `selfheal_gate.py`):**
+- Primary cron `0 11` → **`13 11`** (19:13 TPE) — off `:00` to dodge top-of-hour contention.
+- Two **gated backup crons**: **`37 15`** (23:37 TPE, same evening) + **`43 18`** (02:43 TPE next
+  morning) — both drift-safe before the 09:00 open.
+- **Gate step** keys on `github.event.schedule`: primary cron + manual `workflow_dispatch` always
+  proceed; backup crons run feeder **only if `selfheal_gate.py` reports the board stale**, else no-op in
+  ~10s without touching `data.json` / `t86_market_prev`. Setup/install/feeder/commit all carry
+  `if: steps.gate.outputs.run == 'true'`.
+- `selfheal_gate.py` (repo root, stdlib-only) prints `run=true/false`; stale = board behind the latest
+  trading day, or a pre-18:30 snapshot for it. Holiday-safe: a false "run" just makes feeder no-op green
+  on `No Data`. 8/8 unit tests at build time.
+
+**Acceptance:** primary lands a complete post-18:30 snapshot; on a failed primary a backup cron fires,
+the gate reports stale, and the board self-heals before the open. *(First live test: the 6/18 primary.)*
+
+### 13.4 [DISPLAY] Market-tab dynamic tooltips (session 18)
+
+Hover tooltips on the Market tab with **dynamic current-vs-expected reads** — TAIEX, the four 三大法人
+cards, the L4 label, and the SOX/TSM/GSPC/VIX chips each interpret their *current* value against the
+§10.2 verdict / L4 tilt thresholds (e.g. the 合計 card ties today's net to the 5-day to flag a
+"counter-move, not a trend"). Plus a z-index fix (popups `9999`, above sticky nav and cards; the hovered
+host lifts via `:has()`). Thresholds here are **display heuristics** — same Ch.10 wall as the verdict;
+they never touch composite / confluence / scores.
+
+### 13.5 What Chapter 13 does NOT change
+
+No changes to: composite weights, the confluence gate, L1–L5 formulas, the observe baseline, the Sheet
+read path, or source tiering. §13.1/§13.4 sit behind the Ch.10 display wall; §13.2/§13.3 are CI
+robustness. The 2026-07-28 batched flip (VIX cap, `ENABLE_CONCENTRATION`, §12.8 recency decay) is
+untouched by this chapter.
