@@ -2,9 +2,19 @@ name: Daily TWSE fetch
 
 on:
   schedule:
-    # 19:00 Taiwan time = 11:00 UTC. Runs AFTER the institutional (T86) data
-    # publishes at ~18:00 TPE. (The old 16:30 TPE time ran too early.)
-    - cron: '0 11 * * 1-5'   # Mon-Fri
+    # All times Mon-Fri. Taiwan = UTC+8 (no DST).
+    # PRIMARY — 19:13 TPE (11:13 UTC). Runs AFTER T86 publishes (~18:00 TPE).
+    # Minute is OFF :00 deliberately: top-of-hour is GitHub's worst queue-contention
+    # slot, which was drifting this run 3-5h late into TWSE's flaky night window
+    # (root cause of the 2026-06-17 stale board).
+    - cron: '13 11 * * 1-5'
+    # BACKUP A — 23:37 TPE (15:37 UTC), same evening, ~1h after a drifted primary.
+    # SELF-HEAL: runs feeder ONLY if the primary left the board stale (selfheal_gate.py).
+    - cron: '37 15 * * 1-5'
+    # BACKUP B — 02:43 TPE next morning (18:43 UTC). Second self-heal shot, deep night
+    # when TWSE is healthiest. Early enough that even ~5h of drift still finishes well
+    # before the 09:00 TPE market open.
+    - cron: '43 18 * * 1-5'
   workflow_dispatch:          # allow manual trigger from the Actions tab
 
 permissions:
@@ -27,15 +37,37 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # Decide whether this run does anything. PRIMARY cron + manual dispatch always
+      # proceed. BACKUP crons proceed ONLY if the board is stale (primary failed) —
+      # otherwise they no-op in seconds, never touching data.json or t86_market_prev.
+      # selfheal_gate.py uses system python3 (stdlib only), so it runs before setup.
+      - name: Self-heal gate
+        id: gate
+        run: |
+          SCHED="${{ github.event.schedule }}"
+          case "$SCHED" in
+            "37 15 * * 1-5"|"43 18 * * 1-5")
+              echo "Backup trigger ($SCHED) — checking board staleness…"
+              python3 selfheal_gate.py >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "Primary/dispatch trigger ($SCHED) — proceeding unconditionally."
+              echo "run=true" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
       - name: Set up Python
+        if: steps.gate.outputs.run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
         run: pip install requests google-auth
 
       - name: Run feeder
+        if: steps.gate.outputs.run == 'true'
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           NEWS_SHEET_ID: ${{ secrets.NEWS_SHEET_ID }}
@@ -43,6 +75,7 @@ jobs:
         run: python feeder.py
 
       - name: Commit and push data.json + tickers.json
+        if: steps.gate.outputs.run == 'true'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
