@@ -400,6 +400,24 @@ a { color: inherit; text-decoration: none; }
 .tw .tp .tp-t { font-size: 12px; font-weight: 700; color: var(--text); display: block; margin-bottom: 4px; }
 .tw:hover .tp { display: block; }
 
+/* Popups always win. A tooltip is a transient hover overlay, so it must sit above
+   the sticky nav (z 100), sub-nav (z 90) and every card. The hovered host lifts
+   itself so a neighbouring card's stacking can never paint over its popup. */
+.tw .tp, .tw-b .tp { z-index: 9999; }
+.tw:hover, .tw-b:hover { z-index: 9999; }
+/* Block-level tooltip host — for cards/chips where an inline .tw won't fit. Reuses
+   the same .tp popup. */
+.tw-b { position: relative; cursor: help; }
+.tw-b:hover > .tp { display: block; }
+.inst-card, .regime-comp, .regime-card, .taiex-row { position: relative; }
+.inst-card:has(.tw:hover), .inst-card:has(.tw-b:hover),
+.regime-card:has(.tw:hover), .regime-card:has(.tw-b:hover) { z-index: 9999; }
+/* The dynamic "current reading" line, set apart from the static definition above it. */
+.tw .tp .tp-now, .tw-b .tp .tp-now {
+  display: block; margin-top: 6px; padding-top: 6px;
+  border-top: 1px dashed var(--border); color: var(--text); font-weight: 500;
+}
+
 /* ── Summary tab ── */
 .summary-section { padding: 14px 12px 4px; border-bottom: 1px solid var(--border); }
 .summary-section:last-child { border-bottom: none; }
@@ -634,28 +652,28 @@ a { color: inherit; text-decoration: none; }
 <div class="panel" id="panel-pulse">
   <div class="pulse-section">
     <div class="pulse-label">TAIEX</div>
-    <div class="taiex-row">
+    <div class="taiex-row" id="ic-taiex">
       <div class="taiex-val" id="p-taiex">—</div>
       <div class="taiex-chg" id="p-taiex-chg"></div>
     </div>
     <div class="pulse-label">三大法人 Institutional Flow · Today</div>
     <div class="inst-grid">
-      <div class="inst-card">
+      <div class="inst-card" id="ic-foreign">
         <div class="inst-card-label">外資 Foreign</div>
         <div class="inst-card-val" id="p-foreign">—</div>
         <div class="inst-card-prev" id="p-foreign-prev"></div>
       </div>
-      <div class="inst-card">
+      <div class="inst-card" id="ic-dealer">
         <div class="inst-card-label">自營商 Dealer</div>
         <div class="inst-card-val" id="p-dealer">—</div>
         <div class="inst-card-prev" id="p-dealer-prev"></div>
       </div>
-      <div class="inst-card">
+      <div class="inst-card" id="ic-trust">
         <div class="inst-card-label">投信 Trust</div>
         <div class="inst-card-val" id="p-trust">—</div>
         <div class="inst-card-prev" id="p-trust-prev"></div>
       </div>
-      <div class="inst-card">
+      <div class="inst-card" id="ic-total">
         <div class="inst-card-label">合計 Total</div>
         <div class="inst-card-val" id="p-total">—</div>
         <div class="inst-card-prev" id="p-5d">5d: —</div>
@@ -1174,6 +1192,96 @@ function statChip(label, val, cls='', customTip=null) {
   </div>`;
 }
 
+// ── Market-tab explanation tooltips (static "what it is" + dynamic "where it sits now") ──
+// DISPLAY HEURISTICS ONLY (Chapter 10 wall): every threshold below mirrors the 今日
+// verdict tally / L4 tilt bands. None of this feeds the composite or the confluence
+// gate — it only helps the human read the current number against expectation.
+
+// Static definitions: key -> [title, what-it-is].
+const MKT_TIP = {
+  taiex:  ['TAIEX 加權指數', 'The cap-weighted index of all TWSE-listed stocks. ~30% of it is TSMC alone, so the index can be green while most stocks fall — treat it as a backdrop, not breadth.'],
+  foreign:['外資 Foreign net (today)', 'Net buy − sell today by foreign + mainland institutions (外資及陸資). The dominant force in TWSE large-caps; multi-day net buying is the strongest large-cap signal.'],
+  trust:  ['投信 Trust net (today)', 'Net buy − sell today by local investment trusts (投信). The highest signal-to-noise actor — they must accumulate through disclosed net buys and favour mid/small-cap growth names.'],
+  dealer: ['自營商 Dealer net (today)', 'Net buy − sell today by proprietary dealers (自營商). The noisiest of the three — much of it is warrant-hedging, not conviction — so it is de-weighted in scoring.'],
+  total:  ['三大法人合計 (today)', 'Sum of all three institutional types today (外資+投信+自營商). A quick aggregate; the 5-day figure underneath matters more than any single day.'],
+  L4:     ['L4 美股海外 Regime', 'Last night\u2019s US/global move (SOX, TSM ADR, S&P 500, VIX) compressed into one market-wide tilt on a \u00B110 scale, applied equally to every stock. A tilt \u2264 \u22125 fires a VETO (no new GO entries that day).'],
+  SOX:    ['SOX 費城半導體指數', 'Philadelphia Semiconductor Index — overnight US semis. The tightest US lead for Taiwan tech (~0.4\u20130.5 correlation with TAIEX).'],
+  TSM:    ['TSM 台積電 ADR', 'TSMC\u2019s US-listed ADR overnight. Its gap usually transmits to 2330\u2019s next-morning open.'],
+  GSPC:   ['GSPC S&P 500', 'The broad US market. Historically ~87% same-direction hit-rate on TAIEX\u2019s next open — a backdrop tilt, a weaker lead than SOX for tech names.'],
+  VIX:    ['VIX 波動率指數', 'US volatility / fear gauge. A RISING VIX is bearish for equities, so its impact on the tilt is inverted.'],
+};
+
+// helpers
+function signedM(v) { return (v >= 0 ? '+' : '\u2212') + Math.abs(Math.round(v)).toLocaleString() + 'M'; }
+function prevCtx(v, pv) {
+  if (v == null || pv == null || pv === 0) return '';
+  if (Math.sign(v) !== Math.sign(pv)) return ` Flipped from ${signedM(pv)} the prior day.`;
+  const pp = (v - pv) / Math.abs(pv) * 100;
+  return ` ${pp >= 0 ? '+' : ''}${pp.toFixed(0)}% vs the prior day (${signedM(pv)}).`;
+}
+function flowLean(v, hi, lo) {
+  if (v == null) return 'no data yet';
+  if (v >= hi) return `above the +${hi.toLocaleString()}M we read as a clearly bullish day — strong net buying`;
+  if (v <= lo) return `below ${lo.toLocaleString()}M — clearly bearish, strong net selling`;
+  return `between the \u00B1${hi.toLocaleString()}M bands — neutral, no clear lean`;
+}
+
+// Attach a block-level tooltip to a card host (idempotent across re-renders).
+function mktTipBlock(hostId, title, staticBody, dynLine) {
+  const host = document.getElementById(hostId);
+  if (!host) return;
+  host.classList.add('tw-b');
+  const old = host.querySelector(':scope > .tp');
+  if (old) old.remove();
+  const tp = document.createElement('span');
+  tp.className = 'tp';
+  tp.innerHTML = `<span class="tp-t">${title}</span>${staticBody}`
+    + (dynLine ? `<span class="tp-now">\uD83D\uDCCD 目前：${dynLine}</span>` : '');
+  host.appendChild(tp);
+}
+
+// Build the inline .tp markup (for hosts already wrapped, e.g. the regime comp chips).
+function mktTipInner(title, staticBody, dynLine) {
+  return `<span class="tp"><span class="tp-t">${title}</span>${staticBody}`
+    + (dynLine ? `<span class="tp-now">\uD83D\uDCCD 目前：${dynLine}</span>` : '') + `</span>`;
+}
+
+// Called at the end of renderPulse — wires the TAIEX row + 4 institutional cards.
+function attachInstTips() {
+  const m = (DATA && DATA.market) || {};
+  // TAIEX
+  const tx = m.taiex_chg_pct;
+  const txDyn = tx == null ? 'no data yet'
+    : `${tx >= 0 ? '+' : ''}${tx.toFixed(2)}% — ${tx > 1 ? 'above +1%, a clearly strong day' : tx < -1 ? 'below \u22121%, a clearly weak day' : 'within \u00B11%, a muted session'}.`;
+  mktTipBlock('ic-taiex', MKT_TIP.taiex[0], MKT_TIP.taiex[1], txDyn);
+
+  // Foreign
+  mktTipBlock('ic-foreign', MKT_TIP.foreign[0], MKT_TIP.foreign[1],
+    m.foreign_net_m == null ? '' :
+    `${signedM(m.foreign_net_m)} — ${flowLean(m.foreign_net_m, 30000, -30000)}.${prevCtx(m.foreign_net_m, m.foreign_net_m_prev)}`);
+
+  // Trust
+  mktTipBlock('ic-trust', MKT_TIP.trust[0], MKT_TIP.trust[1],
+    m.trust_net_m == null ? '' :
+    `${signedM(m.trust_net_m)} — ${flowLean(m.trust_net_m, 3000, -3000)}.${prevCtx(m.trust_net_m, m.trust_net_m_prev)}`);
+
+  // Dealer (no clean band — sign + noise caveat)
+  mktTipBlock('ic-dealer', MKT_TIP.dealer[0], MKT_TIP.dealer[1],
+    m.dealer_net_m == null ? '' :
+    `${signedM(m.dealer_net_m)} (${m.dealer_net_m >= 0 ? 'net buying' : 'net selling'}). Read lightly — mostly warrant-hedging unless it agrees with 外資/投信.`);
+
+  // Total + 5-day foreign divergence (the genuinely useful contextual read)
+  const tot = m.three_inst_total_m, f5 = m.foreign_5d_cumul_m;
+  let totDyn = tot == null ? '' : `${signedM(tot)} net today.`;
+  if (tot != null && f5 != null) {
+    if (Math.sign(tot) !== Math.sign(f5))
+      totDyn += ` But 5-day foreign is ${signedM(f5)} — the week is still net ${f5 > 0 ? 'accumulation' : 'distribution'}, so today is a counter-move, not a trend yet.`;
+    else
+      totDyn += ` 5-day foreign (${signedM(f5)}) agrees — the move has follow-through.`;
+  }
+  mktTipBlock('ic-total', MKT_TIP.total[0], MKT_TIP.total[1], totDyn);
+}
+
 // ── Render Pulse ──
 function renderRegime() {
   if (!L4_DATA) return;
@@ -1198,8 +1306,26 @@ function renderRegime() {
             :                  'flat';
   card.setAttribute('data-dir', dir);
 
+  // L4 regime explainer (static + current reading), attached to the label.
+  let l4band;
+  if (d.regime_veto || tilt <= -5) l4band = 'a VETO — no new GO entries today';
+  else if (tilt >= 4) l4band = 'clearly bullish — breakout entries favoured';
+  else if (tilt >= 1) l4band = 'mildly bullish';
+  else if (tilt <= -2) l4band = 'bearish — cautious on new entries';
+  else l4band = 'neutral — no market-wide push either way';
+  const _cmp = d.components || {};
+  const _up = [], _dn = [];
+  ['SOX','TSM','GSPC','VIX'].forEach(k => {
+    const c = _cmp[k]; if (!c) return;
+    ((k === 'VIX' ? -c.chg_pct : c.chg_pct) >= 0 ? _up : _dn).push(k);
+  });
+  const _offset = (_up.length && _dn.length)
+    ? ` ${_up.join('/')} pull up, ${_dn.join('/')} pull down${_dn.includes('VIX') ? ' (a VIX spike caps the tilt)' : ''}.` : '';
+  const l4dyn = `${tilt >= 0 ? '+' : '\u2212'}${Math.abs(tilt).toFixed(2)} \u2192 ${d.label || 'n/a'}: we look for \u2265 +4 to favour breakouts or \u2264 \u22124 to defer buys, so this is ${l4band}.${_offset}`;
+  const l4body = MKT_TIP.L4[1] + `<span class="tp-now">\uD83D\uDCCD 目前：${l4dyn}</span>`;
+
   const vetoTag = d.regime_veto ? '<span class="regime-veto-tag">REGIME VETO</span>' : '';
-  labEl.innerHTML = (d.label || '') + vetoTag;
+  labEl.innerHTML = tt(d.label || '', MKT_TIP.L4[0], l4body) + vetoTag;
 
   // Format asof as TPE local datetime + US session date
   const asof = new Date(d.asof);
@@ -1233,10 +1359,18 @@ function renderRegime() {
     // sign/number stays accurate; only the color is inverted for VIX.
     const impact = k === 'VIX' ? -c.chg_pct : c.chg_pct;
     const ccls   = impact >= 0 ? 'pos' : 'neg';
-    const csign  = c.chg_pct >= 0 ? '+' : '−';
-    return `<div class="regime-comp">
+    const pct    = c.chg_pct;
+    const csign  = pct >= 0 ? '+' : '\u2212';
+    const ap     = Math.abs(pct).toFixed(2);
+    let dyn;
+    if (k === 'SOX')       dyn = `${csign}${ap}% overnight — ${pct >= 0 ? 'supportive for TW semis (2330/2454\u2026)' : 'a drag on TW tech'}.`;
+    else if (k === 'TSM')  dyn = `${csign}${ap}% — 2330\u2019s open usually tracks this; ${pct >= 0 ? 'up = demand spillover into the open' : 'down = soft open likely'}.`;
+    else if (k === 'GSPC') dyn = `${csign}${ap}% — broad US backdrop, ${pct >= 0 ? 'mildly supportive' : 'a mild drag'}; weaker lead than SOX.`;
+    else                   dyn = `${csign}${ap}% — fear ${pct >= 0 ? 'rising' : 'falling'}. Inverted impact: ${pct >= 0 ? 'a spike caps the bullish tilt even when semis are green' : 'easing lets semi strength show through'}.`;
+    return `<div class="regime-comp tw-b">
       <div class="regime-comp-label">${k}</div>
-      <div class="regime-comp-val ${ccls}">${csign}${Math.abs(c.chg_pct).toFixed(2)}%</div>
+      <div class="regime-comp-val ${ccls}">${csign}${ap}%</div>
+      ${mktTipInner(MKT_TIP[k][0], MKT_TIP[k][1], dyn)}
     </div>`;
   }).join('');
 }
@@ -1334,6 +1468,8 @@ function renderPulse() {
       p5d.innerHTML = `5d: <span class="${cls5}">${sg5}${fmt(Math.abs(f5d), 0)}M</span>`;
     }
   }
+
+  attachInstTips();
 }
 
 // ── Render Portfolio ──
@@ -2008,7 +2144,7 @@ loadData();
 
 // ── Tooltip boundary fix: reposition if clipped by viewport edge ──
 document.addEventListener('mouseover', function(e) {
-  const wrap = e.target.closest('.tw');
+  const wrap = e.target.closest('.tw, .tw-b');
   if (!wrap) return;
   const tp = wrap.querySelector('.tp');
   if (!tp || tp.style.display === 'none') return;
