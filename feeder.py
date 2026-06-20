@@ -440,7 +440,21 @@ def sma(closes, n):
 def compute_technicals(history, snapshot_close):
     closes = [r["close"] for r in history if r["close"] is not None]
     if not closes:
-        return {}
+        # No price history loaded for this ticker (partial history-fetch miss). A
+        # snapshot price may still exist, but no MA / trend / RSI can be computed, so
+        # route through the SAME stale path as the >25% mismatch case: null the metrics
+        # and flag stale=True. This fires the per-ticker grey overlay so a blank L2
+        # reads as "no data", not a neutral signal. L2 is None either way (already
+        # NO-GO), so this changes display only, never the GO/SELL outcome.
+        return {
+            "ma5": None, "ma20": None, "ma60": None,
+            "vol_ratio": None,
+            "high_52w": None, "low_52w": None,
+            "pct_from_52w_high": None,
+            "trend": "STALE",
+            "rsi14": None,
+            "stale": True,
+        }
     ma5 = sma(closes, 5)
     ma20 = sma(closes, 20)
     ma60 = sma(closes, 60)
@@ -1257,16 +1271,46 @@ def fetch_taifex_oi(spot_foreign_m=None):
     `spot_foreign_m` is today's whole-market 外資 spot net (NT$ millions) used only
     for the spot-vs-futures divergence note."""
     try:
-        r = SESSION.get(TAIFEX_OI_URL, timeout=20)
-        r.encoding = "big5"
-        rdate, parsed = _parse_taifex_oi(r.text)
+        # TAIFEX web pages (not the OpenAPI) can serve an empty/error body to
+        # non-browser UAs. The feeder's global UA works for TWSE but is the likely
+        # reason this chip never filled in CI, so send a browser-like UA + Referer for
+        # this request only (the global SESSION UA is untouched).
+        r = SESSION.get(
+            TAIFEX_OI_URL,
+            timeout=20,
+            headers={
+                "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                               "AppleWebKit/537.36 (KHTML, like Gecko) "
+                               "Chrome/124.0 Safari/537.36"),
+                "Referer": "https://www.taifex.com.tw/cht/3/futContractsDate",
+                "Accept-Language": "zh-TW,zh;q=0.9",
+            },
+        )
+        r.encoding = "cp950"   # TAIFEX is Big5/cp950; cp950 is the safe superset
+        html = r.text
     except Exception as exc:
-        log.warning("taifex OI fetch/parse failed (non-fatal): %s", exc)
+        log.warning("taifex OI fetch failed (non-fatal): %s", exc)
+        return None
+
+    # Diagnostic breadcrumbs: on the next CI run these pinpoint the failure branch
+    # (HTTP status / empty body / UA-blocked page / encoding / row-shape change) so a
+    # silent unfilled chip can never again land with no cause in the Actions log.
+    kw = "臺股期貨" in html          # 臺股期貨 present in decoded body?
+    n_tr = len(_OI_TR_RE.findall(html))
+    log.info("taifex OI: http=%s bytes=%d kw=%s tr_rows=%d",
+             getattr(r, "status_code", "?"), len(html), kw, n_tr)
+
+    try:
+        rdate, parsed = _parse_taifex_oi(html)
+    except Exception as exc:
+        log.warning("taifex OI parse failed (non-fatal): %s", exc)
         return None
     tx = parsed.get("臺股期貨", {})
     tx_net = tx.get("外資")
     if tx_net is None:
-        log.warning("taifex OI: 臺股期貨 外資 net OI not found -> chip unfilled")
+        log.warning(
+            "taifex OI: 臺股期貨 外資 net OI not found -> chip unfilled "
+            "(kw=%s tr_rows=%d products=%s)", kw, n_tr, list(parsed.keys()))
         return None
 
     rec = {
