@@ -273,21 +273,25 @@ def fetch_snapshot():
         raw_rows.append(row)
     log.info("TWSE snapshot: %d tickers", len(twse_codes))
 
-    # TPEx
+    # TPEx — mirror the deep TWSE retry (SNAPSHOT_ATTEMPTS / SNAPSHOT_BACKOFF) so a
+    # multi-minute TPEx blip inside a single run is ridden out instead of stranding
+    # TPEx tickers for the day (was 3 attempts / ~15s total). TPEx failure stays
+    # NON-FATAL: TWSE already owns the fail-red path, so a TPEx miss just logs and
+    # continues — TPEx tickers get no price/history for the run rather than a red exit.
     tpex_url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes"
     tpex_rows = None
-    for attempt in range(1, 4):
+    for attempt in range(1, SNAPSHOT_ATTEMPTS + 1):
         try:
             time.sleep(REQUEST_DELAY)
             r = SESSION.get(tpex_url, timeout=60)
             r.raise_for_status()
             tpex_rows = r.json()
-            log.info("TPEx snapshot fetched on attempt %d", attempt)
+            log.info("TPEx snapshot fetched on attempt %d/%d", attempt, SNAPSHOT_ATTEMPTS)
             break
         except Exception as exc:
-            log.warning("TPEx snapshot attempt %d failed: %s", attempt, exc)
-            if attempt < 3:
-                time.sleep(5 * attempt)
+            log.warning("TPEx snapshot attempt %d/%d failed: %s", attempt, SNAPSHOT_ATTEMPTS, exc)
+            if attempt < SNAPSHOT_ATTEMPTS:
+                time.sleep(SNAPSHOT_BACKOFF[attempt - 1])
 
     if tpex_rows is None:
         log.warning("TPEx snapshot failed ÃÂ¢ÃÂÃÂ TPEx tickers will have no price/history")
