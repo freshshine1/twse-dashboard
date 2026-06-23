@@ -38,3 +38,4 @@ date,ticker,bucket,action,composite,l1,l2,l3,l4,l5,confluence_n,near_miss,gate_f
 2026-06-23,5274,watchlist,NO-GO,65.2,,,0.0,1.0,,1,1,L1+L2,,,,
 2026-06-23,00830,watchlist,NO-GO,33.1,0.1,0.35,0.0,1.0,,1,1,L1+L2,97.0,,,
 2026-06-23,8027,watchlist,NO-GO,65.2,,,0.0,1.0,,1,1,L1+L2,,,,
+2026-06-23,2359,watchlist,NO-GO,36.6,0.1,0.8,0.0,0.17,,1,1,L1,136.5,,,
