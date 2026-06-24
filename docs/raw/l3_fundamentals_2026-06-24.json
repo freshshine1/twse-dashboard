@@ -1,0 +1,16 @@
+{
+  "asof": "2026-06-24T12:46:54+08:00",
+  "source": "TWSE OpenAPI + main-site fallbacks",
+  "thresholds": {
+    "revenue_yoy_pct": -10.0
+  },
+  "counts": {
+    "attention": 0,
+    "disposition": 0,
+    "revenue_decline": 0,
+    "flagged_total": 0
+  },
+  "by_ticker": {},
+  "stale": true,
+  "stale_reason": "fetch returned 0 flagged tickers across all sources (likely endpoint failure); kept previous l3_fundamentals_latest.json"
+}
