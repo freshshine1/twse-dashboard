@@ -198,6 +198,21 @@ class SnapshotFetchError(RuntimeError):
     sys.exit(0) that left a stale data.json looking fine."""
 
 
+def _roc_to_western(s):
+    """STOCK_DAY_ALL / TPEx Date is ROC compact (e.g. '1150622' = 2026-06-22).
+    Returns 'YYYYMMDD', or None if unparseable. Used only to OBSERVE/log whether
+    the price snapshot lags the T86 session (the 2026-06-22 Fri-prices/Mon-chips
+    failure); no freshness gate yet -- instrumentation only."""
+    s = (s or "").strip().replace("/", "")
+    if len(s) < 6:
+        return None
+    dd, mm, roc = s[-2:], s[-4:-2], s[:-4]
+    try:
+        return f"{int(roc)+1911:04d}{int(mm):02d}{int(dd):02d}"
+    except Exception:
+        return None
+
+
 def fetch_snapshot():
     snap = {}
     raw_rows = []
@@ -228,7 +243,7 @@ def fetch_snapshot():
         # Genuine holiday answer — do NOT retry, do NOT fail red.
         if isinstance(parsed, dict) and parsed.get("stat") == "No Data":
             log.info("TWSE Snapshot: No Data (genuine holiday / off-hours) — exiting green.")
-            return None, [], set(), set()
+            return None, [], set(), set(), None, None
         # Good payload.
         if isinstance(parsed, list) and parsed:
             rows = parsed
@@ -245,7 +260,7 @@ def fetch_snapshot():
         # treat as off-hours and exit green.
         if datetime.now(TZ).weekday() >= 5:
             log.warning("TWSE snapshot unavailable on a weekend — treating as off-hours (green).")
-            return None, [], set(), set()
+            return None, [], set(), set(), None, None
         raise SnapshotFetchError(
             "TWSE STOCK_DAY_ALL unusable after %d attempts on a trading day "
             "(last error: %s)" % (SNAPSHOT_ATTEMPTS, last_exc)
@@ -273,6 +288,17 @@ def fetch_snapshot():
         raw_rows.append(row)
     log.info("TWSE snapshot: %d tickers", len(twse_codes))
 
+    # Freshness stamp (observe-only): every STOCK_DAY_ALL row carries the session
+    # Date (ROC compact). Read it once so main() can LOG whether prices lag the
+    # T86 session they'd be scored against (the 2026-06-22 failure). No gate yet.
+    snap_date_dd = None
+    for _r in rows:
+        _d = _roc_to_western(_r.get("Date"))
+        if _d:
+            snap_date_dd = _d
+            break
+    log.info("TWSE snapshot session date: %s", snap_date_dd)
+
     # TPEx — mirror the deep TWSE retry (SNAPSHOT_ATTEMPTS / SNAPSHOT_BACKOFF) so a
     # multi-minute TPEx blip inside a single run is ridden out instead of stranding
     # TPEx tickers for the day (was 3 attempts / ~15s total). TPEx failure stays
@@ -293,6 +319,7 @@ def fetch_snapshot():
             if attempt < SNAPSHOT_ATTEMPTS:
                 time.sleep(SNAPSHOT_BACKOFF[attempt - 1])
 
+    tpex_snap_date_dd = None
     if tpex_rows is None:
         log.warning("TPEx snapshot failed ÃÂ¢ÃÂÃÂ TPEx tickers will have no price/history")
     else:
@@ -317,9 +344,15 @@ def fetch_snapshot():
             tpex_codes.add(code)
             raw_rows.append({"Code": code, "Name": row.get("CompanyName", "").strip()})
         log.info("TPEx snapshot: %d tickers", len(tpex_codes))
+        for _r in tpex_rows:
+            _d = _roc_to_western(_r.get("Date"))
+            if _d:
+                tpex_snap_date_dd = _d
+                break
+        log.info("TPEx snapshot session date: %s", tpex_snap_date_dd)
 
     log.info("Combined snapshot: %d tickers total", len(snap))
-    return snap, raw_rows, twse_codes, tpex_codes
+    return snap, raw_rows, twse_codes, tpex_codes, snap_date_dd, tpex_snap_date_dd
 
 def build_tickers_json(raw_rows):
     tickers = []
@@ -1387,7 +1420,7 @@ def main():
     log.info("=== feeder start %s ===", now_iso())
 
     # 1. Snapshots (TWSE + TPEx)
-    snapshot, raw_rows, twse_codes, tpex_codes = _fetch_snapshot_or_exit()
+    snapshot, raw_rows, twse_codes, tpex_codes, snap_date_dd, tpex_snap_date_dd = _fetch_snapshot_or_exit()
     if snapshot is None:
         log.info("No market data today ÃÂ¢ÃÂÃÂ exiting without overwriting data.json")
         sys.exit(0)
@@ -1743,6 +1776,19 @@ def main():
     _t86_dd = inst_market.get("data_date") or ""
     _t86_iso = (f"{_t86_dd[:4]}-{_t86_dd[4:6]}-{_t86_dd[6:8]}"
                 if len(_t86_dd) == 8 else None)
+    # OBSERVE-ONLY (no gate): record price-snapshot dates vs the T86 session so a
+    # few days of CI logs reveal exactly when STOCK_DAY_ALL / TPEx roll relative to
+    # each cron slot -- the data needed to decide the cron/price-source fix before
+    # any red-exit freshness gate is wired. A LAG warning here is informational only.
+    _lag_twse = bool(snap_date_dd and len(_t86_dd) == 8 and snap_date_dd < _t86_dd)
+    _lag_tpex = bool(tpex_snap_date_dd and len(_t86_dd) == 8 and tpex_snap_date_dd < _t86_dd)
+    log.info("freshness observe: t86=%s twse_snap=%s tpex_snap=%s lag_twse=%s lag_tpex=%s",
+             _t86_dd, snap_date_dd, tpex_snap_date_dd, _lag_twse, _lag_tpex)
+    if _lag_twse or _lag_tpex:
+        log.warning("freshness observe: price snapshot LAGS T86 session "
+                    "(twse %s / tpex %s < t86 %s) -- prices a session behind; "
+                    "no gate yet, board still published.",
+                    snap_date_dd, tpex_snap_date_dd, _t86_dd)
     # Chapter 12.7: grade the 今日研判 verdict. Append today's verdict + TAIEX
     # direction to processed/verdict_log.csv and surface the rolling hit-rate.
     # Mirrors the index.html heuristic; display-only, never feeds the composite
