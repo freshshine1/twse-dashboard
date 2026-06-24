@@ -383,7 +383,7 @@ a { color: inherit; text-decoration: none; }
 /* ── Tooltip system ── */
 .tw { position: relative; display: inline; cursor: help;
   border-bottom: 1.5px dashed currentColor; opacity: 0.9; }
-.tw .tp {
+.tw .tp, .tw-b .tp {
   display: none; position: absolute; bottom: calc(100% + 7px); left: 50%;
   transform: translateX(-50%); max-width: 260px; background: var(--surface);
   border: 1px solid var(--border); border-radius: 10px;
@@ -392,12 +392,12 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.55; pointer-events: none; white-space: normal;
   box-shadow: 0 3px 12px rgba(0,0,0,0.13);
 }
-.tw .tp::after {
+.tw .tp::after, .tw-b .tp::after {
   content: ''; position: absolute; top: 100%; left: 50%;
   transform: translateX(-50%); border: 6px solid transparent;
   border-top-color: var(--border);
 }
-.tw .tp .tp-t { font-size: 12px; font-weight: 700; color: var(--text); display: block; margin-bottom: 4px; }
+.tw .tp .tp-t, .tw-b .tp .tp-t { font-size: 12px; font-weight: 700; color: var(--text); display: block; margin-bottom: 4px; }
 .tw:hover .tp { display: block; }
 
 /* Popups always win. A tooltip is a transient hover overlay, so it must sit above
