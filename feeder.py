@@ -1323,7 +1323,13 @@ def fetch_taifex_oi(spot_foreign_m=None):
                 "Accept-Language": "zh-TW,zh;q=0.9",
             },
         )
-        r.encoding = "cp950"   # TAIFEX is Big5/cp950; cp950 is the safe superset
+        # TAIFEX switched this page to UTF-8 (verified live 2026-06-24: the page's
+        # own <meta charset> is UTF-8, and the Chinese anchors 臺股期貨/外資 decode
+        # ONLY under UTF-8). The old cp950/Big5 force-decode mangled every Chinese
+        # anchor, so _parse_taifex_oi matched nothing and the chip silently never
+        # filled — the real cause of the empty futures_oi, not a UA block. requests
+        # does not auto-detect this reliably here, so set it explicitly.
+        r.encoding = "utf-8"
         html = r.text
     except Exception as exc:
         log.warning("taifex OI fetch failed (non-fatal): %s", exc)
