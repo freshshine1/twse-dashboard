@@ -213,6 +213,35 @@ def _roc_to_western(s):
         return None
 
 
+def _verify_freshness_flags(portfolio, watchlist, market, t86_dd, snap_dd, tpex_dd):
+    """Guard-on-the-guard (#3a). Independently RE-DERIVE price_stale for every row
+    and assert it matches what was written, plus the holding count. A mismatch means
+    the freshness flagger itself broke (or a row was mutated after annotation) -- fail
+    LOUD (red exit) rather than publish a board whose freshness flags silently lie.
+    Pure display-layer invariant; never touches scores or the confluence gate."""
+    def _expect(exch):
+        psd = snap_dd if exch == "TWSE" else (tpex_dd if exch == "TPEx" else None)
+        return bool(psd and len(t86_dd) == 8 and psd < t86_dd), psd
+    problems = []
+    for row in list(portfolio) + list(watchlist):
+        exp_stale, exp_psd = _expect(row.get("exchange"))
+        if row.get("price_stale") != exp_stale:
+            problems.append("%s price_stale=%s exp=%s" % (row.get("ticker"), row.get("price_stale"), exp_stale))
+        if row.get("price_session") != exp_psd:
+            problems.append("%s price_session=%s exp=%s" % (row.get("ticker"), row.get("price_session"), exp_psd))
+    exp_count = sum(1 for row in portfolio if _expect(row.get("exchange"))[0])
+    if market.get("price_stale_count") != exp_count:
+        problems.append("price_stale_count=%s exp=%s" % (market.get("price_stale_count"), exp_count))
+    if "t86_session" not in market:
+        problems.append("market.t86_session missing")
+    if problems:
+        log.error("ABORT (red exit 1): freshness-flag self-check FAILED -- flags inconsistent, "
+                  "data.json NOT written: %s", "; ".join(problems[:8]))
+        sys.exit(1)
+    log.info("freshness-flag self-check OK (%d rows checked, %d holdings price_stale)",
+             len(portfolio) + len(watchlist), exp_count)
+
+
 def fetch_snapshot():
     snap = {}
     raw_rows = []
@@ -1795,6 +1824,31 @@ def main():
                     "(twse %s / tpex %s < t86 %s) -- prices a session behind; "
                     "no gate yet, board still published.",
                     snap_date_dd, tpex_snap_date_dd, _t86_dd)
+
+    # ---- #2 Per-holding price-freshness flag (display-only; NOT a scoring input) ----
+    # The observe block above only LOGS the lag. This writes it into the board so the
+    # human AND the self-heal gate see a "looks-fresh-but-isn't" board without reading
+    # CI logs. Keyed per exchange: mixed-date boards are real (TPEx can carry today's
+    # close while TWSE STOCK_DAY_ALL still lags a session). A row is price_stale when
+    # its snapshot session is STRICTLY older than the T86 session it's scored against
+    # (strict < leaves the legit "T86 fell back to yesterday" path untouched).
+    def _ps_session(_exch):
+        if _exch == "TWSE":
+            return snap_date_dd
+        if _exch == "TPEx":
+            return tpex_snap_date_dd
+        return None  # 興櫃 / unknown: no STOCK_DAY_ALL snapshot
+    for _row in portfolio + watchlist:
+        _psd = _ps_session(_row.get("exchange"))
+        _row["price_session"] = _psd
+        _row["price_stale"] = bool(_psd and len(_t86_dd) == 8 and _psd < _t86_dd)
+    market["t86_session"] = _t86_dd or None
+    market["price_stale_count"] = sum(1 for _row in portfolio if _row.get("price_stale"))
+    market["price_stale_watch_count"] = sum(1 for _row in watchlist if _row.get("price_stale"))
+    log.info("price-freshness flags: %d/%d holdings + %d watchlist on prior-session prices "
+             "(t86=%s twse_snap=%s tpex_snap=%s)",
+             market["price_stale_count"], len(portfolio), market["price_stale_watch_count"],
+             _t86_dd, snap_date_dd, tpex_snap_date_dd)
     # Chapter 12.7: grade the 今日研判 verdict. Append today's verdict + TAIEX
     # direction to processed/verdict_log.csv and surface the rolling hit-rate.
     # Mirrors the index.html heuristic; display-only, never feeds the composite
@@ -1826,6 +1880,7 @@ def main():
         "news":      {"recent": news_recent[:60], "by_ticker": news_by_ticker, "by_sector": news_by_sector},
         "analysis":  analysis,
     }
+    _verify_freshness_flags(portfolio, watchlist, market, _t86_dd, snap_date_dd, tpex_snap_date_dd)
     with open("docs/data.json", "w", encoding="utf-8") as f:
         json.dump(data_out, f, ensure_ascii=False, indent=2)
     log.info(
