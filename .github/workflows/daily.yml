@@ -46,9 +46,13 @@ jobs:
         run: |
           SCHED="${{ github.event.schedule }}"
           case "$SCHED" in
-            "37 15 * * 1-5"|"43 18 * * 1-5")
-              echo "Backup trigger ($SCHED) — checking board staleness…"
+            "37 15 * * 1-5")
+              echo "Backup A 23:37 ($SCHED) — timestamp staleness only (feed not yet rolled)…"
               python3 selfheal_gate.py >> "$GITHUB_OUTPUT"
+              ;;
+            "43 18 * * 1-5")
+              echo "Backup B 02:43 ($SCHED) — timestamp + price-snapshot staleness…"
+              python3 selfheal_gate.py --price-aware >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo "Primary/dispatch trigger ($SCHED) — proceeding unconditionally."
@@ -73,6 +77,14 @@ jobs:
           NEWS_SHEET_ID: ${{ secrets.NEWS_SHEET_ID }}
           ENABLE_MARGIN: "1"
         run: python feeder.py
+
+      # #3b Double-check: independent of feeder's own self-check. Confirms the run
+      # actually refreshed the board and the freshness metric is present. Fails LOUD
+      # before commit, so a no-op-but-green run can never push a stale board. stdlib
+      # only, so it runs on whatever python is on PATH after setup.
+      - name: Verify board freshness
+        if: steps.gate.outputs.run == 'true'
+        run: python3 verify_board.py
 
       - name: Commit and push data.json + tickers.json
         if: steps.gate.outputs.run == 'true'
