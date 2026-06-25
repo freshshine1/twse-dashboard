@@ -49,7 +49,7 @@ def latest_trading_day(now):
     return prev_weekday(now.date())
 
 
-def evaluate(now):
+def evaluate(now, price_aware=False):
     ltd = latest_trading_day(now)
     try:
         with open(DATA_PATH, encoding="utf-8") as fh:
@@ -64,17 +64,28 @@ def evaluate(now):
         return True, "board %s is behind latest trading day %s" % (board_date, ltd), ltd
     if board_date == ltd and board_time < COMPLETE_AFTER:
         return True, "board %s is a pre-%s snapshot (%s)" % (board_date, COMPLETE_AFTER, board_time), ltd
+    # Price-aware self-heal (#1): the timestamp says current, but STOCK_DAY_ALL can lag
+    # a session while T86 is fresh -> a board that is timestamp-current yet carries
+    # prior-session PRICES. feeder.py writes market.price_stale_count for exactly this.
+    # Only the 02:43 backup passes --price-aware (deep night, best chance the feed has
+    # rolled). Re-running never hurts: worst case it re-writes the same, still-flagged
+    # board; best case it recovers fresh prices for free.
+    if price_aware:
+        psc = data.get("market", {}).get("price_stale_count", 0) or 0
+        if psc:
+            return True, "board %s %s timestamp-current but %d holding(s) on prior-session prices" % (board_date, board_time, psc), ltd
     return False, "board %s %s is current" % (board_date, board_time), ltd
 
 
 def main():
+    price_aware = "--price-aware" in sys.argv[1:]
     now = datetime.datetime.now(TPE)
-    stale, reason, ltd = evaluate(now)
+    stale, reason, ltd = evaluate(now, price_aware=price_aware)
     # Decision to stdout (for GITHUB_OUTPUT); rationale to stderr (for the log).
     print("run=%s" % ("true" if stale else "false"))
     sys.stderr.write(
-        "[selfheal_gate] now=%s TPE  latest_trading_day=%s  %s  ->  run=%s\n"
-        % (now.strftime("%Y-%m-%d %H:%M"), ltd, reason, "true" if stale else "false")
+        "[selfheal_gate] now=%s TPE  latest_trading_day=%s  price_aware=%s  %s  ->  run=%s\n"
+        % (now.strftime("%Y-%m-%d %H:%M"), ltd, price_aware, reason, "true" if stale else "false")
     )
 
 
