@@ -6,6 +6,13 @@
 > header, to know what is fresh. Major version (v2) tracks *structural* revisions; append-only notes
 > and status flips are minor. Git holds the full per-line history.
 >
+> - **2026-06-25** — Added **Chapter 14** (price-snapshot freshness hardening, session 19):
+>   root-caused `STOCK_DAY_ALL` lagging a full trading session (Tue prices on a Wed board, reported
+>   green — the silent-stale class on the *price* axis that §13.1/§13.3 timestamp checks miss). TAIFEX
+>   OI UTF-8 fix (14.1), block-host tooltip base box (14.2), observe-only price-snapshot date logging
+>   (14.3), per-holding `price_stale` flag + in-feeder self-check + price-aware 02:43 self-heal gate +
+>   `verify_board.py` post-run check (14.4, **extends §13.3 past its timestamp-only blind spot**). Open:
+>   the cron/price-source decision (14.5). All display/reliability — no scoring math, freeze intact.
 > - **2026-06-18** — Added **Chapter 13** (reliability & legibility, sessions 17–18): stale-board
 >   grey overlay (13.1), deepened TWSE snapshot retry 3→5 + exp backoff (13.2), off-`:00` primary +
 >   two gated self-heal backup crons (13.3, **supersedes Ch.7 timing**), Market-tab dynamic tooltips
@@ -750,3 +757,85 @@ No changes to: composite weights, the confluence gate, L1–L5 formulas, the obs
 read path, or source tiering. §13.1/§13.4 sit behind the Ch.10 display wall; §13.2/§13.3 are CI
 robustness. The 2026-07-28 batched flip (VIX cap, `ENABLE_CONCENTRATION`, §12.8 recency decay) is
 untouched by this chapter.
+
+-----
+
+## Chapter 14 — Price-Snapshot Freshness Hardening (session 19) — NEW (2026-06-25)
+
+The §13.1 grey overlay and §13.3 self-heal gate both define "stale" on the board's **timestamp** (is
+`data.json.updated` from the latest trading day, after 18:30?). Session 19 found a class they both miss:
+a board that is timestamp-current but whose **prices are a session behind**. Root cause — the per-stock
+price source (`STOCK_DAY_ALL`) lags a full trading session: day-D's close is not on the feed at any cron
+slot we run on day D (verified live — at 21:53 TPE the feed still served D-1; D's close only appeared the
+next morning). So the primary writes **current T86 chips on prior-session prices**, the timestamp looks
+fresh, and every existing check passes green. The §13.x `stale` flag is a *corruption/blank* detector (no
+history, or >25% scale mismatch); a one-session lag is a ~1% price gap that sails straight through it.
+
+This is the silent-stale class on the **price** axis — §13.1/§13.3 closed only the *timestamp* axis.
+
+### 14.1 [RELIABILITY] TAIFEX OI — UTF-8 decode (`futures_oi` was silently empty)
+
+`fetch_taifex_oi` force-set `r.encoding = "cp950"`. TAIFEX moved `futContractsDate` to **UTF-8** (page
+`<meta charset>` = UTF-8; the anchors 臺股期貨/外資 decode only under UTF-8). The Big5 decode mangled
+every anchor, so `_parse_taifex_oi` matched nothing and the 今日 OI chip never filled — **not** a UA block
+(the prior suspicion). Fix: `cp950` → `utf-8`; validated live (臺股期貨 外資 net OI parsed). Row shapes
+unchanged (15-cell header / 13-cell continuation, `nums[10]`). `daily.yml` already stages the OI raw files
+conditionally — no workflow change. *(First production fill: the 6/24 21:33 run.)*
+
+### 14.2 [DISPLAY] Tooltip base box → `.tw-b` block hosts (follow-on to §13.4)
+
+§13.4's tooltip base styling lived only on `.tw .tp` (inline hosts). The block-level hosts (`.tw-b`:
+institutional cards, regime-comp chips) got only z-index + hover→display, never the base box or
+`position:absolute` — so their popups were unstyled in-flow spans the card clipped (`?` cursor, no popup).
+Extended three selectors (`.tw .tp` / `::after` / `.tp-t`) to also match `.tw-b .tp`. CSS-only.
+
+### 14.3 [RELIABILITY] Price-snapshot freshness instrument (observe-only)
+
+`feeder.py` reads the session `Date` (ROC compact, e.g. `1150624`) that both `STOCK_DAY_ALL` (TWSE) and
+`tpex_mainboard_daily_close_quotes` (TPEx) carry — both verified to expose it — via `_roc_to_western()`,
+and logs `freshness observe: t86=… twse_snap=… tpex_snap=… lag_*=…` at the write point, plus a LAG warning
+when a snapshot is **strictly older** than the T86 session (strict `<` leaves the legit "T86 fell back to
+yesterday" path alone). Observe-only: no gate, board still publishes. Purpose: log the feed roll-time at
+every cron slot so §14.5 has data. (Snap dates threaded through `fetch_snapshot`'s return + `main()` unpack.)
+
+### 14.4 [RELIABILITY] Per-holding `price_stale` flag + self-check + price-aware gate + post-run verify
+
+Four layers, all keyed off the §14.3 dates. The board is genuinely **mixed-date** (TPEx publishes day-D's
+close by evening; TWSE lags a session), so freshness is **per-holding by exchange**, never board-wide.
+
+- **`price_stale` / `price_session` per row** (`feeder.py`): `price_session = snap_date_dd` (TWSE) /
+  `tpex_snap_date_dd` (TPEx) / `None` (興櫃); `price_stale = price_session < t86_session`. Plus
+  `market.price_stale_count` (holdings), `market.price_stale_watch_count`, `market.t86_session`. Display
+  field — never feeds composite/confluence (Ch.10 wall). Distinct from the §13.x `stale` (blank/no-data) flag.
+- **In-feeder self-check** (`_verify_freshness_flags`): independently re-derives every row's `price_stale`
+  and the count before the write; **red-exits** on any inconsistency — a board whose freshness flags
+  silently lie is worse than a red exit.
+- **Price-aware self-heal gate** (`selfheal_gate.py --price-aware` + `daily.yml`): the 02:43 backup now
+  reads the prior board's `price_stale_count` and re-runs when the board is timestamp-current but
+  price-stale — a free fresh-price recovery if the feed rolled by 02:43, a harmless re-write if not. The
+  23:37 backup stays timestamp-only (feed not yet rolled). **Extends §13.3** past its timestamp-only gate.
+  No-ops safely when the metric is absent (`.get(...,0)`), so its commit order is unconstrained.
+- **Post-run verify** (`verify_board.py`, new repo-root stdlib script; `daily.yml` step before commit,
+  gated `run==true`): fails LOUD if `data.json.updated` isn't from this run (no-op-masquerading-as-green)
+  or the freshness metric is missing; emits a `::warning::` when `price_stale_count > 0` so a stale board
+  shouts on the Actions summary. Independent of the in-feeder self-check.
+
+14/14 unit tests at build (flagging, self-check catch, gate truth table, verify fail-loud). All four files
+verified byte-identical live post-commit. *(First live test: the 6/25 19:13 primary + 02:43 backup.)*
+
+### 14.5 [OPEN] The `STOCK_DAY_ALL` full-session-lag decision (carried "1b")
+
+§14.3/§14.4 make the lag **visible and self-healing-where-possible**; they do not make day-D prices appear
+on day D. The structural fix is still owed — one of: (a) a post-roll D+1 morning cron; (b) a faster
+same-day TWSE price source (per-stock `STOCK_DAY` last row, or MIS intraday close) for the curated
+universe, keeping `STOCK_DAY_ALL` for the broad scan only; or (c) accept aligned T-1 pricing (prices and
+T86 both one session back, consistent). The §14.3 logs (feed `Date` at 19:13 / 23:37 / 02:43) are
+accumulating the roll-time needed to choose; the 02:43 price-aware gate may partly self-solve (a) if the
+roll is pre-dawn. Decide once a few sessions of roll-time logs are in.
+
+### 14.6 What Chapter 14 does NOT change
+
+No composite weights, confluence gate, L1–L5 formulas, observe baseline, or source tiering. §14.1/14.2 are
+fixes; §14.3/14.4 are CI/display reliability behind the Ch.10 wall; §14.4's `price_stale` is display-only
+and never scored. The 2026-07-28 batched flip (VIX cap, `ENABLE_CONCENTRATION`, §12.8 recency decay) is
+untouched.
