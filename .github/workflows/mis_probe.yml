@@ -1,0 +1,26 @@
+name: MIS reachability probe
+
+# THROWAWAY diagnostic. Manual trigger only (no schedule). Proves whether the
+# GitHub Actions runner can reach TWSE MIS. Delete this workflow + mis_probe.py
+# once we've read the result.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install requests
+        run: pip install requests
+
+      - name: Probe MIS
+        run: python mis_probe.py
