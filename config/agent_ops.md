@@ -82,5 +82,13 @@
   deprioritization, not jitter. An odd-minute cron (e.g. `:13`) dodges top-of-hour contention; the real
   safety for a dropped run is a **gated self-heal backup cron + deep fetch retry**, not on-time landing.
 
+## Log date integrity (added 2026-07-02, Ch.15)
+
+- **Session-date stamping rule:** any persisted row keyed by date (verdict_log, signal_log, any
+  future ledger) MUST be stamped with the trading-session date taken from the data itself
+  (`t86_session` / `_t86_iso`), NEVER wall-clock `datetime.now()`. A backup run recovering last
+  night's board after midnight otherwise logs under the wrong date, and date-keyed dedupe then
+  silently drops the real next-day row. Third occurrence of this bug class — standing rule.
+
 ---
 *Referenced from every handoff. Update this file when a new tooling gotcha costs more than a few calls.*
