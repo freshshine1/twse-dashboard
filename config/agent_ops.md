@@ -74,6 +74,13 @@
 - **`git add` atomic-abort (session 17):** a single `git add` over multiple paths aborts the *whole*
   command if any one path is missing, silently dropping the commit. Optional/conditional outputs must
   be added behind a guard — `if [ -f "$f" ]; then git add "$f"; fi` — never in a bare multi-path `git add`.
+- **Chrome MCP session pairing & tabs:** the extension being installed and permitted is NOT
+  enough — every chat session must (1) pair a browser and (2) have an MCP tab group. A
+  "No tab available" error is a missing tab group, not a permission failure: call
+  `tabs_context_mcp{createIfEmpty:true}` (or `tabs_create_mcp`) to create a new tab on the
+  connected computer, then navigate. Pairing: `list_connected_browsers` →
+  `select_browser(deviceId)`; the broadcast `switch_browser` only works with >1 connected
+  browser — with a single browser, select it directly.
 - **Chrome `javascript_tool`:** requires an explicit `tabId`; **no top-level `await`** — use Promise
   chains, stash results to a `window._var`, and read back scalars on a later call. Live same-origin TWSE
   fetch works (navigate to `openapi.twse.com.tw` first, then `fetch` from that origin).
