@@ -6,6 +6,14 @@
 > header, to know what is fresh. Major version (v2) tracks *structural* revisions; append-only notes
 > and status flips are minor. Git holds the full per-line history.
 >
+> - **2026-07-02** — Added **Chapter 15** (log date integrity, session 21): root-caused the
+>   backup-recovery date-cascade — bookkeeping rows stamped by *wall-clock* date meant an
+>   after-midnight self-heal logged the prior session under the next day's date, and the
+>   date-keyed dedupe then silently **dropped the real next-day rows** (verdict 6/30 lost, signal
+>   3131 ADD lost, 6/29 & 7/1 mislabeled, Sat 6/27 dup). Fix: stamp `update_verdict_log` /
+>   `update_signal_log` with the **T86 session date** (`_t86_iso`), never wall-clock; one-time
+>   CSV repairs reconstructed from per-commit history. Also shipped §14.4's display half: amber
+>   per-card 前日價 pill + Summary-tab stale-price banner. Display/bookkeeping only — freeze intact.
 > - **2026-06-25** — Added **Chapter 14** (price-snapshot freshness hardening, session 19):
 >   root-caused `STOCK_DAY_ALL` lagging a full trading session (Tue prices on a Wed board, reported
 >   green — the silent-stale class on the *price* axis that §13.1/§13.3 timestamp checks miss). TAIFEX
@@ -823,6 +831,12 @@ close by evening; TWSE lags a session), so freshness is **per-holding by exchang
 14/14 unit tests at build (flagging, self-check catch, gate truth table, verify fail-loud). All four files
 verified byte-identical live post-commit. *(First live test: the 6/25 19:13 primary + 02:43 backup.)*
 
+> **Status 2026-07-02:** the human-visible half shipped — `index.html` now renders an amber
+> `前日價 M/D` pill (`pxStalePill`, from `price_stale`/`price_session`) on affected cards and a
+> Summary-tab banner from `market.price_stale_count` / `price_stale_watch_count`. Amber deliberately
+> distinct from the grey `.is-stale` board-wide wash (grey = whole board old; amber = board current,
+> price axis honestly one session back).
+
 ### 14.5 [OPEN] The `STOCK_DAY_ALL` full-session-lag decision (carried "1b")
 
 §14.3/§14.4 make the lag **visible and self-healing-where-possible**; they do not make day-D prices appear
@@ -839,3 +853,56 @@ No composite weights, confluence gate, L1–L5 formulas, observe baseline, or so
 fixes; §14.3/14.4 are CI/display reliability behind the Ch.10 wall; §14.4's `price_stale` is display-only
 and never scored. The 2026-07-28 batched flip (VIX cap, `ENABLE_CONCENTRATION`, §12.8 recency decay) is
 untouched.
+
+-----
+
+## Chapter 15 — Log Date Integrity (session 21) — NEW (2026-07-02)
+
+The self-heal architecture (§13.3) worked exactly as designed this week — the primary failed on
+6/29 and 7/1 and the backups recovered both boards before the next open, zero board-days lost —
+and in doing so exposed a latent bug in the Ch.12 bookkeeping that only fires on the recovery path.
+
+### 15.1 The incident — wall-clock stamping + date-keyed dedupe = silent row loss
+
+`update_verdict_log` (§12.7) and `update_signal_log` (§12.1) stamped rows with
+`datetime.now(TZ).date()`. While the primary ran the same evening as the session, wall-clock date
+== session date and nothing was visible. When a backup recovers a board **after midnight**, the
+prior session's rows get stamped with the *next day's* date — and because both logs dedupe on
+`date` (verdict) / `(date, ticker)` (signal), the mislabeled row **occupies the next day's slot**,
+so when the real next-day run appends, its row is treated as a duplicate and **silently dropped**.
+The cascade is self-perpetuating: every after-midnight recovery steals a slot and destroys a row.
+
+Confirmed damage (reconstructed from per-commit `data.json` / CSV history, atom feed + raw@sha):
+verdict row labeled 6/30 was session **6/29**; the real 6/30 verdict (+3 小多, TAIEX +2.50) was
+dropped; row labeled 7/2 was session **7/1**; Sat 6/27 carried a duplicate of 6/26. Signal log:
+same relabels, plus two dropped real-6/30 rows — including a **fired `3131 T1 ADD`** — recovered
+from commit `dde5e591`'s board via `build_signal_log_row` semantics. Five Sat-6/27 rows (the
+price-aware backup *re-scoring* session 6/26 with fresher prices) were deleted rather than merged:
+the logs record what the system emitted **at decision time**, not later recomputes.
+
+### 15.2 The fix — stamp by trading session, never wall-clock
+
+Both bookkeeping calls in `feeder.py` now pass `_t86_iso` (the T86 session date, already computed
+for the Ch.14 freshness flags) with wall-clock as fallback only if T86 parsing failed:
+
+    _t86_iso or datetime.now(TZ).date().isoformat()
+
+This also makes the dedupe *correct* instead of destructive: a backup re-run of the same session
+now collides with the session's existing rows (blocked, as intended) instead of the next day's.
+One-time repaired `processed/verdict_log.csv` (9 rows) and `processed/signal_log.csv` (64 rows)
+committed alongside; no forward-return cells were touched, so §12.1 backfill refills them
+idempotently.
+
+### 15.3 House rule (promoted to `config/agent_ops.md`)
+
+**Any persisted row keyed by date must be stamped with the trading-session date taken from the
+data itself (`t86_session` / `_t86_iso`), never wall-clock.** Third occurrence of this bug class
+(Sat verdict dup, Sat signal dup, the 6/29→7/2 cascade); it has earned a standing rule.
+
+### 15.4 What Chapter 15 does NOT change
+
+No composite weights, confluence gate, L1–L5 formulas, observe baseline, or source tiering.
+Bookkeeping/date semantics only; the verdict/signal logs remain display-and-review-only behind the
+Ch.10 wall. The 2026-07-28 batched flip is untouched. Note for the 7/28 review: hit-rate
+`graded_n` resets meaningfully only from the repaired log forward — treat pre-repair pairings
+with suspicion.
