@@ -569,6 +569,13 @@ a { color: inherit; text-decoration: none; }
   background: var(--bear-bg); }
 .health-warn { font-family: var(--font); font-size: 10px; color: var(--bear);
   margin: -6px 0 12px; }
+/* Ch.14 price-freshness surface: amber = honest prior-session price.
+   Deliberately DISTINCT from the grey .is-stale board-wide wash. */
+.px-stale-pill { display:inline-block; margin-top:2px; padding:1px 6px;
+  font-size:10px; font-weight:600; border-radius:8px;
+  color:#8a5a00; background:#fdf3dd; border:1px solid #eeddb3; }
+.px-stale-banner { margin:6px 0 2px; padding:6px 10px; font-size:12px;
+  color:#8a5a00; background:#fdf3dd; border:1px solid #eeddb3; border-radius:8px; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -597,6 +604,7 @@ a { color: inherit; text-decoration: none; }
   <div class="sum-datestrip" id="sum-datestrip"></div>
   <div class="health-strip" id="sum-health"></div>
   <div class="health-warn" id="sum-health-warn"></div>
+  <div class="px-stale-banner" id="sum-px-stale" style="display:none"></div>
 
   <div class="summary-section">
     <div class="summary-section-label">MARKET PULSE</div>
@@ -1024,6 +1032,15 @@ function renderWatch() {
     : '<div class="empty">No tickers match the selected action.</div>';
 }
 
+// Ch.14: amber "prior-session price" pill. price_session is "YYYYMMDD".
+// Shown ONLY when feeder flagged price_stale (STOCK_DAY_ALL lagged the T86 session).
+function pxStalePill(t) {
+  if (!t || !t.price_stale) return '';
+  const s = String(t.price_session || '');
+  const md = s.length === 8 ? `${parseInt(s.slice(4,6))}/${parseInt(s.slice(6,8))}` : '';
+  return `<div class="px-stale-pill">前日價${md ? ' ' + md : ''}</div>`;
+}
+
 function tickerCard(t, isPortfolio) {
   const chgPct = t.chg_pct ?? t.chgPct;
   const chgCls = (chgPct > 0) ? 'pos' : (chgPct < 0) ? 'neg' : 'flat';
@@ -1070,6 +1087,7 @@ function tickerCard(t, isPortfolio) {
     <div class="ticker-right">
       <div class="price-main">${priceStr}</div>
       <div class="price-chg ${chgCls}">${chgStr}</div>
+      ${pxStalePill(t)}
     </div>
   </div>
   <div class="chip-detail ${OPEN[key] ? 'open' : ''}" id="detail-${key}">
@@ -1765,6 +1783,23 @@ function renderHealthStrip() {
     } else {
       warnEl.textContent = '';
       warnEl.style.display = 'none';
+    }
+  }
+  // Ch.14: honest prior-session-price banner (market.price_stale_count /
+  // price_stale_watch_count from feeder). Amber = flagged, not hidden.
+  const pxEl = document.getElementById('sum-px-stale');
+  if (pxEl) {
+    const mm = (DATA && DATA.market) || {};
+    const pc = mm.price_stale_count || 0, wc = mm.price_stale_watch_count || 0;
+    if (pc || wc) {
+      const parts = [];
+      if (pc) parts.push(`持股 ${pc} 檔`);
+      if (wc) parts.push(`Watch ${wc} 檔`);
+      pxEl.textContent = `🕒 ${parts.join('、')}為前一交易日收盤價 — TWSE 價量檔尚未更新，分數依舊價計算`;
+      pxEl.style.display = '';
+    } else {
+      pxEl.textContent = '';
+      pxEl.style.display = 'none';
     }
   }
 }
