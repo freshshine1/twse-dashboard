@@ -1855,9 +1855,13 @@ def main():
     # or the confluence gate (same wall as ARK Ch.9 / the Ch.10 verdict).
     _verdict = compute_verdict(market, l4_regime.get("tilt_raw"),
                                l4_regime.get("veto"))
+    # Stamp with the TRADING-SESSION date (_t86_iso), NOT wall-clock: a backup run
+    # recovering last night's board after midnight must log under the session it
+    # belongs to, or it steals the next day's date slot and the dedupe then drops
+    # the real next-day row (the 6/27 Saturday-dup + 6/29->6/30 mislabel cascade).
     _vhit = update_verdict_log(
         _verdict, market.get("taiex_chg_pct"),
-        datetime.now(TZ).date().isoformat(),
+        _t86_iso or datetime.now(TZ).date().isoformat(),
     )
     market["verdict"] = _verdict
     market["verdict_hit"] = _vhit
@@ -1891,10 +1895,11 @@ def main():
     # Chapter 12.1: append today's fired actions + near-misses to the signal
     # attribution log and backfill forward returns. Display/bookkeeping only --
     # it never feeds a score or the confluence gate. Non-fatal on error.
+    # Session-date stamped for the same reason as update_verdict_log above.
     update_signal_log(
         portfolio + watchlist,
         history_cache,
-        datetime.now(TZ).date().isoformat(),
+        _t86_iso or datetime.now(TZ).date().isoformat(),
     )
 
     # P0: persist today's market trust snapshot for next run's fresh-streak gate (§8.3)
