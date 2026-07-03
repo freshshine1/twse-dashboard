@@ -1,0 +1,72 @@
+name: Intraday MIS fetch
+
+on:
+  schedule:
+    # Every 5 min, 01:00-05:55 UTC = 09:00-13:55 TPE, Mon-Fri.
+    # feeder_intraday.py itself no-ops (exit green, no write) outside 09:00-13:30 TPE
+    # and on MIS-confirmed holidays, so the tail runs past 13:30 are harmless no-ops.
+    # NOTE: 5-min scheduled crons drift on the free tier like everything else —
+    # expect effective latency of ~5-15 min, which is fine for a display-only tab.
+    - cron: '*/5 1-5 * * 1-5'
+  workflow_dispatch:            # manual trigger for market-hours testing
+
+permissions:
+  contents: write               # push to the data branch
+
+# Own concurrency group, deliberately NOT the shared twse-dashboard-write group:
+# this workflow pushes ONLY to the un-served `data` branch, never to main, so it
+# cannot race daily.yml / us_overnight / l3 pushes. cancel-in-progress=false makes
+# overlapping 5-min ticks queue rather than kill an in-flight push.
+concurrency:
+  group: twse-intraday
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8          # a hung MIS call must not pile up queued 5-min runs
+
+    steps:
+      # Checks out MAIN: brings feeder_intraday.py + docs/data.json (the ticker
+      # universe). intraday.json is written into the workspace on this checkout.
+      - name: Checkout repo (main)
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      # Exit codes are load-bearing (fail-loud convention):
+      #   0 + intraday.json written  = market-hours success
+      #   0 + no file                = outside hours / weekend / MIS-confirmed holiday
+      #   1                          = trading-day failure during market hours -> RED
+      - name: Run intraday feeder
+        run: python feeder_intraday.py
+
+      # Branch-switch dance. intraday.json is untracked on main but IS tracked on
+      # the data branch from the second run onward — a plain `git checkout data`
+      # would then refuse to overwrite the untracked local file. Carrying it
+      # through /tmp sidesteps that entirely (the handoff's anticipated fragility).
+      - name: Push to data branch
+        run: |
+          if [ ! -f intraday.json ]; then
+            echo "No intraday.json produced (outside hours / holiday) — nothing to push."
+            exit 0
+          fi
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          mv intraday.json /tmp/intraday.json
+          git fetch origin data
+          git checkout -B data FETCH_HEAD
+          mv /tmp/intraday.json intraday.json
+          if [ -f intraday.json ]; then git add intraday.json; fi
+          if git diff --cached --quiet; then
+            echo "intraday.json unchanged — no commit."
+            exit 0
+          fi
+          git commit -m "intraday $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push origin data:data
