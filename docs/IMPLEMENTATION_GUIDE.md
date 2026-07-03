@@ -6,6 +6,12 @@
 > header, to know what is fresh. Major version (v2) tracks *structural* revisions; append-only notes
 > and status flips are minor. Git holds the full per-line history.
 >
+> - **2026-07-03** — Added **Chapter 16** (Intraday cross-reference tab, session 22): new
+>   display-only 盤中 tab reading live MIS quotes for the board universe via a 5-min cron
+>   (`feeder_intraday.py` + `intraday.yml`) pushing to the un-served `data` branch (Pages
+>   build-throttle rationale). Live price / 量比 / 掛單 imbalance / 距MA20 cross-referenced
+>   against the frozen board; 0050-red regime gate renders ADD-side actions `VOID (下跌盤)`.
+>   Ch.10 wall throughout — never scores, never gates. Freeze intact.
 > - **2026-07-02** — Added **Chapter 15** (log date integrity, session 21): root-caused the
 >   backup-recovery date-cascade — bookkeeping rows stamped by *wall-clock* date meant an
 >   after-midnight self-heal logged the prior session under the next day's date, and the
@@ -906,3 +912,86 @@ Bookkeeping/date semantics only; the verdict/signal logs remain display-and-revi
 Ch.10 wall. The 2026-07-28 batched flip is untouched. Note for the 7/28 review: hit-rate
 `graded_n` resets meaningfully only from the repaired log forward — treat pre-repair pairings
 with suspicion.
+
+-----
+
+## Chapter 16 — Intraday Cross-Reference Tab (session 22) — NEW (2026-07-03)
+
+A new 盤中 dashboard tab showing **live intraday pressure for the board universe (T1 + T2),
+cross-referenced against last night's frozen board**. Same family as the Ch.10 verdict and the
+Ch.9 ARK rules: **display-only, never scores, never gates, walled off from the composite.**
+Everything here is fully outside the 2026-07-28 freeze.
+
+### 16.1 Data path — MIS via a separate `data` branch
+
+```
+docs/data.json (last night's board, main)          ← universe source, always tracks the board
+  → feeder_intraday.py (NEW leaf module, repo root; touches nothing else)
+  → ONE batched MIS GET  https://mis.twse.com.tw/stock/api/getStockInfo.jsp
+      ex_ch = tse_XXXX.tw|otc_XXXX.tw…  (prefix keyed off each row's `exchange` field)
+  → intraday.json  → pushed to the `data` branch (intraday.yml, */5 cron 09:00–13:5x TPE)
+  → 盤中 tab reads raw.githubusercontent.com/…/data/intraday.json (60 s poll while visible)
+```
+
+**Why a separate branch:** GitHub Pages rebuilds the site on every push to the served branch and
+throttles ~10 builds/hr; 12 pushes/hr of intraday data would starve the real board's builds. The
+`data` branch is never served — the tab reads it raw. The board's daily.yml cadence is untouched.
+
+**Session-20 probe facts baked into the module:** bare GET, no session/headers; `rtcode 0000` =
+success; both TSE and OTC resolve in one call; MIS limit ≈ 3 req / 5 s so the whole universe goes
+in a single request. Fields: `z` last, `y` prev close, `v` cumulative 張, `a/f` ask price/size ×5,
+`b/g` bid price/size ×5 (underscore-delimited).
+
+### 16.2 Parse guards & semantics (all mandatory, all unit-tested offline)
+
+- `z` can be `-` (no trade yet / limit) → `last = None`, no chg%. Book levels can be `-`/empty
+  (seen live on otc_6488's top ask) → dropped cell-wise; **never assume 5 clean levels**.
+- `book_imbalance = (Σbid − Σask)/(Σbid + Σask)` sizes only, None when the book is empty.
+- **量比 unit fix:** the board's `vol_today` is in **shares**; MIS `v` is in **張** — the module
+  divides by 1,000. (`rel_vol = cum_v / (vol_today/1000)`, v1 label "vs 昨日全日量"; the
+  same-time-yesterday refinement is deferred, not blocking.)
+- **Session stamping follows the Ch.15 house rule:** the `session` field comes from the data
+  itself (MIS per-item trade date `d`), wall-clock only as fallback.
+- **Holiday guard (beyond the original spec):** weekday run + MIS session ≠ today ⇒ market
+  holiday ⇒ exit green with a log, no write, no false red. Genuine trading-day failures during
+  market hours still **fail loud** (exit 1). Outside 09:00–13:30 TPE / weekends: no-op green.
+
+### 16.3 The tab (`panel-intraday`)
+
+Per row (sorted by |chg%|): live price + chg%, 量比, 掛單 imbalance chip (colored beyond ±15%),
+距MA20 (live price vs the frozen board's ma20), the board's action + `flip` string, and a
+`✓ 順昨夜籌碼 / ✗ 逆昨夜籌碼` note — rendered only when the move ≥ 0.3% **and** |L1| ≥ 0.1, so
+no noise verdicts. Poll runs only while the tab is visible (starts on tab enter, stops on leave).
+
+**Live-regime gate (display logic only):** 0050 (on the board, rides the same MIS call) red
+intraday → banner + every GO/ADD action struck through with `VOID (下跌盤)`. Framing is always
+"consider reviewing", never an instruction to execute.
+
+**States:** closed market → "已收盤" with the last session's final snapshot; `updated` > 10 min
+old during market hours → amber 資料延遲 (cron queue-drift is normal; > 15 min persistent →
+check Actions); `data` branch empty → plain-language notice, no error.
+
+### 16.4 Workflow notes (`intraday.yml`) — divergences from the session-21 handoff sketch
+
+1. **`/tmp` carry across the branch switch from day one:** `intraday.json` is untracked on the
+   main checkout but tracked on `data` from run 2 onward — a plain `git checkout data` then
+   refuses to overwrite it. Verified in a simulated repo; the sketch's anticipated fragility is
+   real on every run after the first.
+2. **`git checkout -B data FETCH_HEAD`** instead of `git checkout data` — the Actions checkout
+   is shallow/single-branch, so the plain form can't see the remote ref reliably.
+3. **Commit-if-changed** replaces `git commit … || echo "no change"` — that pattern would also
+   swallow real push failures (fail-loud rule).
+4. **`timeout-minutes: 8`** — with 5-min ticks and `cancel-in-progress: false`, one hung MIS
+   call would otherwise stack the queue.
+5. Own concurrency group (`twse-intraday`), deliberately **not** the shared
+   `twse-dashboard-write` group: this workflow never pushes to main, so it cannot race
+   daily.yml / us_overnight / l3.
+
+### 16.5 What Chapter 16 does NOT change
+
+No composite weights, confluence gate, L1–L5 formulas, observe baseline, or source tiering.
+`feeder.py` / `score.py` / `daily.yml` are untouched; the module is a leaf. The 盤中 tab sits
+behind the Ch.10 display wall — nothing on it feeds a score, and the VOID tag is a reading aid,
+not an action. The 2026-07-28 batched flip is untouched. (Forward note: MIS same-day close is
+also the candidate **§14.5** price source for the board itself — that decision remains owed at
+the boundary and is *not* made by this chapter.)
