@@ -576,6 +576,27 @@ a { color: inherit; text-decoration: none; }
   color:#8a5a00; background:#fdf3dd; border:1px solid #eeddb3; }
 .px-stale-banner { margin:6px 0 2px; padding:6px 10px; font-size:12px;
   color:#8a5a00; background:#fdf3dd; border:1px solid #eeddb3; border-radius:8px; }
+/* ══ Intraday tab (Ch.16) — display-only ══ */
+.intra-status { font-size:.78rem; padding:.4rem .65rem; border-radius:8px; margin:.4rem 0 .6rem; color:var(--muted); }
+.intra-status.warn { background:#fdf3e0; color:#8a5a00; border:1px solid #e8c98a; }
+.intra-status.closed { border:1px dashed rgba(122,117,112,.5); }
+.intra-gate { font-size:.8rem; background:#fdf3e0; color:#8a5a00; border:1px solid #e8c98a; border-radius:8px; padding:.45rem .7rem; margin:.4rem 0 .6rem; }
+.intra-row { display:flex; flex-wrap:wrap; align-items:baseline; gap:.3rem .9rem; padding:.5rem .65rem; border:1px solid rgba(122,117,112,.28); border-radius:10px; margin-bottom:.45rem; font-size:.85rem; }
+.it-id { min-width:7.5rem; }
+.it-px { font-weight:600; }
+.it-px.bull { color:var(--bull); }
+.it-px.bear { color:var(--bear); }
+.it-chg { font-size:.78rem; font-weight:500; }
+.it-meta { color:var(--muted); font-size:.76rem; display:flex; flex-wrap:wrap; gap:.25rem .6rem; align-items:baseline; }
+.it-chip { padding:.05rem .4rem; border-radius:6px; border:1px solid rgba(122,117,112,.35); }
+.it-chip.bull { color:var(--bull); background:var(--bull-bg); border-color:transparent; }
+.it-chip.bear { color:var(--bear); background:var(--bear-bg); border-color:transparent; }
+.it-vs.ok { color:var(--bull); }
+.it-vs.no { color:var(--bear); }
+.it-action { font-weight:600; }
+.it-action.void { color:var(--muted); text-decoration:line-through; }
+.it-void { color:#8a5a00; font-weight:600; }
+.it-flip { color:var(--muted); }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -593,6 +614,7 @@ a { color: inherit; text-decoration: none; }
   <button class="tab" onclick="switchTab('watch')">Watch</button>
   <button class="tab" onclick="switchTab('pulse')">Market</button>
   <button class="tab" onclick="switchTab('radar')">雷達</button>
+  <button class="tab" onclick="switchTab('intraday')">盤中</button>
   <button class="tab" onclick="switchTab('take')">Take</button>
   <button class="tab" onclick="switchTab('news')">新聞</button>
 </div>
@@ -739,6 +761,26 @@ a { color: inherit; text-decoration: none; }
     <div id="news-list"></div>
   </div>
   <div class="footer-note">來自 News 試算表（Account B 自動轉寄信件）。僅供偏向參考，不計入 composite 評分。</div>
+</div>
+
+<!-- ══ INTRADAY TAB (Ch.16 — display-only; never scores, never gates: Ch.10 wall) ══ -->
+<div class="panel" id="panel-intraday">
+  <div class="pulse-section">
+    <div class="pulse-label">盤中 · 即時對照（vs 昨夜籌碼板）</div>
+    <p class="radar-desc">
+      TWSE MIS 即時報價（每 5 分鐘經 <code>data</code> branch 更新），對照昨晚凍結的 L1 / action。
+      <span class="radar-tier-badge">顯示層 — 不評分、不觸發</span>
+    </p>
+    <div id="intraday-gate" class="intra-gate" style="display:none">
+      ⚠ 0050 盤中翻黑 — ADD 側觸發全數標記 <b>VOID (下跌盤)</b>。僅供重新檢視，非執行指令。
+    </div>
+    <div id="intraday-status" class="intra-status">載入中…</div>
+    <div id="intraday-list"></div>
+    <p class="radar-footer">
+      量比 = 今日累積量 ÷ 昨日全日量。掛單 = (Σ買掛 − Σ賣掛)/(Σ買掛 + Σ賣掛)，正值偏買方。
+      本頁永不寫入 composite / confluence（同 Ch.10 verdict 之牆）。
+    </p>
+  </div>
 </div>
 
 <div class="panel" id="panel-take">
@@ -1550,11 +1592,13 @@ function renderNav() {
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  const tabMap = { summary:'今日', watch:'Watch', pulse:'Market', portfolio:'Portfolio', radar:'雷達', take:'Take', news:'新聞' };
+  const tabMap = { summary:'今日', watch:'Watch', pulse:'Market', portfolio:'Portfolio', radar:'雷達', intraday:'盤中', take:'Take', news:'新聞' };
   document.querySelectorAll('.tab').forEach(t => {
     if (t.textContent === tabMap[name]) t.classList.add('active');
   });
   document.getElementById('panel-' + name).classList.add('active');
+  // Intraday tab polls only while visible (Ch.16) — start on enter, stop on leave.
+  if (name === 'intraday') startIntraday(); else stopIntraday();
 }
 
 // ── Master render ──
@@ -2200,6 +2244,140 @@ document.addEventListener('mouseover', function(e) {
     tp.style.transform = 'none';
   }
 });
+
+
+// ══ Intraday 盤中 (Ch.16) — display-only. Reads the un-served data branch.
+// Never scores, never gates, never touches DATA/composite (Ch.10 wall). ══
+const INTRADAY_URL = 'https://raw.githubusercontent.com/freshshine1/twse-dashboard/data/intraday.json';
+let INTRADAY = null;
+let intradayTimer = null;
+let intradayErr = null;
+
+function tpeParts() {
+  const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Taipei', hour12: false,
+    weekday: 'short', hour: '2-digit', minute: '2-digit' }).formatToParts(new Date());
+  const g = t => (p.find(x => x.type === t) || {}).value;
+  return { dow: g('weekday'), h: +g('hour'), m: +g('minute') };
+}
+function tpeMarketOpen() {
+  const { dow, h, m } = tpeParts();
+  if (dow === 'Sat' || dow === 'Sun') return false;
+  const mins = h * 60 + m;
+  return mins >= 540 && mins < 810;   // 09:00–13:30 TPE
+}
+
+function startIntraday() {
+  fetchIntraday();
+  if (!intradayTimer) intradayTimer = setInterval(fetchIntraday, 60000);
+}
+function stopIntraday() {
+  if (intradayTimer) { clearInterval(intradayTimer); intradayTimer = null; }
+}
+
+async function fetchIntraday() {
+  try {
+    const r = await fetch(INTRADAY_URL + '?cb=' + Date.now());
+    if (!r.ok) throw new Error('http ' + r.status);
+    INTRADAY = await r.json();
+    intradayErr = null;
+  } catch (e) {
+    intradayErr = String(e);
+  }
+  renderIntraday();
+}
+
+function intradayBoardRow(tk) {
+  if (!DATA) return null;
+  for (const k of ['portfolio', 'watchlist']) {
+    const hit = (DATA[k] || []).find(t => String(t.ticker) === String(tk));
+    if (hit) return hit;
+  }
+  return null;
+}
+
+function renderIntraday() {
+  const list = document.getElementById('intraday-list');
+  const status = document.getElementById('intraday-status');
+  if (!list || !status) return;
+
+  if (!INTRADAY) {
+    status.className = 'intra-status warn';
+    status.textContent = intradayErr
+      ? '無法讀取 intraday.json — data branch 尚未有資料，或網路問題（' + intradayErr + '）'
+      : '載入中…';
+    list.innerHTML = '';
+    return;
+  }
+
+  const open = tpeMarketOpen();
+  const ageMin = (Date.now() - Date.parse(INTRADAY.updated)) / 60000;
+  if (!open) {
+    status.className = 'intra-status closed';
+    status.textContent = '已收盤 — 顯示 ' + (INTRADAY.session || '—') + ' 盤中最後快照（'
+      + String(INTRADAY.updated || '').slice(11, 16) + ' 更新）';
+  } else if (isFinite(ageMin) && ageMin > 10) {
+    status.className = 'intra-status warn';
+    status.textContent = '資料延遲 — 上次更新約 ' + Math.round(ageMin)
+      + ' 分鐘前（cron 佇列漂移屬正常；持續 >15 分請查 Actions）';
+  } else {
+    status.className = 'intra-status';
+    status.textContent = '盤中 · ' + String(INTRADAY.updated || '').slice(11, 16)
+      + ' 更新 · 資料每 ~5 分鐘抓取，本頁每 60 秒重讀';
+  }
+
+  // Live-regime gate (display logic only): 0050 as TAIEX proxy.
+  const proxy = (INTRADAY.rows || []).find(r => String(r.ticker) === '0050');
+  const regimeRed = !!(proxy && proxy.chg_pct !== null && proxy.chg_pct !== undefined && proxy.chg_pct < 0);
+  const gateEl = document.getElementById('intraday-gate');
+  if (gateEl) gateEl.style.display = regimeRed ? '' : 'none';
+
+  const rows = (INTRADAY.rows || []).slice()
+    .sort((a, b) => Math.abs(b.chg_pct == null ? 0 : b.chg_pct) - Math.abs(a.chg_pct == null ? 0 : a.chg_pct));
+
+  list.innerHTML = rows.map(r => {
+    const b = intradayBoardRow(r.ticker) || {};
+    const chg = (r.chg_pct == null) ? null : r.chg_pct;
+    const dirCls = chg > 0 ? 'bull' : chg < 0 ? 'bear' : '';
+
+    let ma20txt = '—';
+    if (r.last != null && b.ma20) {
+      const d = (r.last / b.ma20 - 1) * 100;
+      ma20txt = (d >= 0 ? '+' : '') + d.toFixed(1) + '%';
+    }
+
+    let bookChip = '';
+    if (r.book_imbalance != null) {
+      const bi = r.book_imbalance;
+      const c = bi > 0.15 ? 'bull' : bi < -0.15 ? 'bear' : '';
+      bookChip = '<span class="it-chip ' + c + '">掛單 ' + (bi > 0 ? '+' : '') + (bi * 100).toFixed(0) + '%</span>';
+    }
+
+    // Confirms / diverges vs last night's chip read (needs a real move + a real L1 lean)
+    let vs = '';
+    if (chg != null && typeof b.l1_score === 'number'
+        && Math.abs(b.l1_score) >= 0.1 && Math.abs(chg) >= 0.3) {
+      vs = ((chg > 0) === (b.l1_score > 0))
+        ? '<span class="it-vs ok">✓ 順昨夜籌碼</span>'
+        : '<span class="it-vs no">✗ 逆昨夜籌碼</span>';
+    }
+
+    const addSide = /GO|ADD/.test(b.action || '');
+    const voided = regimeRed && addSide;
+    const actionHtml = b.action
+      ? '<span class="it-action ' + (voided ? 'void' : '') + '">' + b.action + '</span>'
+        + (voided ? ' <span class="it-void">VOID (下跌盤)</span>' : '')
+      : '';
+    const flip = b.flip ? '<span class="it-flip">' + b.flip + '</span>' : '';
+
+    return '<div class="intra-row">'
+      + '<div class="it-id"><b>' + r.ticker + '</b> ' + (r.name_zh || b.name_zh || '') + '</div>'
+      + '<div class="it-px ' + dirCls + '">' + (r.last == null ? '—' : r.last)
+      + ' <span class="it-chg">' + (chg == null ? '' : (chg > 0 ? '+' : '') + chg.toFixed(2) + '%') + '</span></div>'
+      + '<div class="it-meta">量比 ' + (r.rel_vol == null ? '—' : r.rel_vol) + ' ' + bookChip
+      + ' 距MA20 ' + ma20txt + ' ' + vs + ' ' + actionHtml + ' ' + flip + '</div>'
+      + '</div>';
+  }).join('') || '<div style="color:var(--muted)">無資料</div>';
+}
 
 </script>
 </body>
