@@ -142,9 +142,7 @@ def fetch_mis(ex_ch):
 def parse_item(item, meta):
     """One MIS msgArray item + its universe meta -> one intraday row dict.
     Every field is guarded; a missing/no-trade field is None, never a crash."""
-    last = _f(item.get("z"))
     prev = _f(item.get("y"))
-    chg_pct = round((last / prev - 1) * 100, 2) if (last is not None and prev) else None
 
     cum_v = _f(item.get("v"))  # cumulative volume, 張 (lots)
 
@@ -168,10 +166,29 @@ def parse_item(item, meta):
     denom = sum_ask + sum_bid
     book_imbalance = round((sum_bid - sum_ask) / denom, 3) if denom > 0 else None
 
+    # Last-price fallback (2026-07-06 live finding): MIS `z` reads '-' between
+    # matches even on liquid names (24/26 rows blank at 09:47 on day one).
+    # Chain: z (trade) -> pz (last matched) -> book mid -> single-sided best.
+    # Display-only; never feeds scoring (Ch.10 wall).
+    last, last_src = _f(item.get("z")), "z"
+    if last is None:
+        last, last_src = _f(item.get("pz")), "pz"
+    if last is None:
+        if bid_prices and ask_prices:
+            last, last_src = round((bid_prices[0] + ask_prices[0]) / 2, 2), "mid"
+        elif bid_prices:
+            last, last_src = bid_prices[0], "bid"
+        elif ask_prices:
+            last, last_src = ask_prices[0], "ask"
+        else:
+            last_src = None
+    chg_pct = round((last / prev - 1) * 100, 2) if (last is not None and prev) else None
+
     return {
         "ticker": meta["ticker"],
         "name_zh": meta["name_zh"],
         "last": last,
+        "last_src": last_src,   # z | pz | mid | bid | ask | None
         "prev": prev,
         "chg_pct": chg_pct,
         "cum_v": cum_v,
@@ -268,6 +285,10 @@ SAMPLE_ITEMS = [
         "a": "501.00_502.00_503.00_504.00_505.00", "f": "10_20_30_40_50",
         "b": "499.00_498.00_497.00_496.00_495.00", "g": "15_25_35_45_55",
     },
+    {   # z='-' but pz carries the last matched price; book fully empty
+        "c": "9999", "d": "20260703", "z": "-", "pz": "88.80", "y": "88.00", "v": "12",
+        "a": "-", "f": "-", "b": "-", "g": "-",
+    },
     {   # OTC name with a MISSING top ask level (seen live on otc_6488)
         "c": "6488", "d": "20260703", "z": "620.00", "y": "615.00", "v": "5310",
         "a": "-_621.00_622.00_623.00_624.00", "f": "-_50_60_70_80",
@@ -284,7 +305,7 @@ SAMPLE_META = {
 
 def selftest():
     r1 = parse_item(SAMPLE_ITEMS[0], SAMPLE_META["2330"])
-    assert r1["last"] == 1085.0 and r1["prev"] == 1080.0, r1
+    assert r1["last"] == 1085.0 and r1["last_src"] == "z" and r1["prev"] == 1080.0, r1
     assert r1["chg_pct"] == 0.46, r1
     assert r1["rel_vol"] == round(21033 / 37544.47, 2), r1
     assert r1["best_bid"] == 1080.0 and r1["best_ask"] == 1085.0, r1
@@ -292,14 +313,20 @@ def selftest():
     assert r1["book_imbalance"] == exp, (r1["book_imbalance"], exp)
 
     r2 = parse_item(SAMPLE_ITEMS[1], SAMPLE_META["3131"])
-    assert r2["last"] is None and r2["chg_pct"] is None, r2          # z='-' guarded
+    assert r2["last"] == 500.0 and r2["last_src"] == "mid", r2       # z='-' -> book mid
+    assert r2["chg_pct"] == 0.0, r2
     assert r2["rel_vol"] is None, r2                                  # prev vol None guarded
     assert r2["best_ask"] == 501.0 and r2["best_bid"] == 499.0, r2
 
-    r3 = parse_item(SAMPLE_ITEMS[2], SAMPLE_META["6488"])
+    r3 = parse_item(SAMPLE_ITEMS[3], SAMPLE_META["6488"])
     assert r3["best_ask"] == 621.0, r3                # '-' top level dropped, next level used
     a_sz, b_sz = 50 + 60 + 70 + 80, 40 + 45 + 50 + 55 + 60
     assert r3["book_imbalance"] == round((b_sz - a_sz) / (b_sz + a_sz), 3), r3
+
+    r4 = parse_item(SAMPLE_ITEMS[2], {"ticker": "9999", "name_zh": "測試", "prev_vol_shares": None})
+    assert r4["last"] == 88.8 and r4["last_src"] == "pz", r4         # z='-' -> pz
+    assert r4["chg_pct"] == 0.91, r4
+    assert r4["best_bid"] is None and r4["best_ask"] is None, r4     # empty book guarded
 
     assert session_from_items(SAMPLE_ITEMS, "1999-01-01") == "2026-07-03"
     assert session_from_items([{"d": "-"}], "1999-01-01") == "1999-01-01"
@@ -314,7 +341,7 @@ def selftest():
     assert in_market_hours(datetime(2026, 7, 3, 13, 30, tzinfo=TZ)) is False
     assert in_market_hours(datetime(2026, 7, 4, 10, 0, tzinfo=TZ)) is False  # Saturday
 
-    print("SELFTEST PASS — 3 sample rows, guards, prefixes, session, market-hours all OK")
+    print("SELFTEST PASS — 4 sample rows, guards, prefixes, session, market-hours all OK")
 
 
 if __name__ == "__main__":
