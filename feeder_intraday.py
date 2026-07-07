@@ -156,9 +156,11 @@ def parse_item(item, meta):
         except (TypeError, ValueError):
             rel_vol = None
 
-    ask_prices = _levels(item.get("a"))
+    # Zero-price guard (2026-07-07 live finding, 3363 halted/special state):
+    # MIS can emit 0.00 price levels; a zero is never a price — drop like '-'.
+    ask_prices = [p for p in _levels(item.get("a")) if p > 0]
     ask_sizes = _levels(item.get("f"))
-    bid_prices = _levels(item.get("b"))
+    bid_prices = [p for p in _levels(item.get("b")) if p > 0]
     bid_sizes = _levels(item.get("g"))
 
     sum_ask = sum(ask_sizes)
@@ -170,9 +172,12 @@ def parse_item(item, meta):
     # matches even on liquid names (24/26 rows blank at 09:47 on day one).
     # Chain: z (trade) -> pz (last matched) -> book mid -> single-sided best.
     # Display-only; never feeds scoring (Ch.10 wall).
-    last, last_src = _f(item.get("z")), "z"
+    def _pos(x):
+        return x if (x is not None and x > 0) else None
+
+    last, last_src = _pos(_f(item.get("z"))), "z"
     if last is None:
-        last, last_src = _f(item.get("pz")), "pz"
+        last, last_src = _pos(_f(item.get("pz"))), "pz"
     if last is None:
         if bid_prices and ask_prices:
             last, last_src = round((bid_prices[0] + ask_prices[0]) / 2, 2), "mid"
@@ -289,6 +294,10 @@ SAMPLE_ITEMS = [
         "c": "9999", "d": "20260703", "z": "-", "pz": "88.80", "y": "88.00", "v": "12",
         "a": "-", "f": "-", "b": "-", "g": "-",
     },
+    {   # halted/special state (seen live on 3363 2026-07-07): zero bids, no asks
+        "c": "3363", "d": "20260707", "z": "-", "y": "581.00", "v": "0",
+        "a": "-", "f": "-", "b": "0.00_0.00_0.00_0.00_0.00", "g": "0_0_0_0_0",
+    },
     {   # OTC name with a MISSING top ask level (seen live on otc_6488)
         "c": "6488", "d": "20260703", "z": "620.00", "y": "615.00", "v": "5310",
         "a": "-_621.00_622.00_623.00_624.00", "f": "-_50_60_70_80",
@@ -318,7 +327,7 @@ def selftest():
     assert r2["rel_vol"] is None, r2                                  # prev vol None guarded
     assert r2["best_ask"] == 501.0 and r2["best_bid"] == 499.0, r2
 
-    r3 = parse_item(SAMPLE_ITEMS[3], SAMPLE_META["6488"])
+    r3 = parse_item(SAMPLE_ITEMS[4], SAMPLE_META["6488"])
     assert r3["best_ask"] == 621.0, r3                # '-' top level dropped, next level used
     a_sz, b_sz = 50 + 60 + 70 + 80, 40 + 45 + 50 + 55 + 60
     assert r3["book_imbalance"] == round((b_sz - a_sz) / (b_sz + a_sz), 3), r3
@@ -327,6 +336,10 @@ def selftest():
     assert r4["last"] == 88.8 and r4["last_src"] == "pz", r4         # z='-' -> pz
     assert r4["chg_pct"] == 0.91, r4
     assert r4["best_bid"] is None and r4["best_ask"] is None, r4     # empty book guarded
+
+    r5 = parse_item(SAMPLE_ITEMS[3], {"ticker": "3363", "name_zh": "上詮", "prev_vol_shares": None})
+    assert r5["last"] is None and r5["last_src"] is None, r5         # zero bids dropped
+    assert r5["chg_pct"] is None and r5["best_bid"] is None, r5
 
     assert session_from_items(SAMPLE_ITEMS, "1999-01-01") == "2026-07-03"
     assert session_from_items([{"d": "-"}], "1999-01-01") == "1999-01-01"
@@ -341,7 +354,7 @@ def selftest():
     assert in_market_hours(datetime(2026, 7, 3, 13, 30, tzinfo=TZ)) is False
     assert in_market_hours(datetime(2026, 7, 4, 10, 0, tzinfo=TZ)) is False  # Saturday
 
-    print("SELFTEST PASS — 4 sample rows, guards, prefixes, session, market-hours all OK")
+    print("SELFTEST PASS — 5 sample rows, guards, prefixes, session, market-hours all OK")
 
 
 if __name__ == "__main__":
