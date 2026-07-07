@@ -2376,7 +2376,7 @@ function renderIntraday() {
       + '<div class="it-px ' + dirCls + '">' + (r.last == null ? '—' : r.last)
       + ' <span class="it-chg">' + (chg == null ? '' : (chg > 0 ? '+' : '') + chg.toFixed(2) + '%') + '</span></div>'
       + '<div class="it-cell">量比 ' + (r.rel_vol == null ? '—' : r.rel_vol) + '</div>'
-      + '<div class="it-cell">' + (bookChip || '—') + '</div>'
+      + '<div class="it-cell">' + bookChip + '</div>'
       + '<div class="it-cell">距MA20 ' + ma20txt + '</div>'
       + '<div class="it-cell">' + vs + '</div>'
       + '<div class="it-cell">' + actionHtml + (flip ? ' ' + flip : '') + '</div>'
