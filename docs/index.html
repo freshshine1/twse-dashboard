@@ -2278,7 +2278,11 @@ function stopIntraday() {
 
 async function fetchIntraday() {
   try {
-    const r = await fetch(INTRADAY_URL + '?cb=' + Date.now());
+    // No cache-buster here ON PURPOSE: raw.githubusercontent serves max-age=300 via CDN.
+    // A unique ?cb= per poll bypasses that cache, hits GitHub origin every 60s, and gets
+    // the browser IP rate-limited (http 429, seen live 2026-07-08). Plain URL = cache hits,
+    // no limit, content still refreshes within ~5 min — matching the loop's push cadence.
+    const r = await fetch(INTRADAY_URL);
     if (!r.ok) throw new Error('http ' + r.status);
     INTRADAY = await r.json();
     intradayErr = null;
@@ -2317,10 +2321,10 @@ function renderIntraday() {
     status.className = 'intra-status closed';
     status.textContent = '已收盤 — 顯示 ' + (INTRADAY.session || '—') + ' 盤中最後快照（'
       + String(INTRADAY.updated || '').slice(11, 16) + ' 更新）';
-  } else if (isFinite(ageMin) && ageMin > 10) {
+  } else if (isFinite(ageMin) && ageMin > 12) {
     status.className = 'intra-status warn';
     status.textContent = '資料延遲 — 上次更新約 ' + Math.round(ageMin)
-      + ' 分鐘前（cron 佇列漂移屬正常；持續 >15 分請查 Actions）';
+      + ' 分鐘前（CDN 快取可延遲至 ~10 分屬正常；持續 >15 分請查 Actions）';
   } else {
     status.className = 'intra-status';
     status.textContent = '盤中 · ' + String(INTRADAY.updated || '').slice(11, 16)
