@@ -28,6 +28,7 @@ env:
   INTERVAL_SECONDS: '300'       # fetch cadence inside the loop; retune with a one-line commit
   OPEN_TPE: '0905'              # loop start — skip the noisy first minutes after open
   CLOSE_TPE: '1330'             # loop end (matches feeder_intraday.py's own guard)
+  MAX_STRIKES: '3'              # consecutive failed fetch cycles tolerated before the job goes RED
 
 jobs:
   fetch:
@@ -85,7 +86,12 @@ jobs:
       # THE SESSION LOOP. Exit codes stay load-bearing (fail-loud convention):
       #   feeder exit 0 + intraday.json  = in-session success -> push, sleep, repeat
       #   feeder exit 0 + no file        = holiday (we only call it inside hours) -> stop green
-      #   feeder exit 1                  = trading-day failure during hours -> job RED
+      #   feeder exit 1                  = failed cycle. 3-STRIKES RULE (2026-07-08):
+      #     a lone MIS 502 burst (seen at 09:10 on 7/8, run #10) must not kill a whole
+      #     session, because restarter ticks are throttled to ~1/session. Each failed
+      #     cycle logs a ::warning:: annotation (visible on the run page even if the
+      #     job ends green), then retries next interval. Only MAX_STRIKES CONSECUTIVE
+      #     failures turn the job RED. Any successful cycle resets the counter.
       #     (the next delivered cron tick is the restarter; manual dispatch also works)
       - name: Session loop (fetch -> push -> sleep)
         if: steps.fresh.outputs.skip != 'true'
@@ -104,6 +110,7 @@ jobs:
           fi
 
           CYCLE=0
+          FAILS=0
           while true; do
             NOW=$(tpe_hhmm)
             if [ "$NOW" -ge $((10#$CLOSE_TPE)) ]; then
@@ -115,9 +122,17 @@ jobs:
             RC=0
             python feeder_intraday.py || RC=$?   # '|| RC=$?' so Actions' default 'bash -e' doesn't skip our log line
             if [ "$RC" -ne 0 ]; then
-              echo "feeder_intraday.py exited $RC during market hours — failing LOUD."
-              exit "$RC"
+              FAILS=$((FAILS + 1))
+              echo "::warning::feeder_intraday.py exited $RC at $(TZ=Asia/Taipei date +%H:%M) TPE — strike ${FAILS}/${MAX_STRIKES}."
+              if [ "$FAILS" -ge "$MAX_STRIKES" ]; then
+                echo "${MAX_STRIKES} consecutive failed cycles — failing LOUD."
+                exit "$RC"
+              fi
+              echo "Tolerating transient hiccup — retrying next interval."
+              sleep "$INTERVAL_SECONDS"
+              continue
             fi
+            FAILS=0
 
             if [ ! -f intraday.json ]; then
               echo "No intraday.json inside market hours => MIS-confirmed holiday. Exit green."
