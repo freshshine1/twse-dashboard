@@ -3,12 +3,15 @@ name: Intraday MIS fetch
 on:
   schedule:
     # Every 5 min, 01:00-05:55 UTC = 09:00-13:55 TPE, Mon-Fri.
-    # feeder_intraday.py itself no-ops (exit green, no write) outside 09:00-13:30 TPE
-    # and on MIS-confirmed holidays, so the tail runs past 13:30 are harmless no-ops.
-    # NOTE: 5-min scheduled crons drift on the free tier like everything else —
-    # expect effective latency of ~5-15 min, which is fine for a display-only tab.
+    # ROLE CHANGE (2026-07-08): these ticks are now a DEAD-MAN RESTARTER, not the
+    # fetch cadence. GitHub free-tier throttles */5 schedules to ~1 delivered tick
+    # per session (observed 7/6, 7/7), so the real cadence comes from the session
+    # loop below: the first tick (or a manual dispatch) starts ONE long job that
+    # loops fetch->push->sleep internally until 13:30 TPE. Later ticks either
+    # queue behind the running loop (concurrency group) and no-op after close,
+    # or restart the loop if it died mid-session.
     - cron: '*/5 1-5 * * 1-5'
-  workflow_dispatch:            # manual trigger for market-hours testing
+  workflow_dispatch:            # manual trigger; guaranteed-instant session start
 
 permissions:
   contents: write               # push to the data branch
@@ -16,19 +19,26 @@ permissions:
 # Own concurrency group, deliberately NOT the shared twse-dashboard-write group:
 # this workflow pushes ONLY to the un-served `data` branch, never to main, so it
 # cannot race daily.yml / us_overnight / l3 pushes. cancel-in-progress=false makes
-# overlapping 5-min ticks queue rather than kill an in-flight push.
+# a tick that lands mid-loop queue (then no-op) rather than kill the loop.
 concurrency:
   group: twse-intraday
   cancel-in-progress: false
 
+env:
+  INTERVAL_SECONDS: '300'       # fetch cadence inside the loop; retune with a one-line commit
+  OPEN_TPE: '0905'              # loop start — skip the noisy first minutes after open
+  CLOSE_TPE: '1330'             # loop end (matches feeder_intraday.py's own guard)
+
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 8          # a hung MIS call must not pile up queued 5-min runs
+    timeout-minutes: 330        # covers a full 09:05-13:30 session + slack (< 6 h job cap)
 
     steps:
       # Checks out MAIN: brings feeder_intraday.py + docs/data.json (the ticker
-      # universe). intraday.json is written into the workspace on this checkout.
+      # universe). The workspace stays on main for the whole job; the data branch
+      # lives in a separate worktree (below), so there is no branch-switch dance
+      # and no /tmp carry any more.
       - name: Checkout repo (main)
         uses: actions/checkout@v4
 
@@ -40,33 +50,93 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      # Exit codes are load-bearing (fail-loud convention):
-      #   0 + intraday.json written  = market-hours success
-      #   0 + no file                = outside hours / weekend / MIS-confirmed holiday
-      #   1                          = trading-day failure during market hours -> RED
-      - name: Run intraday feeder
-        run: python feeder_intraday.py
-
-      # Branch-switch dance. intraday.json is untracked on main but IS tracked on
-      # the data branch from the second run onward — a plain `git checkout data`
-      # would then refuse to overwrite the untracked local file. Carrying it
-      # through /tmp sidesteps that entirely (the handoff's anticipated fragility).
-      - name: Push to data branch
+      # Dead-man guard: if the data branch was updated < 6 min ago, another loop
+      # is (or was, seconds ago) alive — this run is a redundant restarter tick.
+      # Exit green without looping. Stale or missing data => proceed to the loop.
+      - name: Freshness check (dead-man guard)
+        id: fresh
         run: |
-          if [ ! -f intraday.json ]; then
-            echo "No intraday.json produced (outside hours / holiday) — nothing to push."
-            exit 0
+          set -u
+          UPDATED=$(curl -sf "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/intraday.json?cb=$(date +%s)" \
+            | python3 -c "import json,sys; print(json.load(sys.stdin).get('updated',''))" 2>/dev/null || echo "")
+          if [ -n "$UPDATED" ]; then
+            AGE=$(python3 -c "from datetime import datetime, timezone; import sys; u = datetime.fromisoformat(sys.argv[1]); print(int((datetime.now(timezone.utc) - u).total_seconds()))" "$UPDATED")
+            echo "data-branch intraday.json updated ${AGE}s ago."
+            if [ "$AGE" -lt 360 ]; then
+              echo "Fresh (<360s) — another loop is alive. Exit green, no second loop."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          else
+            echo "No readable 'updated' timestamp on data branch — proceeding to loop."
           fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      # One worktree for the data branch, created once. Each loop cycle copies
+      # intraday.json in, commits, pushes. Main workspace never leaves main.
+      - name: Prepare data-branch worktree
+        if: steps.fresh.outputs.skip != 'true'
+        run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          mv intraday.json /tmp/intraday.json
           git fetch origin data
-          git checkout -B data FETCH_HEAD
-          mv /tmp/intraday.json intraday.json
-          if [ -f intraday.json ]; then git add intraday.json; fi
-          if git diff --cached --quiet; then
-            echo "intraday.json unchanged — no commit."
-            exit 0
+          git worktree add -B data /tmp/dataw FETCH_HEAD
+
+      # THE SESSION LOOP. Exit codes stay load-bearing (fail-loud convention):
+      #   feeder exit 0 + intraday.json  = in-session success -> push, sleep, repeat
+      #   feeder exit 0 + no file        = holiday (we only call it inside hours) -> stop green
+      #   feeder exit 1                  = trading-day failure during hours -> job RED
+      #     (the next delivered cron tick is the restarter; manual dispatch also works)
+      - name: Session loop (fetch -> push -> sleep)
+        if: steps.fresh.outputs.skip != 'true'
+        run: |
+          set -u
+          tpe_hhmm() { echo $((10#$(TZ=Asia/Taipei date +%H%M))); }
+
+          # Before open: sleep until OPEN_TPE so an early tick becomes a clean start.
+          NOW=$(tpe_hhmm)
+          if [ "$NOW" -lt $((10#$OPEN_TPE)) ]; then
+            TODAY=$(TZ=Asia/Taipei date +%Y-%m-%d)
+            OPEN_S=$(TZ=Asia/Taipei date -d "$TODAY ${OPEN_TPE:0:2}:${OPEN_TPE:2:2}" +%s)
+            WAIT=$(( OPEN_S - $(date +%s) ))
+            echo "Before open ($NOW TPE) — sleeping ${WAIT}s until ${OPEN_TPE} TPE."
+            sleep "$WAIT"
           fi
-          git commit -m "intraday $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push origin data:data
+
+          CYCLE=0
+          while true; do
+            NOW=$(tpe_hhmm)
+            if [ "$NOW" -ge $((10#$CLOSE_TPE)) ]; then
+              echo "Past ${CLOSE_TPE} TPE — session over after ${CYCLE} cycles. Exit green."
+              break
+            fi
+
+            rm -f intraday.json
+            RC=0
+            python feeder_intraday.py || RC=$?   # '|| RC=$?' so Actions' default 'bash -e' doesn't skip our log line
+            if [ "$RC" -ne 0 ]; then
+              echo "feeder_intraday.py exited $RC during market hours — failing LOUD."
+              exit "$RC"
+            fi
+
+            if [ ! -f intraday.json ]; then
+              echo "No intraday.json inside market hours => MIS-confirmed holiday. Exit green."
+              break
+            fi
+
+            cp intraday.json /tmp/dataw/intraday.json
+            (
+              cd /tmp/dataw
+              git add intraday.json
+              if git diff --cached --quiet; then
+                echo "intraday.json unchanged — no commit this cycle."
+              else
+                git commit -m "intraday $(date -u +%Y-%m-%dT%H:%MZ)"
+                git push origin data:data
+              fi
+            )
+
+            CYCLE=$((CYCLE + 1))
+            echo "Cycle ${CYCLE} done ($(TZ=Asia/Taipei date +%H:%M) TPE) — sleeping ${INTERVAL_SECONDS}s."
+            sleep "$INTERVAL_SECONDS"
+          done
