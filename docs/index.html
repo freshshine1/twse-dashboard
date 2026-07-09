@@ -2346,16 +2346,29 @@ function renderIntraday() {
     const dirCls = chg > 0 ? 'bull' : chg < 0 ? 'bear' : '';
 
     let ma20txt = '—';
+    let ma20Tip = '';
     if (r.last != null && b.ma20) {
       const d = (r.last / b.ma20 - 1) * 100;
       ma20txt = (d >= 0 ? '+' : '') + d.toFixed(1) + '%';
+      ma20Tip = '現價' + (d >= 0 ? '高於' : '低於') + ' 20 日均線 ' + Math.abs(d).toFixed(1) + '%';
+    }
+
+    // 量比 tooltip — v1 baseline is FULL prior day, hence the early-session caveat.
+    let rvTip = '';
+    if (r.rel_vol != null) {
+      const rv = Number(r.rel_vol);
+      const band = rv > 1.5 ? '放量' : rv < 0.5 ? '縮量' : '正常';
+      rvTip = '今日累積量為昨日全日量的 ' + r.rel_vol + ' 倍（' + band + '）。早盤基準為昨日全日量，開盤初期數值偏低屬正常';
     }
 
     let bookChip = '';
     if (r.book_imbalance != null) {
       const bi = r.book_imbalance;
       const c = bi > 0.15 ? 'bull' : bi < -0.15 ? 'bear' : '';
-      bookChip = '<span class="it-chip ' + c + '">掛單 ' + (bi > 0 ? '+' : '') + (bi * 100).toFixed(0) + '%</span>';
+      const bookTip = Math.abs(bi * 100) < 5
+        ? '五檔買賣掛單接近平衡'
+        : '五檔買方掛單比賣方' + (bi > 0 ? '多 ' : '少 ') + Math.abs(bi * 100).toFixed(0) + '%，' + (bi > 0 ? '買' : '賣') + '盤佔優';
+      bookChip = '<span class="it-chip ' + c + '" title="' + bookTip + '">掛單 ' + (bi > 0 ? '+' : '') + (bi * 100).toFixed(0) + '%</span>';
     }
 
     // Confirms / diverges vs last night's chip read (needs a real move + a real L1 lean)
@@ -2363,15 +2376,24 @@ function renderIntraday() {
     if (chg != null && typeof b.l1_score === 'number'
         && Math.abs(b.l1_score) >= 0.1 && Math.abs(chg) >= 0.3) {
       vs = ((chg > 0) === (b.l1_score > 0))
-        ? '<span class="it-vs ok">✓ 順昨夜籌碼</span>'
-        : '<span class="it-vs no">✗ 逆昨夜籌碼</span>';
+        ? '<span class="it-vs ok" title="盤中方向與昨夜三大法人籌碼方向一致">✓ 順昨夜籌碼</span>'
+        : '<span class="it-vs no" title="盤中方向與昨夜三大法人籌碼方向相反，慎防假突破/假跌破">✗ 逆昨夜籌碼</span>';
     }
 
     const addSide = /GO|ADD/.test(b.action || '');
     const voided = regimeRed && addSide;
+    let actTip = '';
+    if (b.action) {
+      const f2 = v => (typeof v === 'number' ? (v >= 0 ? '+' : '') + v.toFixed(2) : '—');
+      const compTxt = typeof b.composite === 'number'
+        ? (b.composite >= 0 ? '+' : '') + b.composite.toFixed(0) : '—';
+      actTip = '昨夜 composite ' + compTxt + ' · L1 ' + f2(b.l1_score) + ' / L2 ' + f2(b.l2_score)
+        + '（GO 需 L1、L2 皆 ≥ +0.4）';
+    }
+    const voidTip = '0050 盤中翻黑，買方動作暫停；SELL/TRIM 不受影響';
     const actionHtml = b.action
-      ? '<span class="it-action ' + (voided ? 'void' : '') + '">' + b.action + '</span>'
-        + (voided ? ' <span class="it-void">VOID (下跌盤)</span>' : '')
+      ? '<span class="it-action ' + (voided ? 'void' : '') + '" title="' + actTip + (voided ? '。' + voidTip : '') + '">' + b.action + '</span>'
+        + (voided ? ' <span class="it-void" title="' + voidTip + '">VOID (下跌盤)</span>' : '')
       : '';
     const flip = b.flip ? '<span class="it-flip">' + b.flip + '</span>' : '';
 
@@ -2379,9 +2401,9 @@ function renderIntraday() {
       + '<div class="it-id"><b>' + r.ticker + '</b> ' + (r.name_zh || b.name_zh || '') + '</div>'
       + '<div class="it-px ' + dirCls + '">' + (r.last == null ? '—' : r.last)
       + ' <span class="it-chg">' + (chg == null ? '' : (chg > 0 ? '+' : '') + chg.toFixed(2) + '%') + '</span></div>'
-      + '<div class="it-cell">量比 ' + (r.rel_vol == null ? '—' : r.rel_vol) + '</div>'
+      + '<div class="it-cell"' + (rvTip ? ' title="' + rvTip + '"' : '') + '>量比 ' + (r.rel_vol == null ? '—' : r.rel_vol) + '</div>'
       + '<div class="it-cell">' + bookChip + '</div>'
-      + '<div class="it-cell">距MA20 ' + ma20txt + '</div>'
+      + '<div class="it-cell"' + (ma20Tip ? ' title="' + ma20Tip + '"' : '') + '>距MA20 ' + ma20txt + '</div>'
       + '<div class="it-cell">' + vs + '</div>'
       + '<div class="it-cell">' + actionHtml + (flip ? ' ' + flip : '') + '</div>'
       + '</div>';
