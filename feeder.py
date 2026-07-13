@@ -290,6 +290,21 @@ def fetch_snapshot():
         if datetime.now(TZ).weekday() >= 5:
             log.warning("TWSE snapshot unavailable on a weekend — treating as off-hours (green).")
             return None, [], set(), set(), None, None
+        # Task C item 2 — pre-dawn false-red fix. Backup B (~02:43 TPE, often
+        # drifting to ~04:30) hits STOCK_DAY_ALL's maintenance window, AND its
+        # --price-aware gate fires on the STRUCTURAL one-session price lag
+        # (Ch.14.5) that a refetch cannot heal anyway. Confirmed from run logs
+        # 2026-07-06 / 06-30: primary had already succeeded those nights, so a
+        # red here is duplicate noise. Stand down GREEN with a loud warning.
+        # Primary / Backup A / dispatch keep full fail-loud behavior.
+        if os.environ.get("RUN_SLOT") == "backupB":
+            log.warning(
+                "Backup B: TWSE STOCK_DAY_ALL unusable after %d attempts in the "
+                "pre-dawn window (last error: %s) — standing down green; the "
+                "primary run already alerted if genuinely broken.",
+                SNAPSHOT_ATTEMPTS, last_exc,
+            )
+            return None, [], set(), set(), None, None
         raise SnapshotFetchError(
             "TWSE STOCK_DAY_ALL unusable after %d attempts on a trading day "
             "(last error: %s)" % (SNAPSHOT_ATTEMPTS, last_exc)
