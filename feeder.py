@@ -1451,6 +1451,36 @@ def fetch_taifex_oi(spot_foreign_m=None):
     return rec
 
 
+def append_run_log(session_date, rows):
+    """Task C run ledger: one row per completed feeder run, so slot coverage and
+    self-heal behavior can be audited without trawling Actions logs. Columns:
+    session_date (trading-session date from T86, NOT wall clock), run_slot
+    (primary/backupA/backupB/dispatch via RUN_SLOT env from daily.yml gate),
+    finished_utc, rows (board entries written). Non-fatal by design: a ledger
+    hiccup must never redden an otherwise good run."""
+    try:
+        import csv
+        from zoneinfo import ZoneInfo as _ZI
+        run_slot = os.environ.get("RUN_SLOT", "unknown")
+        path = Path("processed/run_log.csv")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        is_new = not path.exists()
+        with path.open("a", newline="", encoding="utf-8") as fp:
+            w = csv.writer(fp)
+            if is_new:
+                w.writerow(["session_date", "run_slot", "finished_utc", "rows"])
+            w.writerow([
+                session_date,
+                run_slot,
+                datetime.now(_ZI("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                rows,
+            ])
+        log.info("run_log: appended session=%s slot=%s rows=%d",
+                 session_date, run_slot, rows)
+    except Exception as exc:
+        log.warning("run_log append failed (non-fatal): %s", exc)
+
+
 def main():
     log.info("=== feeder start %s ===", now_iso())
 
@@ -1934,12 +1964,21 @@ def main():
             "entries":   [_slim(e) for e in (portfolio + watchlist)],
         }
         os.makedirs("docs/raw", exist_ok=True)
-        snap_path = f"docs/raw/snapshot_{_date.today().isoformat()}.json"
+        # Session-date stamped (rider fix): a backup slot healing after midnight
+        # must not label the archive with the wrong calendar day.
+        _snap_day = _t86_iso or _date.today().isoformat()
+        snap_path = f"docs/raw/snapshot_{_snap_day}.json"
         with open(snap_path, "w", encoding="utf-8") as fp:
             json.dump(snap, fp, ensure_ascii=False, indent=2)
         log.info("snapshot written %s (%d entries)", snap_path, len(snap["entries"]))
     except Exception as exc:
         log.warning("snapshot write failed (non-fatal): %s", exc)
+
+    # Task C: run ledger — session-date stamped like signal/verdict logs.
+    append_run_log(
+        _t86_iso or datetime.now(TZ).date().isoformat(),
+        len(portfolio) + len(watchlist),
+    )
 
     log.info("=== feeder done %s ===", now_iso())
 
