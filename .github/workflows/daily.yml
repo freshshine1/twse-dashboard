@@ -49,14 +49,21 @@ jobs:
             "37 15 * * 1-5")
               echo "Backup A 23:37 ($SCHED) — timestamp staleness only (feed not yet rolled)…"
               python3 selfheal_gate.py >> "$GITHUB_OUTPUT"
+              echo "slot=backupA" >> "$GITHUB_OUTPUT"
               ;;
             "43 18 * * 1-5")
               echo "Backup B 02:43 ($SCHED) — timestamp + price-snapshot staleness…"
               python3 selfheal_gate.py --price-aware >> "$GITHUB_OUTPUT"
+              echo "slot=backupB" >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo "Primary/dispatch trigger ($SCHED) — proceeding unconditionally."
               echo "run=true" >> "$GITHUB_OUTPUT"
+              if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                echo "slot=dispatch" >> "$GITHUB_OUTPUT"
+              else
+                echo "slot=primary" >> "$GITHUB_OUTPUT"
+              fi
               ;;
           esac
 
@@ -76,6 +83,10 @@ jobs:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           NEWS_SHEET_ID: ${{ secrets.NEWS_SHEET_ID }}
           ENABLE_MARGIN: "1"
+          # Task C: which cron slot produced this run (primary/backupA/backupB/
+          # dispatch) — consumed by feeder's run ledger and, next, the pre-dawn
+          # false-red fix (feeder checks RUN_SLOT == "backupB").
+          RUN_SLOT: ${{ steps.gate.outputs.slot }}
         run: python feeder.py
 
       # #3b Double-check: independent of feeder's own self-check. Confirms the run
@@ -106,6 +117,8 @@ jobs:
             docs/raw/taifex_oi_latest.json \
             docs/raw/taifex_oi_series.json \
             processed/verdict_log.csv \
+            processed/run_log.csv \
+            docs/raw/snapshot_*.json \
           ; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
