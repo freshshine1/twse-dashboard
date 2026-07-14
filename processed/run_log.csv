@@ -2,3 +2,4 @@ session_date,run_slot,finished_utc,rows
 2026-07-13,primary,2026-07-13T13:43:15Z,48
 2026-07-13,backupB,2026-07-13T20:14:55Z,48
 2026-07-14,primary,2026-07-14T12:34:00Z,48
+2026-07-14,backupB,2026-07-14T20:07:36Z,48
