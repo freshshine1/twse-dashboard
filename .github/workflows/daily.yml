@@ -3,11 +3,13 @@ name: Daily TWSE fetch
 on:
   schedule:
     # All times Mon-Fri. Taiwan = UTC+8 (no DST).
-    # PRIMARY — 19:13 TPE (11:13 UTC). Runs AFTER T86 publishes (~18:00 TPE).
-    # Minute is OFF :00 deliberately: top-of-hour is GitHub's worst queue-contention
-    # slot, which was drifting this run 3-5h late into TWSE's flaky night window
-    # (root cause of the 2026-06-17 stale board).
-    - cron: '13 11 * * 1-5'
+    # PRIMARY — 18:13 TPE (10:13 UTC). Runs AFTER T86 publishes (~18:00 TPE);
+    # queue drift only ever pushes starts LATER, so the 13-min nominal margin is the
+    # floor, not the norm. Shifted from 19:13 (2026-07-14) to claw back ~1h of the
+    # 1-5h free-tier drift. Minute is OFF :00 deliberately: top-of-hour is GitHub's
+    # worst queue-contention slot, which was drifting this run 3-5h late into TWSE's
+    # flaky night window (root cause of the 2026-06-17 stale board).
+    - cron: '13 10 * * 1-5'
     # BACKUP A — 23:37 TPE (15:37 UTC), same evening, ~1h after a drifted primary.
     # SELF-HEAL: runs feeder ONLY if the primary left the board stale (selfheal_gate.py).
     - cron: '37 15 * * 1-5'
