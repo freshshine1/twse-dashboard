@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Decide whether this run does anything. PRIMARY cron + manual dispatch always
       # proceed. BACKUP crons proceed ONLY if the board is stale (primary failed) —
@@ -71,7 +71,7 @@ jobs:
 
       - name: Set up Python
         if: steps.gate.outputs.run == 'true'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
