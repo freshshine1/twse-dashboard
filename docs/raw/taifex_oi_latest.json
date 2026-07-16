@@ -1,10 +1,10 @@
 {
-  "date": "20260715",
-  "tx_net_oi": -79557,
-  "tx_trust_net_oi": 75646,
-  "tx_dealer_net_oi": -664,
-  "mtx_net_oi": 561,
-  "mxf_net_oi": 1338,
+  "date": "20260716",
+  "tx_net_oi": -84453,
+  "tx_trust_net_oi": 76264,
+  "tx_dealer_net_oi": 657,
+  "mtx_net_oi": -1501,
+  "mxf_net_oi": -20,
   "basis": "TX_big_contract_only",
-  "asof": "2026-07-16T03:50:51+08:00"
+  "asof": "2026-07-16T19:52:31+08:00"
 }
