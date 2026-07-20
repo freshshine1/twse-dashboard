@@ -6,6 +6,14 @@
 > header, to know what is fresh. Major version (v2) tracks *structural* revisions; append-only notes
 > and status flips are minor. Git holds the full per-line history.
 >
+> - **2026-07-20** — Added **Chapter 18** (skill in production, 7/17 crash-day T86 gap,
+>   hit-rate grader, sessions 29–30): `twse-run-review` skill shipped + first production runs,
+>   backlog item 5 DONE — the L3 stale-stub check noted as future in §17.5 shipped in v1 (18.1);
+>   record −6.47% crash day 7/17 — market-level T86 fetch returned empty under load, board
+>   shipped with zeroed institutional header + degraded L1; self-heals next primary because T86
+>   windows are re-fetched per-date every run, no local chip history (18.2); hit-metric decision
+>   — fwd_5d sign PRIMARY — and `tools/hitrate_review.py` shipped (18.3). All tooling /
+>   incident record — freeze intact.
 > - **2026-07-14** — Added **Chapter 17** (run ledger, snapshot persistence & failure anatomy,
 >   sessions 26–28): intraday-tab tooltips (17.1); typhoon-closure behavior verified clean (17.2);
 >   run ledger `processed/run_log.csv` + `RUN_SLOT` slot plumbing + snapshot persistence with
@@ -1136,3 +1144,79 @@ The 2026-07-28 batched flip is untouched. The gate-side design question — shou
 `--price-aware` stand down when the only staleness is the structural TWSE lag — remains
 deliberately open pending the MIS decision.
 
+## Chapter 18 — Skill in Production, the 7/17 Crash-Day T86 Gap & the Hit-Rate Grader (sessions 29–30) — NEW (2026-07-20)
+
+### 18.1 `twse-run-review` skill shipped — backlog item 5 DONE (session 29, commit `b82e084`)
+
+`skills/twse-run-review/` (`review_run.py`, 333 lines stdlib read-only + `SKILL.md`) is the
+session-open ritual, replacing the manual verification sweep. Correction to §17.5's closing
+note: the L3 stale-stub sub-check (fetch the dated L3 file, read `stale`/`stale_reason`)
+shipped in v1, not later. One pre-ship fix from live testing: today's L3 stamp is expected
+only after **13:00 TPE** on weekdays (run window ~11:44–12:34), killing a morning false-amber.
+Canonical copy is the repo; the claude.ai upload is a zip of the folder — any change re-zips
+and re-uploads so the two never drift (verified md5-identical at ship). First production run
+(7/16 session): 10 green. First Monday-morning run (7/17 session): see 18.2.
+
+### 18.2 2026-07-17 — record crash day, market-level T86 gap (session 30)
+
+**The day.** TAIEX −2,953.71 (−6.47%) to 42,671.27 — largest single-day point drop in its
+history — on NT$1.21T record turnover (post-earnings TSMC selloff cascade).
+
+**The gap.** Primary ran 19:59 TPE (drift, nominal 18:13) and the market-level T86 fetch
+returned empty — almost certainly endpoint strain under record volume, not our code. Board
+shipped with `t86_session: null`, `foreign/trust/dealer/three_inst_total_m = 0.0`, and a
+derived `pressure: Neutral` that was therefore meaningless on the heaviest foreign-selling
+day of the window. `foreign_5d_cumul_m` (separate endpoint) stayed live and true
+(−310,242M). Per-ticker chip windows were partially short — concretely, 3363's L1 collapsed
+−0.868 → −0.033 and Friday's signal printed TRIM where the prior day fired SELL. BackupB
+stood down Saturday (by design; no row, no commit), so nothing recovered it; the zeroed
+header sat on the live dashboard through the weekend.
+
+**Why it self-heals with zero action.** There is **no local chip-history file**: feeder.py
+re-fetches the T86 multi-day window live, per-date, on every run. The next primary pulls the
+last 5 sessions — including 7/17, published on TWSE's historical endpoint well before then —
+so both the header and the L1 5-day windows repair in one run. Nothing to commit, nothing to
+trigger (house rule: no manual run pre-18:00 TPE).
+
+**What stays degraded, deliberately.** The shipped 7/17 board is the decision-time record
+(Ch.15 principle: logs record what the system emitted, not later recomputes). It is flagged
+`DEGRADED` in the hit-rate grader (18.3) and excluded from the headline metric.
+
+**Skill scorecard.** The Monday-morning run flagged 2 RED: `health.t86` (true positive — the
+incident above) and `health.data` 3d-old (false positive — the age check is weekend-unaware;
+reviewing Friday on Monday morning trips it). **v1.1 fix queued:** make the age check count
+trading days, not wall-clock days. One concern per commit; re-zip/re-upload on ship.
+
+### 18.3 Hit-metric decision + `tools/hitrate_review.py` (session 30, commits `6fcf4c3` + `4c6dd19`)
+
+**Decision (Fisher, 2026-07-20): PRIMARY = metric A, sign(fwd_5d) vs action direction.**
+Rationale: (1) sample maturity — at review time fwd_5d is graded for nearly the whole window
+while fwd_20d matures only for pre-~6/29 fires (5 rows graded at decision time); (2) horizon
+match — L1 runs on 1/3/5-day chip windows, so fwd_5d tests exactly what the score claims;
+(3) already graded in-log, zero plumbing. fwd_10d/fwd_20d and metric C (fwd_5d excess vs
+TAIEX 5d forward, baseline = `verdict_log` compounded, partial coverage from 6/18) are
+computed alongside. **C graduates to primary post-boundary** once a TAIEX series is archived
+forward — it is the only metric that separates selection from beta, which the crash week
+makes obvious (every TRIM “hits” fwd_5d in a −5.92% week regardless of skill).
+
+**The tool.** `tools/hitrate_review.py` — stdlib, read-only, exit 0 always, fetches both
+CSVs live (cache-busted) or `--local DIR`. Direction: GO/ADD → +, SELL/TRIM → −; near-miss
+counterfactual direction = sign(composite); fwd == 0 counts as a miss. Sections: coverage
+(logger shipped mid-window — first row 6/16 vs observe open 5/29; Ch.15 repaired-rows note;
+DEGRADED sessions), metric A by action and side, horizons, metric C, |composite| bands,
+§12.1 L1 bands (0.4–0.6 vs >0.6), per-layer agree/oppose attribution, near-miss grading by
+`gate_fail_reason`, and the §12.1 counterfactual “L2 gate → 0.35” (flips rows with
+|L2| ∈ [0.35, 0.4)). One §12.1 review query is **not computable**: flag-correlation
+(churn-flagged GOs) — `signal_log` carries no flag column. Placement note: plain `tools/`
+over a skill — runs a handful of times around the boundary; no zip maintenance.
+
+**Early reads (small samples, fwd cells still filling — do not act before 7/28):**
+GO-side 1/10 vs SELL-side 12/22 on fwd_5d (metric C softens the GO-side: 48.4% excess — most
+GO fires immediately preceded the −5.92% week); the L2→0.35 relaxation would have flipped 8
+near-misses at 2/7 graded hits — first evidence the 0.4 gate earns its keep.
+
+### 18.4 What Chapter 18 does NOT change
+
+No composite weights, confluence gate, L1–L5 formulas, observe baseline, or source tiering.
+The 2026-07-28 batched flip is untouched. New open item added to it in spirit only: skill
+v1.1 weekend-aware age check ships independently (display/tooling, freeze-exempt).
