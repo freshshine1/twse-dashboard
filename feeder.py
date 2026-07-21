@@ -1503,6 +1503,19 @@ def main():
     snapshot, raw_rows, twse_codes, tpex_codes, snap_date_dd, tpex_snap_date_dd = _fetch_snapshot_or_exit()
     if snapshot is None:
         log.info("No market data today ÃÂ¢ÃÂÃÂ exiting without overwriting data.json")
+        # Stand-down sentinel (session 31): tell verify_board.py this green
+        # no-write exit was DELIBERATE (holiday "No Data" / weekend / SS17.4
+        # backupB maintenance-window stand-down), not a silent no-op. Without
+        # it, verify_board sees a >30-min-old data.json on a gate run==true
+        # job and red-fails the stand-down (the 2026-07-21 04:11 false red).
+        # /tmp is per-job runner scratch -- never staged, never committed;
+        # each Actions job starts on a fresh VM so it cannot leak across runs.
+        try:
+            with open("/tmp/feeder_stood_down", "w", encoding="utf-8") as _fh:
+                _fh.write("feeder stood down green at %s (run_slot=%s)\n"
+                          % (now_iso(), os.environ.get("RUN_SLOT", "unknown")))
+        except OSError:
+            pass  # best-effort: never fail a stand-down over the sentinel
         sys.exit(0)
 
     # 2. Write tickers.json

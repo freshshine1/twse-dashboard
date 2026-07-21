@@ -20,13 +20,35 @@ Stdlib only; no third-party deps (mirrors selfheal_gate.py).
 """
 import datetime
 import json
+import os
 import sys
 
 DATA_PATH = "docs/data.json"
 MAX_AGE_SEC = 1800  # 30 min: feeder takes ~6 min, so a fresh write is well under this.
 
 
+SENTINEL = "/tmp/feeder_stood_down"  # written by feeder.py on a deliberate stand-down
+
+
 def main():
+    # Deliberate stand-down check FIRST (session 31). When feeder exits green
+    # WITHOUT writing the board (holiday / weekend / SS17.4 backupB
+    # maintenance-window stand-down), a stale data.json is EXPECTED -- it is
+    # the last good board, deliberately preserved. Red-failing that case is
+    # the 2026-07-21 04:11 false red: the SS17.4 fix moved the noise from the
+    # feeder step to this one. The sentinel is written only by the stand-down
+    # code path itself, so a genuine silent no-op (feeder "ran" but never
+    # reached its own exit logic) still fails loud below.
+    if os.path.exists(SENTINEL):
+        try:
+            with open(SENTINEL, encoding="utf-8") as fh:
+                reason = fh.read().strip()
+        except OSError:
+            reason = "(sentinel unreadable)"
+        print("::notice::verify_board skipped -- deliberate feeder stand-down: %s"
+              % reason)
+        sys.exit(0)
+
     errs = []
     try:
         with open(DATA_PATH, encoding="utf-8") as fh:
