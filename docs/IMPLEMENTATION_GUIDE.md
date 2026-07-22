@@ -6,6 +6,16 @@
 > header, to know what is fresh. Major version (v2) tracks *structural* revisions; append-only notes
 > and status flips are minor. Git holds the full per-line history.
 >
+> - **2026-07-22** — Added **Chapter 19** (two undocumented scoring divergences, session 32):
+>   `ENABLE_MARGIN=1` has been live in production since at least 2026-06-16 while every doc
+>   called `margin_score` an unshipped stub — a §6 built-≠-documented divergence spanning the
+>   entire `signal_log` window (19.1); the L1 float-cap unit is 1000× too small, which has
+>   collapsed the T86 component of L1 into a **sign vote** on trust/foreign/dealer for the whole
+>   observe window — reproduced 48/48 against live `score.py` (19.2); the same unit bug in
+>   `_norm_mag` saturates the §12.2 `driver` string so 投信 wins 18/18 tied rows (19.3);
+>   `FLOAT_M` value-audit debt (19.4); how the 7/28 review must read its own L1 bands (19.5);
+>   §14.5 roll-time evidence ruling out option (a) (19.6). **Documentation + decisions owed —
+>   no code changed, freeze intact.**
 > - **2026-07-20** — Added **Chapter 18** (skill in production, 7/17 crash-day T86 gap,
 >   hit-rate grader, sessions 29–30): `twse-run-review` skill shipped + first production runs,
 >   backlog item 5 DONE — the L3 stale-stub check noted as future in §17.5 shipped in v1 (18.1);
@@ -1220,3 +1230,203 @@ near-misses at 2/7 graded hits — first evidence the 0.4 gate earns its keep.
 No composite weights, confluence gate, L1–L5 formulas, observe baseline, or source tiering.
 The 2026-07-28 batched flip is untouched. New open item added to it in spirit only: skill
 v1.1 weekend-aware age check ships independently (display/tooling, freeze-exempt).
+
+-----
+
+## Chapter 19 — Two Undocumented Scoring Divergences (session 32) — NEW (2026-07-22)
+
+Both were found while doing a *routine* 3363 L1 spot-check six days before the observe
+boundary. Neither is a crash, an outage, or a failed run — both have been quietly shaping
+every score in the observe window, and neither appears in any prior chapter, handoff, or
+backlog. **Nothing in this chapter changes code.** It records what the shipped system
+actually does, so the 2026-07-28 review does not misread its own evidence.
+
+The unifying failure mode is the one §6 exists to prevent: **built ≠ documented**. §6 asks
+for divergence to be stated in the commit message and the handoff; these two escaped because
+one shipped as a workflow env var (not a code diff anyone reviewed against the guide) and the
+other is arithmetically invisible — wrong units produce plausible-looking scores in the right
+range, so nothing ever looked broken.
+
+### 19.1 `ENABLE_MARGIN=1` is live in production, and always has been
+
+`.github/workflows/daily.yml` line 87 sets `ENABLE_MARGIN: "1"`. It is present in **every**
+version of `daily.yml` the atom feed still exposes, back to `872fa78b` (2026-06-16). So the
+`margin_score` sub-component (融資 read, 10% L1 sub-weight, §1.3) has been folded into L1 as
+
+    l1 = (0.50 × t86_score + 0.10 × margin_score) / 0.60
+
+for the **entire** `signal_log` window (first row 2026-06-16), while Chapter 1, the build-order
+recap, `bsr_alternatives.md`, and every handoff have continued to call it an unshipped stub.
+
+**Board evidence (2026-07-21 board, 48 rows):** `margin_score` is non-null on **34 of 34 TWSE
+rows** and null on **all 14 TPEx rows** (values: 0.6 × 15, 0.0 × 15, 0.2 × 4).
+
+**Severity is documentation, not contamination.** Because the flag predates the whole log,
+the observe baseline is *internally consistent* — there is no mid-window regime break. Nothing
+needs unwinding.
+
+**But it carries a real asymmetry worth stating plainly:** MI_MARGN is a **TWSE-only** endpoint,
+so `margin_score` is structurally `None` on every TPEx name. TWSE and TPEx names are therefore
+scored on **different L1 denominators** — `/0.60` vs `/0.50`. That is the §1.7 rescale working
+exactly as designed (fail-safe: unfilled sub-scores are not counted), but it means a TWSE name
+and a TPEx name with identical chip flows do **not** produce identical L1. Not necessarily
+wrong; definitely not documented until now, and it belongs in the 7/28 read.
+
+**Decision owed (Fisher):** keep `ENABLE_MARGIN` ON and correct the docs, or flip it OFF.
+The recommendation on the table is **keep ON** — flipping it off six days before the boundary
+would create a *third* baseline regime for no analytical gain. Either way the guide must stop
+calling it a stub.
+
+### 19.2 The L1 float-cap unit bug — T86 is a sign vote, not a magnitude
+
+`score.py::compute_l1_score` normalises each 5-day net against a cap derived from free float:
+
+```python
+cap = float_m * 1000 * cap_pct        # score.py L125
+```
+
+`FLOAT_M` values are in **millions of shares** (`"2330": 25930` = TSMC's 25.93B ✓). The
+multiplier must therefore be `1_000_000`, not `1000`. **Every cap is 1000× too small.**
+
+The unit intent is not in doubt — `_float_pct` (L330), in the same file, for the *display*
+percentage, does it correctly:
+
+```python
+return net / (float_m * 1_000_000) * 100.0    # score.py L330 — correct
+```
+
+So one function reads `FLOAT_M` as millions and the other as thousands. The display % has
+been right all along; the scoring cap has not.
+
+**Scale of the error (2026-07-21 board):**
+
+| Ticker | `float_m` | foreign 5d cap (shipped) | actual foreign 5d | over cap |
+|---|---|---|---|---|
+| 0050 | 6,800 | 34,000 sh | −311,940,225 | **9,175×** |
+| 2359 | 2,000 | 10,000 sh | −4,453,704 | 445× |
+| 6223 | 1,100 | 5,500 sh | −2,093,955 | 381× |
+| 2330 | 25,930 | 129,650 sh | −48,522,380 | 374× |
+| 5274 | 560 | 2,800 sh | −1,008,975 | 360× |
+
+**Consequence.** Of the 26 float-covered rows on that board, **26/26 have at least one term
+clipped at ±1**, and **18/26 have every non-zero term clipped**. When all three clip,
+`t86_score` collapses to
+
+    ±0.50 ±0.30 ±0.20
+
+— a ternary vote on the **signs** of the trust / foreign / dealer 5-day nets, with all
+magnitude information discarded. A 投信 net-buy of 1% of float and one of 0.001% of float
+score identically.
+
+**This is verified, not inferred.** The full 48-row board reproduces **48/48 exact** when the
+live `score.py::compute_l1_score` is called directly with each row's `trust_5d` / `foreign_5d`
+/ `dealer_5d`, that ticker's `FLOAT_M` value, and its `margin_score`. There is no residual.
+
+**Worked example — 3131 (float_m = 850), the row that exposed it:**
+
+| term | 5d net | shipped cap | ratio | contribution |
+|---|---|---|---|---|
+| 投信 | +55,000 | 17,000 | 3.24 → **clipped +1** | +0.500 |
+| 外資 | −271,950 | 4,250 | −64.0 → **clipped −1** | −0.300 |
+| 自營 | −4,070 | 8,500 | −0.479 (only unclipped term) | −0.096 |
+
+`t86_score = 0.104`; `margin_score` is `None` (TPEx), so `l1 = 0.104` — the exact board value.
+Note that the **only** term carrying real information is the dealer term, the one the spec
+de-weights hardest as noisiest (§1.3, warrant hedging).
+
+### 19.3 The same bug in `_norm_mag` — the §12.2 `driver` line is saturated too
+
+`_norm_mag` (L347) is the ranking helper behind the §12.2 why-line and repeats the identical
+`float_m * 1000 * cap_pct`. `_driver_string` sorts candidates by `(magnitude, priority)` — so
+when both the 投信 and 外資 magnitudes clip at exactly 1.0, the sort is a **tie** and the
+priority rank alone decides it. Trust outranks foreign, so **投信 always wins**.
+
+**Verified on the 2026-07-21 board:** of the 20 float-covered rows where both `trust_5d` and
+`foreign_5d` are non-zero, **18 have both terms clipped** — and the driver reads `投信5日` on
+exactly those 18. The 2 rows where `外資5日` wins are precisely the 2 where the tie did not occur.
+
+So the dashboard's "dominant L1 reason" is, on saturated rows, not a measurement — it is the
+tie-break constant. The *number* rendered next to it (`+0.01% float`) is correct, because
+`_fmt_flow` routes through the correct `_float_pct`. **A row can therefore display a driver
+label chosen by tie-break alongside a percentage that contradicts it** — e.g. 3131 renders
+`投信5日 +0.01% float` while 外資 moved 64× more float that week.
+
+Any fix to L125 must patch L347 in the same commit, or the score and the explanation of the
+score will disagree.
+
+### 19.4 `FLOAT_M` value-audit debt — why 19.2 cannot be fixed alone
+
+`FLOAT_M` is ~30 hand-maintained entries in `feeder.py` (L103), in millions of shares. A
+wrong cap *unit* has been masking wrong cap *values*: with every cap 1000× too small,
+essentially everything clips, so an individual bad `FLOAT_M` entry has had no visible effect.
+Correcting the unit removes that mask and each value starts to matter directly.
+
+Known suspect: `"3363": 2100` — 2.1B shares for 上詮, roughly 20× too large for a name of that
+size. It is unlikely to be the only one.
+
+**Therefore: do not land the L125/L347 unit fix without auditing `FLOAT_M` in the same
+change.** A correct unit applied to wrong float values is *worse* than the current state — the
+present bug is at least uniform and self-announcing (everything clips), whereas selectively
+wrong floats would produce silently wrong magnitudes that look entirely plausible. This needs
+a source decision first (TWSE/TPEx shares-outstanding endpoint vs. hand maintenance), and
+`FLOAT_M` covering only ~30 of 48 board names is itself a coverage gap (§8.3 already flags it
+for the market-cap band).
+
+### 19.5 How the 2026-07-28 review must read its own L1 evidence
+
+`tools/hitrate_review.py` (§18.3) reports hit-rate by **L1 band (0.4–0.6 vs > 0.6)**, on the
+§12.1 premise that the band proxies chip-signal *strength*. Given 19.1 + 19.2, it does not.
+For the observe window, an L1 band is:
+
+> a **sign-combination** of the trust / foreign / dealer 5-day nets, plus the margin term on
+> TWSE names only, divided by a denominator that differs by exchange.
+
+Concretely, on saturated rows the reachable `t86_score` values are the sums of ±0.50/±0.30/±0.20
+— so the bands are enumerating *which institutions agreed*, not *how hard they bought*. That is
+still a real and testable signal — arguably a clean one — but it is a different hypothesis than
+the one §12.1 wrote down, and the review must not report it as flow magnitude.
+
+**Two concrete instructions for the review:**
+1. Read L1 bands as agreement patterns. "L1 > 0.6" ≈ "trust and foreign agreed", not "large flow".
+2. Segment by exchange before comparing L1 bands, because of the 19.1 denominator asymmetry.
+
+### 19.6 §14.5 roll-time evidence — option (a) is ruled out
+
+Carried here because it is decision-relevant at the same boundary. On the 2026-07-21 session
+the board is honestly **mixed-date** by exchange, exactly as §14.4 designed:
+
+| Section | `price_session` | `price_stale` | Rows |
+|---|---|---|---|
+| TWSE (portfolio + watchlist) | `20260720` | `True` | 34 |
+| TPEx | `20260721` | `False` | 14 |
+
+with `market.price_stale_count = 1` and `price_stale_watch_count = 33`. The header is fresh
+(T86 and TAIEX come from endpoints that publish same-day); this is the known structural
+`STOCK_DAY_ALL` one-session lag, correctly detected and honestly flagged with the §14.4 amber
+前日價 pill. Not a bug and not a failed run.
+
+**What is new:** Backup B ran at **04:18 TPE and still received 7/20 prices.** The TWSE feed
+therefore rolls *later* than 04:18 TPE. That empirically **eliminates §14.5 option (a)**
+("a post-roll D+1 morning cron") at any slot the free tier can reliably hit — free-tier drift
+already pushes 02:43 nominal starts to ~04:1x, and the feed is still behind at that point.
+**Option (b) — MIS same-day pricing into the main board — is now the standing recommendation**,
+and it carries a second dividend: it removes the structural lag that blinds the `--price-aware`
+self-heal gate (§17.4, §17.8), permanently retiring the Backup B false-fire class.
+
+### 19.7 Decisions owed out of this chapter
+
+| # | Decision | Recommendation | Blocks |
+|---|---|---|---|
+| 1 | `ENABLE_MARGIN` — keep ON or flip OFF | **Keep ON**, fix the docs | — |
+| 2 | L1 cap-unit fix (`×1000` → `×1e6`, L125 **and** L347) into the 7/28 batch | **Yes — but only paired with (3)** | (3) |
+| 3 | `FLOAT_M` value audit + source decision | Needed before (2) can land safely | — |
+| 4 | §14.5 price source | **Option (b), MIS same-day** | — |
+
+Items 2–4 are boundary-gated; item 1 is a documentation correction that can land any time.
+
+### 19.8 What Chapter 19 does NOT change
+
+**No code was changed by this chapter.** No composite weights, confluence gate, L1–L5 formulas,
+observe baseline, or source tiering. The 2026-07-28 batched flip is untouched — the cap-unit fix
+is *proposed* into it (19.7 item 2), pending the `FLOAT_M` audit, and is not staged. The freeze
+holds.
