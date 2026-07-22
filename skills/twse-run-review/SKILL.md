@@ -26,6 +26,11 @@ Exit code `1` if any check is RED, else `0`.
    before 2026-07-13 predate snapshot persistence (INFO, not a failure).
 3. **Board health** — `docs/data.json` `health.*` stamps:
    - `t86` must equal the session date once the primary has run.
+   - `data` (board build) age is measured in **trading days**, not wall-clock days
+     (v1.1). Weekends are not staleness: Friday's board reviewed on Monday morning
+     is a 0-day gap. Gap weekdays the run ledger confirms as sessions are real
+     missed boards (2+ = RED); weekdays absent from the ledger may be holidays or
+     ad-hoc closures and cap at AMBER.
    - `l3` lagging the last trading day triggers the **stale-stub sub-check**: fetch
      `docs/raw/l3_fundamentals_<date>.json`; if `stale: true`, report AMBER with its
      `stale_reason` (designed stand-down — `feeder_l3.py` keeps last-known-good
@@ -63,3 +68,14 @@ Canonical copy lives in-repo at `skills/twse-run-review/`. The claude.ai skill i
 zip of this folder uploaded via Customize → Skills. When changing the script: edit the
 repo copy first (Fisher drag-drop commits, one concern per commit, byte-verify), then
 re-zip and re-upload so the two never drift.
+
+### Changelog
+
+- **v1.1** (2026-07-22, session 32) — `health.data` age check is trading-day-aware.
+  v1.0 counted wall-clock days and false-RED'd every Monday morning (reviewing the
+  Friday session read "3d old"); first seen 2026-07-20 reviewing the 7/17 crash
+  session. The trading calendar is sourced from `processed/run_log.csv` session
+  dates — the observed calendar, since only board-producing runs write a row —
+  so the script still carries no holiday table. 9/9 offline cases at build.
+- **v1.0** (2026-07-20, session 29, commit `b82e084`) — initial release; backlog
+  item 5 DONE. Includes the §17.5 L3 stale-stub sub-check.

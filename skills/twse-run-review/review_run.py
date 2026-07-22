@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""twse-run-review v1.0 — read-only pipeline audit for freshshine1/twse-dashboard.
+"""twse-run-review v1.1 — read-only pipeline audit for freshshine1/twse-dashboard.
 
 Usage:
     python3 review_run.py                 # audit latest session found in run_log.csv
@@ -22,6 +22,10 @@ House rules honored:
     stale seconds after a commit, wait and re-run before alarming.
   - Trading calendar is inferred (weekday + ledger presence). A weekday with no run is
     AMBER "possible market closure — verify manually", never auto-RED.
+  - v1.1: board-build age is counted in TRADING days, not wall-clock days. Weekends are
+    not staleness — reviewing Friday's board on Monday morning is 0 trading days old,
+    not 3. Ledger session dates are the observed calendar; a weekday gap the ledger does
+    not confirm may be a holiday, so it can never escalate past AMBER.
 """
 
 import argparse
@@ -105,19 +109,54 @@ def prev_weekday(d):
     return d
 
 
+def trading_day_gap(build_d, today, session_dates):
+    """Trading sessions missed between the last board build and today (v1.1).
+
+    Wall-clock day-counting made Monday mornings false-RED: Friday's board is the
+    freshest board that can exist over a weekend, but read 3 calendar days old
+    (session 30, reviewing the 2026-07-17 session on Monday 2026-07-20).
+
+    Counts weekdays strictly between `build_d` and `today`. Today itself never
+    counts — its board is not due until the 18:13 TPE primary, so a board from the
+    previous session is correct all morning.
+
+    The calendar is the OBSERVED one. `session_dates` (run_log session dates) is
+    positive evidence a date traded, since only board-producing runs write a ledger
+    row. A gap weekday the ledger CONFIRMS is a real missed board; one it does not
+    confirm may be a holiday or an ad-hoc closure (§17.2 typhoon), so it can never
+    escalate past AMBER — same stance as the ledger check, and the script still has
+    no holiday table by design.
+
+    Returns (confirmed, unconfirmed) lists of date objects.
+    """
+    gap = []
+    d = build_d + timedelta(days=1)
+    while d < today:
+        if d.weekday() < 5:
+            gap.append(d)
+        d += timedelta(days=1)
+    confirmed = [g for g in gap if g.isoformat() in session_dates]
+    unconfirmed = [g for g in gap if g.isoformat() not in session_dates]
+    return confirmed, unconfirmed
+
+
 def main():
     ap = argparse.ArgumentParser(description="Audit one pipeline session (read-only).")
     ap.add_argument("--date", help="Session date YYYY-MM-DD (default: latest in run_log)")
     args = ap.parse_args()
 
     now_tpe = datetime.now(TPE)
-    print(f"twse-run-review v1.0 \u2014 now {now_tpe:%Y-%m-%d %H:%M} TPE")
+    print(f"twse-run-review v1.1 \u2014 now {now_tpe:%Y-%m-%d %H:%M} TPE")
 
     # ---- Load shared inputs (batched up front) ----
     run_log = load_run_log()
     if run_log is None:
         report(RED, "run_log", "processed/run_log.csv missing from repo")
         return finish()
+
+    # Observed trading calendar: every board-producing run writes a ledger row,
+    # so these dates are positive evidence a session traded (v1.1 age check).
+    session_dates = {r["session_date"] for r in run_log if r.get("session_date")}
 
     if args.date:
         session = date.fromisoformat(args.date)
@@ -210,10 +249,27 @@ def main():
                                     "(consistent with no-run/closure)")
 
     if data_d:
-        age = (now_tpe.date() - data_d).days
-        lvl = GREEN if age <= 1 else (AMBER if age <= 2 else RED)
-        report(lvl, "health.data", f"last board build {health.get('data')} "
-                                   f"({age}d old)")
+        cal_age = (now_tpe.date() - data_d).days
+        confirmed, unconfirmed = trading_day_gap(
+            data_d, now_tpe.date(), session_dates)
+        td_age = len(confirmed) + len(unconfirmed)
+        if len(confirmed) >= 2:
+            lvl = RED
+        elif confirmed or unconfirmed:
+            lvl = AMBER
+        else:
+            lvl = GREEN
+        detail = (f"last board build {health.get('data')} "
+                  f"({td_age} trading-day gap; {cal_age}d wall-clock)")
+        if confirmed:
+            detail += (" \u2014 ledger confirms session(s) "
+                       + ", ".join(c.isoformat() for c in confirmed)
+                       + " with no fresher board")
+        elif unconfirmed:
+            detail += (" \u2014 weekday gap "
+                       + ", ".join(u.isoformat() for u in unconfirmed)
+                       + " absent from ledger (possible closure \u2014 verify)")
+        report(lvl, "health.data", detail)
 
     # L3 with stale-stub sub-check. Expectation is run-window-aware: L3 lands
     # ~11:44-12:34 TPE (cron drift), so before 13:00 TPE today's stamp isn't due yet.
