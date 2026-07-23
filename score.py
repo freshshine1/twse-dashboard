@@ -20,6 +20,92 @@ from datetime import datetime
 log = logging.getLogger("feeder.score")
 
 
+# --- Tunable thresholds (config/thresholds.json) -----------------------------
+# IMPLEMENTATION_GUIDE 0.4: "tune thresholds, not weights". Layer WEIGHTS stay in
+# weights.json; the gate / band / cap constants below are read from
+# config/thresholds.json with the previously-hardcoded value as the fallback
+# default, so a missing or unreadable file reproduces shipped behaviour exactly.
+# Fail-safe but LOUD: a failed load is logged at WARNING and reported by
+# thresholds_source() so it can be stamped into data.json rather than passing
+# silently (the 19.1 "built != documented" failure class).
+_TH_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "config", "thresholds.json")
+_TH_SOURCE = "defaults"
+
+
+def _load_thresholds(path=_TH_PATH):
+    """Read config/thresholds.json. Never raises -- returns {} on any failure so
+    the built-in defaults (== the shipped constants) take over."""
+    global _TH_SOURCE
+    try:
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+        if not isinstance(data, dict):
+            raise ValueError("top level is not a JSON object")
+        _TH_SOURCE = path
+        log.info("thresholds: loaded %s (%d sections)", path, len(data))
+        return data
+    except FileNotFoundError:
+        log.warning("thresholds: %s NOT FOUND -- using built-in defaults", path)
+    except Exception as exc:                      # never fatal
+        log.warning("thresholds: %s unreadable (%s) -- using built-in defaults",
+                    path, exc)
+    return {}
+
+
+THRESHOLDS = _load_thresholds()
+
+
+def thresholds_source():
+    """Path the live thresholds came from, or 'defaults'. Stamp into data.json."""
+    return _TH_SOURCE
+
+
+def th(dotted, default, allow_null=False):
+    """Dotted-path read from THRESHOLDS, falling back to the shipped constant.
+
+    A JSON null falls back to `default` unless allow_null=True -- callers whose
+    null means "feature off" (e.g. l4.vix_component_cap) must pass allow_null.
+    """
+    node = THRESHOLDS
+    for key in dotted.split("."):
+        if not isinstance(node, dict) or key not in node:
+            return default
+        node = node[key]
+    if node is None and not allow_null:
+        return default
+    return node
+
+
+# Defaults below are the values shipped before wiring. config/thresholds.json
+# currently carries these same values, so wiring is a verified no-op.
+_L1_GATE         = th("confluence.l1_gate", 0.4)
+_L2_GATE         = th("confluence.l2_gate", 0.4)
+_SELL_LAYER_TH   = th("sell_trigger.layer_threshold", -0.4)
+_SELL_MIN_LAYERS = th("sell_trigger.min_negative_layers", 2)
+_SELL_L3_HARD    = th("sell_trigger.l3_hard_exclude", -0.6)
+_BAND_GO         = th("action_bands.go", 40)
+_BAND_GO_HALF    = th("action_bands.go_half", 20)
+_BAND_TRIM       = th("action_bands.trim", -20)
+_BAND_SELL       = th("action_bands.sell", -40)
+_CAP_MULT        = th("l1.float_cap_unit_multiplier", 1000)
+_CAP_NOFLOAT     = th("l1.no_float_fallback_cap", 10000)
+_CAP_TRUST       = th("l1.float_cap_pct.trust", 0.02)
+_CAP_FOREIGN     = th("l1.float_cap_pct.foreign", 0.005)
+_CAP_DEALER      = th("l1.float_cap_pct.dealer", 0.01)
+_W_TRUST         = th("l1.t86_term_weights.trust", 0.50)
+_W_FOREIGN       = th("l1.t86_term_weights.foreign", 0.30)
+_W_DEALER        = th("l1.t86_term_weights.dealer", 0.20)
+_SW_T86          = th("l1.sub_weights.t86", 0.50)
+_SW_CONC         = th("l1.sub_weights.concentration", 0.20)
+_SW_MARGIN       = th("l1.sub_weights.margin", 0.10)
+
+# Exported for feeder.py: 12.8 recency decay must be applied at the per-day SUM
+# site (feeder.py ~L932), because compute_l1_score only ever receives the summed
+# 5-day nets. All 1.0 == OFF == current shipped behaviour.
+RECENCY_DECAY    = th("l1.recency_decay", [1.0, 1.0, 1.0, 1.0, 1.0])
+
+
 # --- L1 chip sub-scores & signal score --------------------------------------
 def _sgn(x):
     if not x: return 0
@@ -122,18 +208,18 @@ def compute_l1_score(t86_entry, float_m, concentration=None, margin=None):
     def norm(net, cap_pct):
         if net is None: return 0.0
         if float_m and float_m > 0:
-            cap = float_m * 1000 * cap_pct
+            cap = float_m * _CAP_MULT * cap_pct
             return max(-1.0, min(1.0, net / cap)) if cap else 0.0
-        return max(-1.0, min(1.0, net / 10000))
+        return max(-1.0, min(1.0, net / _CAP_NOFLOAT))
 
     f5  = t86_entry.get("foreign_5d") or 0.0
     tr5 = t86_entry.get("trust_5d")  or 0.0
     d5  = t86_entry.get("dealer_5d")  or 0.0        # real 5d sum (P1a fix)
 
     t86_score = (
-        0.50 * _sgn(tr5) * abs(norm(tr5, 0.02))
-        + 0.30 * _sgn(f5) * abs(norm(f5, 0.005))
-        + 0.20 * _sgn(d5) * abs(norm(d5, 0.01))
+        _W_TRUST * _sgn(tr5) * abs(norm(tr5, _CAP_TRUST))
+        + _W_FOREIGN * _sgn(f5) * abs(norm(f5, _CAP_FOREIGN))
+        + _W_DEALER * _sgn(d5) * abs(norm(d5, _CAP_DEALER))
     )
     t86_score = max(-1.0, min(1.0, t86_score))
 
@@ -141,14 +227,14 @@ def compute_l1_score(t86_entry, float_m, concentration=None, margin=None):
     # Rescale by the FILLED sub-weight fraction so the score stays comparable while
     # the remaining sub-scores are stubs (same approach the P1a fix used). Any sub-score
     # that is None is simply not filled -> fail-safe: with all None, l1 == t86_score.
-    num = 0.50 * t86_score
-    den = 0.50
+    num = _SW_T86 * t86_score
+    den = _SW_T86
     if concentration is not None:
-        num += 0.20 * max(-1.0, min(1.0, concentration))
-        den += 0.20
+        num += _SW_CONC * max(-1.0, min(1.0, concentration))
+        den += _SW_CONC
     if margin is not None:
-        num += 0.10 * max(-1.0, min(1.0, margin))
-        den += 0.10
+        num += _SW_MARGIN * max(-1.0, min(1.0, margin))
+        den += _SW_MARGIN
     l1 = num / den if den else 0.0
     return round(max(-1.0, min(1.0, l1)), 3)
 
@@ -269,15 +355,15 @@ def compute_composite(l1, l2, l3, l4, l5, bucket):
 
 
 def _confluence(l1, l2):
-    return (l1 is not None and l1 >= 0.4) and (l2 is not None and l2 >= 0.4)
+    return (l1 is not None and l1 >= _L1_GATE) and (l2 is not None and l2 >= _L2_GATE)
 
 
 def _sell_trigger(l1, l2, l3):
     """SELL when >=2 of {L1,L2,L3} <= -0.4, or L3 <= -0.6 alone (hard exclude)."""
-    if l3 is not None and l3 <= -0.6:
+    if l3 is not None and l3 <= _SELL_L3_HARD:
         return True
-    neg = sum(1 for x in (l1, l2, l3) if x is not None and x <= -0.4)
-    return neg >= 2
+    neg = sum(1 for x in (l1, l2, l3) if x is not None and x <= _SELL_LAYER_TH)
+    return neg >= _SELL_MIN_LAYERS
 
 
 def compute_action(composite, l1, l2, l3, bucket, veto=False):
@@ -288,14 +374,14 @@ def compute_action(composite, l1, l2, l3, bucket, veto=False):
     conf = _confluence(l1, l2)
     sell = _sell_trigger(l1, l2, l3)
     if bucket == "T1":                        # inventory
-        if sell or composite <= -40: return ("SELL", conf)
-        if composite <= -20:         return ("TRIM", conf)
-        if composite >= 40:          return ("ADD" if conf else "HOLD", conf)
+        if sell or composite <= _BAND_SELL: return ("SELL", conf)
+        if composite <= _BAND_TRIM:         return ("TRIM", conf)
+        if composite >= _BAND_GO:           return ("ADD" if conf else "HOLD", conf)
         return ("HOLD", conf)
     # watchlist (T2)
     if sell:                                  return ("NO-GO", conf)
-    if composite >= 40 and conf and not veto: return ("GO", conf)
-    if composite >= 20 and conf and not veto: return ("GO half", conf)
+    if composite >= _BAND_GO and conf and not veto:      return ("GO", conf)
+    if composite >= _BAND_GO_HALF and conf and not veto: return ("GO half", conf)
     return ("NO-GO", conf)
 
 
@@ -318,8 +404,9 @@ def compute_action(composite, l1, l2, l3, bucket, veto=False):
 #  * churn (隔日沖), 季底作帳, and scheduled-event countdown are not computed
 #    yet -> not surfaced in `risk`. Hooks are marked TODO below.
 
-_GO_COMPOSITE = 40.0   # display mirror of compute_action's GO threshold
-_GATE = 0.4            # display mirror of the confluence gate
+_GO_COMPOSITE = float(_BAND_GO)          # display mirror of compute_action's GO threshold
+_GATE = th("display.gate_mirror", 0.4)   # display mirror of the confluence gate
+_NEAR_SELL_FLOOR = th("display.near_sell_floor", -0.25)
 
 
 def _float_pct(net, float_m):
@@ -344,9 +431,9 @@ def _norm_mag(net, float_m, cap_pct):
     if net is None:
         return 0.0
     if float_m and float_m > 0:
-        cap = float_m * 1000 * cap_pct
+        cap = float_m * _CAP_MULT * cap_pct
         return min(1.0, abs(net) / cap) if cap else 0.0
-    return min(1.0, abs(net) / 10000)
+    return min(1.0, abs(net) / _CAP_NOFLOAT)
 
 
 def _driver_string(trust_5d, foreign_5d, float_m,
@@ -429,7 +516,7 @@ def _flip_string(tier, action, composite, l1, l2, l3):
         return ""
     if tier == "T1" and action in ("HOLD", "TRIM"):
         near = [(nm, val + _GATE) for nm, val in (("L1", l1), ("L2", l2), ("L3", l3))
-                if val is not None and -_GATE < val <= -0.25]
+                if val is not None and -_GATE < val <= _NEAR_SELL_FLOOR]
         if near:
             name, gap = min(near, key=lambda x: x[1])   # closest to a SELL leg
             return f"SELL距 {name} −{gap:.2f}"
