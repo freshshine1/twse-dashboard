@@ -1,0 +1,96 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "created": "2026-07-23",
+    "purpose": "Tunable thresholds per IMPLEMENTATION_GUIDE 0.4 ('tune thresholds, not weights'). Layer WEIGHTS stay in weights.json and are NOT tunable here.",
+    "status": "INERT — no code reads this file as of commit date. Wiring lands separately and must reproduce the board 48/48 identical before any value changes.",
+    "boundary": "2026-07-28",
+    "values_reflect": "live score.py behaviour as of md5 008894cda6c46a85e7949bf671b06d8a — every value below is the CURRENT hardcoded constant, so wiring is a verifiable no-op"
+  },
+
+  "confluence": {
+    "_note": "score.py::_confluence L271-272. GO/GO-half/ADD require BOTH legs.",
+    "l1_gate": 0.4,
+    "l2_gate": 0.4,
+    "_boundary_candidate": "l2_gate -> 0.35 (12.1 counterfactual: 8 near-misses flip, 2/7 graded hits — the 0.4 gate currently earns its keep)"
+  },
+
+  "sell_trigger": {
+    "_note": "score.py::_sell_trigger L275-280.",
+    "layer_threshold": -0.4,
+    "min_negative_layers": 2,
+    "l3_hard_exclude": -0.6
+  },
+
+  "action_bands": {
+    "_note": "score.py::compute_action L283-298. Composite scale -100..+100.",
+    "go": 40,
+    "go_half": 20,
+    "trim": -20,
+    "sell": -40
+  },
+
+  "display": {
+    "_note": "score.py L322 _GATE — display mirror of the confluence gate (12.2 distance-to-flip). Ch.10 wall: display only, never gates.",
+    "gate_mirror": 0.4,
+    "near_sell_floor": -0.25
+  },
+
+  "l1": {
+    "_note": "score.py::compute_l1_score L119-152.",
+    "sub_weights": {
+      "t86": 0.50,
+      "concentration": 0.20,
+      "broker": 0.20,
+      "margin": 0.10,
+      "_note": "Rescaled by FILLED fraction (1.7 internal rescale). A None sub-score is not counted, so denominators differ by exchange — see 19.1."
+    },
+    "t86_term_weights": {
+      "trust": 0.50,
+      "foreign": 0.30,
+      "dealer": 0.20
+    },
+    "float_cap_pct": {
+      "_note": "Fraction of free float treated as a full-scale 5-day net.",
+      "trust": 0.02,
+      "foreign": 0.005,
+      "dealer": 0.01
+    },
+    "float_cap_unit_multiplier": 1000,
+    "_float_cap_unit_WARNING": "19.2 — FLOAT_M is in MILLIONS of shares, so this multiplier must be 1000000. At 1000 every cap is 1000x too small and t86_score collapses to a sign vote (26/26 rows clipped, 18/26 fully). Value kept at 1000 here to mirror shipped behaviour. DO NOT change without the FLOAT_M value audit (19.4) landing in the same commit, and patch BOTH score.py L125 and _norm_mag L347 (19.3) or the driver line will contradict the score.",
+    "no_float_fallback_cap": 10000,
+    "recency_decay": [1.0, 1.0, 1.0, 1.0, 1.0],
+    "_recency_decay_note": "12.8 [BOUNDARY]. Weights d0 -> d-4 applied to the 5-day nets before /float normalisation. All 1.0 = OFF = current shipped behaviour. Boundary candidate: [1.0, 0.9, 0.8, 0.7, 0.6]."
+  },
+
+  "l4": {
+    "_note": "feeder_us.py::compute_tilt. 4.1 audit.",
+    "vix_component_cap": null,
+    "_vix_component_cap_note": "4.1 Option B [BOUNDARY]. null = OFF = current shipped behaviour. Boundary candidate: 2.5 (max absolute raw VIX contribution, ~0.94 tilt points). No-op on normal days (<= +/-8% VIX).",
+    "regime_veto_tilt": -5
+  },
+
+  "concentration": {
+    "_note": "1.4 / bsr_alternatives.md. Windows in %, CMoney Top-15 calibration — these do NOT transfer to the T86 proxy (Option B), which needs its own empirical distribution.",
+    "enabled": false,
+    "_enabled_note": "Mirrors feeder.py ENABLE_CONCENTRATION (env, currently unset = false). [BOUNDARY] flip candidate.",
+    "windows_pct": {
+      "d1": 20,
+      "d3": 10,
+      "d5": 6,
+      "d60": 5,
+      "d120": 3
+    },
+    "conc_scale": null,
+    "_conc_scale_note": "TODO — fill from score.py::compute_concentration_score L102-117 when the concentration patch is staged. Current values are first-guess and need fitting."
+  },
+
+  "hitrate": {
+    "_note": "18.3. Grading config for tools/hitrate_review.py.",
+    "primary_metric": "A",
+    "_primary_metric_note": "A = sign(fwd_5d) vs action direction. [BOUNDARY] candidate: C (fwd_5d excess vs TAIEX) once a forward TAIEX series is archived — only metric C separates selection from beta.",
+    "horizons_days": [5, 10, 20],
+    "l1_bands": [[0.4, 0.6], [0.6, 1.01]],
+    "_l1_bands_note": "19.5 — for the observe window these enumerate WHICH INSTITUTIONS AGREED (sign combinations), not flow magnitude. Segment by exchange before comparing (19.1 denominator asymmetry)."
+  }
+}
