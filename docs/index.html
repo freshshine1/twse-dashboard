@@ -574,6 +574,13 @@ a { color: inherit; text-decoration: none; }
 .px-stale-pill { display:inline-block; margin-top:2px; padding:1px 6px;
   font-size:10px; font-weight:600; border-radius:8px;
   color:#8a5a00; background:#fdf3dd; border:1px solid #eeddb3; }
+/* Ch.16-overlay: today's MIS price shown next to the amber pill on a stale row.
+   Blue = live intraday feed, deliberately NOT the amber "prior-session" colour. */
+.px-live-pill { display:inline-block; margin-top:2px; margin-left:4px; padding:1px 6px;
+  font-size:10px; font-weight:600; border-radius:8px;
+  color:#0a5a8a; background:#e7f3fb; border:1px solid #bfe0f2; }
+.px-live-pill .plp-chg.pos { color:#0a7a3a; }
+.px-live-pill .plp-chg.neg { color:#b23; }
 .px-stale-banner { margin:6px 0 2px; padding:6px 10px; font-size:12px;
   color:#8a5a00; background:#fdf3dd; border:1px solid #eeddb3; border-radius:8px; }
 /* ══ Intraday tab (Ch.16) — display-only ══ */
@@ -1085,6 +1092,25 @@ function pxStalePill(t) {
   return `<div class="px-stale-pill">前日價${md ? ' ' + md : ''}</div>`;
 }
 
+// Ch.16-overlay (display-only, Ch.10 wall): when a row is price_stale (TWSE
+// STOCK_DAY_ALL one session behind), surface today's MIS price from the same
+// data-branch intraday.json the 盤中 tab reads. Never scored, never gated —
+// a reading aid until the 7/28 MIS-into-board fix (§14.5) removes the lag.
+// Labelled 收盤 only when the feed reports phase="close" (post-13:30 settled
+// auction); otherwise 盤中 (a live continuous-session tick, not the close).
+function pxLivePill(t) {
+  if (!t || !t.price_stale || !INTRADAY || !INTRADAY.rows) return '';
+  const row = INTRADAY.rows.find(r => String(r.ticker) === String(t.ticker));
+  if (!row || row.last == null) return '';
+  const chg = (row.chg_pct == null) ? null : row.chg_pct;
+  const cls = chg > 0 ? 'pos' : chg < 0 ? 'neg' : 'flat';
+  const chgStr = chg == null ? '' :
+    ` <span class="plp-chg ${cls}">${chg > 0 ? '+' : ''}${chg.toFixed(2)}%</span>`;
+  const tag = INTRADAY.phase === 'close' ? '今收' : '盤中';
+  return `<div class="px-live-pill" title="${tag}價 來自 MIS 即時 (${String(INTRADAY.updated||'').slice(11,16)} 更新)；顯示用，未計入分數">`
+       + `${tag} ${row.last}${chgStr}</div>`;
+}
+
 function tickerCard(t, isPortfolio) {
   const chgPct = t.chg_pct ?? t.chgPct;
   const chgCls = (chgPct > 0) ? 'pos' : (chgPct < 0) ? 'neg' : 'flat';
@@ -1131,7 +1157,7 @@ function tickerCard(t, isPortfolio) {
     <div class="ticker-right">
       <div class="price-main">${priceStr}</div>
       <div class="price-chg ${chgCls}">${chgStr}</div>
-      ${pxStalePill(t)}
+      ${pxStalePill(t)}${pxLivePill(t)}
     </div>
   </div>
   <div class="chip-detail ${OPEN[key] ? 'open' : ''}" id="detail-${key}">
@@ -1601,6 +1627,17 @@ function switchTab(name) {
   document.getElementById('panel-' + name).classList.add('active');
   // Intraday tab polls only while visible (Ch.16) — start on enter, stop on leave.
   if (name === 'intraday') startIntraday(); else stopIntraday();
+
+  // Ch.16-overlay: Portfolio/Watch want today's MIS price on stale rows. INTRADAY
+  // is normally only fetched on the 盤中 tab, so pull it once here (no polling —
+  // one fetch), then re-render the panel so pxLivePill() has data. Silent on
+  // failure: the amber prior-session pill still stands on its own.
+  if ((name === 'portfolio' || name === 'watch') && !INTRADAY) {
+    fetchIntraday().then(() => {
+      if (typeof renderPortfolio === 'function') renderPortfolio();
+      if (typeof renderWatch === 'function') renderWatch();
+    }).catch(() => {});
+  }
 }
 
 // ── Master render ──
