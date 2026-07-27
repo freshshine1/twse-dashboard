@@ -38,7 +38,12 @@ BACKOFF = [5, 15]          # seconds between attempts
 TIMEOUT = 10
 
 MARKET_OPEN = (9, 0)
-MARKET_CLOSE = (13, 30)
+# 14:00, not 13:30: the closing auction settles at 13:30 and MIS serves the
+# OFFICIAL close (field z) for a few minutes after. Extending the window to
+# 14:00 lets the post-close tick overwrite the last continuous-session price
+# with the settled close, so intraday.json carries a real 收盤價 by end of run.
+# Continuous trading still ends 13:30; ticks in 13:30-14:00 only refresh the close.
+MARKET_CLOSE = (14, 0)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("intraday")
@@ -224,6 +229,11 @@ def main():
         log.info("Outside market hours (%s TPE) — no-op, exit green.", now.strftime("%a %H:%M"))
         return 0
 
+    # After 13:30 TPE the continuous session has closed and MIS is serving the
+    # settled auction close; before it, prices are live continuous-session ticks.
+    # Stamp this so the dashboard overlay can label the number (收盤 vs 盤中).
+    after_close = (now.hour * 60 + now.minute) >= (13 * 60 + 30)
+
     try:
         universe = load_universe()
     except Exception as e:  # noqa: BLE001
@@ -269,6 +279,7 @@ def main():
     payload = {
         "updated": now.isoformat(timespec="seconds"),
         "session": session,
+        "phase": "close" if after_close else "intraday",
         "rows": rows,
     }
     with open(OUT_PATH, "w", encoding="utf-8") as fh:
