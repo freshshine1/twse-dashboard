@@ -7,7 +7,7 @@ on:
     # fetch cadence. GitHub free-tier throttles */5 schedules to ~1 delivered tick
     # per session (observed 7/6, 7/7), so the real cadence comes from the session
     # loop below: the first tick (or a manual dispatch) starts ONE long job that
-    # loops fetch->push->sleep internally until 13:30 TPE. Later ticks either
+    # loops fetch->push->sleep internally until 14:00 TPE. Later ticks either
     # queue behind the running loop (concurrency group) and no-op after close,
     # or restart the loop if it died mid-session.
     - cron: '*/5 1-5 * * 1-5'
@@ -27,13 +27,14 @@ concurrency:
 env:
   INTERVAL_SECONDS: '300'       # fetch cadence inside the loop; retune with a one-line commit
   OPEN_TPE: '0905'              # loop start — skip the noisy first minutes after open
-  CLOSE_TPE: '1330'             # loop end (matches feeder_intraday.py's own guard)
+  CLOSE_TPE: '1400'             # loop end (matches feeder_intraday.py MARKET_CLOSE=(14,0));
+                                # 13:30-14:00 ticks capture the settled auction close (phase=close)
   MAX_STRIKES: '3'              # consecutive failed fetch cycles tolerated before the job goes RED
 
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 330        # covers a full 09:05-13:30 session + slack (< 6 h job cap)
+    timeout-minutes: 330        # covers a full 09:05-14:00 session + slack (< 6 h job cap)
 
     steps:
       # Checks out MAIN: brings feeder_intraday.py + docs/data.json (the ticker
