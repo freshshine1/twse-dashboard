@@ -71,6 +71,7 @@ from score import (
     update_signal_log,
     compute_verdict,
     update_verdict_log,
+    RECENCY_DECAY,
 )
 
 # L1 concentration sub-score (BSR), carved into its own module; reads docs/bsr/*.csv.
@@ -907,6 +908,20 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
     all_codes = twse_codes | tpex_codes
     result = {}
 
+    # §12.8 recency decay: weight the 5-day nets by recency before summing, so a
+    # 投信 streak that ended 3 days ago does not score like one printed today.
+    # RECENCY_DECAY comes from score.py (thresholds.json -> l1.recency_decay);
+    # all-1.0 == OFF == pre-boundary behaviour. `days` is NEWEST-FIRST, so index i
+    # lines up with weight i (d0=today=RECENCY_DECAY[0]). Applied ONLY to the _5d
+    # window (the §12.8 scope); _3d and streaks are untouched.
+    _decay_is_noop = all(abs(w - 1.0) < 1e-12 for w in RECENCY_DECAY)
+
+    def _wsum5(vals):
+        # vals is newest-first, length-5 (callers guard len(days) >= 5).
+        if _decay_is_noop:
+            return sum(vals)
+        return sum(v * RECENCY_DECAY[i] for i, v in enumerate(vals))
+
     for code in all_codes:
         days = []
         for dt in fetch_dates:  # newest first
@@ -929,10 +944,10 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
             "dealer_net":     today_d["dealer_net"],
             "inst_net":       today_d["inst_net"],
             "foreign_3d":     sum(d["foreign_net"] for d in days[:3]) if len(days) >= 3 else None,
-            "foreign_5d":     sum(d["foreign_net"] for d in days)     if len(days) >= 5 else None,
+            "foreign_5d":     _wsum5([d["foreign_net"] for d in days]) if len(days) >= 5 else None,
             "trust_3d":       sum(d["trust_net"]   for d in days[:3]) if len(days) >= 3 else None,
-            "trust_5d":       sum(d["trust_net"]   for d in days)     if len(days) >= 5 else None,
-            "dealer_5d":      sum(d["dealer_net"]  for d in days)     if len(days) >= 5 else None,
+            "trust_5d":       _wsum5([d["trust_net"]   for d in days]) if len(days) >= 5 else None,
+            "dealer_5d":      _wsum5([d["dealer_net"]  for d in days]) if len(days) >= 5 else None,
             "foreign_streak": _streak(foreign_vals),
             "trust_streak":   _streak(trust_vals),
         }
