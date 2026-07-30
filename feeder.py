@@ -72,6 +72,9 @@ from score import (
     compute_verdict,
     update_verdict_log,
     RECENCY_DECAY,
+    thresholds_source,
+    _L1_GATE as L1_GATE_EFF,
+    _L2_GATE as L2_GATE_EFF,
 )
 
 # L1 concentration sub-score (BSR), carved into its own module; reads docs/bsr/*.csv.
@@ -1946,6 +1949,15 @@ def main():
         "l4":       l4_regime.get("asof"),    # L4 file's own asof
         "analysis": analysis.get("updated"),  # 早報/SinoPac summary
         "data":     now_iso(),                # this data.json
+        # Which tunables produced this board. "source" proves the file loaded;
+        # the values prove each key resolved FROM it rather than from a shipped
+        # fallback -- th() falls back per-key, so source alone is not proof.
+        "thresholds": {
+            "source":        thresholds_source(),
+            "l1_gate":       L1_GATE_EFF,
+            "l2_gate":       L2_GATE_EFF,
+            "recency_decay": list(RECENCY_DECAY),
+        },
     }
     data_out = {
         "updated":   now_iso(),
