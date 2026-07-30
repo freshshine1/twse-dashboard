@@ -3,16 +3,18 @@
     "version": "1.0",
     "created": "2026-07-23",
     "purpose": "Tunable thresholds per IMPLEMENTATION_GUIDE 0.4 ('tune thresholds, not weights'). Layer WEIGHTS stay in weights.json and are NOT tunable here.",
-    "status": "INERT — no code reads this file as of commit date. Wiring lands separately and must reproduce the board 48/48 identical before any value changes.",
+    "status": "LIVE — score.py reads every key below via th(); feeder.py consumes l1.recency_decay through score.RECENCY_DECAY at the three _5d sum sites. Wiring shipped 2026-07-27 and proved no-op (0 diffs, 50/50 board reproduction). 2026-07-28 boundary flip, landed 2026-07-30: confluence.l2_gate and l1.recency_decay. See _dead_keys before flipping anything else.",
     "boundary": "2026-07-28",
+    "_dead_keys": ["l4.vix_component_cap (feeder_us.py hardcodes the +/-2.5 cap at L50 and never reads this file)", "hitrate.primary_metric (tools/hitrate_review.py does not read thresholds.json at all)", "concentration.enabled (feeder.py L135 uses os.getenv(ENABLE_CONCENTRATION) only)"],
+    "_dead_keys_note": "These three keys are INERT MIRRORS — editing them changes nothing. Wire or delete them; do not treat them as flip levers.",
     "values_reflect": "live score.py behaviour as of md5 008894cda6c46a85e7949bf671b06d8a — every value below is the CURRENT hardcoded constant, so wiring is a verifiable no-op"
   },
 
   "confluence": {
     "_note": "score.py::_confluence L271-272. GO/GO-half/ADD require BOTH legs.",
     "l1_gate": 0.4,
-    "l2_gate": 0.4,
-    "_boundary_candidate": "l2_gate -> 0.35 (12.1 counterfactual: 8 near-misses flip, 2/7 graded hits — the 0.4 gate currently earns its keep)"
+    "l2_gate": 0.35,
+    "_flipped_2026_07_30": "l2_gate 0.4 -> 0.35 per 12.1 (2026-07-28 boundary item, landed 07-30). DESYNC OWED: score.py::_agree_count (L565) hardcodes 0.4 and display.gate_mirror below is still 0.4, so the 12.6 agreement dots and the 12.2 distance-to-flip string now use a different yardstick than the live gate. Decision owed: track l2_gate, or keep 0.4 as a fixed yardstick."
   },
 
   "sell_trigger": {
@@ -59,8 +61,8 @@
     "float_cap_unit_multiplier": 1000,
     "_float_cap_unit_WARNING": "19.2 — FLOAT_M is in MILLIONS of shares, so this multiplier must be 1000000. At 1000 every cap is 1000x too small and t86_score collapses to a sign vote (26/26 rows clipped, 18/26 fully). Value kept at 1000 here to mirror shipped behaviour. DO NOT change without the FLOAT_M value audit (19.4) landing in the same commit, and patch BOTH score.py L125 and _norm_mag L347 (19.3) or the driver line will contradict the score.",
     "no_float_fallback_cap": 10000,
-    "recency_decay": [1.0, 1.0, 1.0, 1.0, 1.0],
-    "_recency_decay_note": "12.8 [BOUNDARY]. Weights d0 -> d-4 applied to the 5-day nets before /float normalisation. All 1.0 = OFF = current shipped behaviour. Boundary candidate: [1.0, 0.9, 0.8, 0.7, 0.6]."
+    "recency_decay": [1.0, 0.9, 0.8, 0.7, 0.6],
+    "_recency_decay_note": "12.8 — FLIPPED 2026-07-30 (2026-07-28 boundary item) to [1.0,0.9,0.8,0.7,0.6] (d0 -> d-4), applied in feeder.py::_wsum5 before /float normalisation. Restore all-1.0 to turn OFF (short-circuits to plain sum). CAVEAT: with float_cap_unit_multiplier still at the 19.2 bug value, 61 of 75 float-covered 5d terms on the 2026-07-29 board stay clipped at +/-1 under ANY same-sign decay split, so at most 19% of terms can move until the cap-unit fix lands."
   },
 
   "l4": {
