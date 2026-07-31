@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-31T20:25:58+08:00",
+  "updated": "2026-08-01T04:20:16+08:00",
   "market": {
     "taiex": 43119.75,
     "taiex_chg": 3186.45,
@@ -28,7 +28,7 @@
       "mtx_net_oi": -1178,
       "mxf_net_oi": 7771,
       "basis": "TX_big_contract_only",
-      "asof": "2026-07-31T20:13:20+08:00",
+      "asof": "2026-08-01T04:08:22+08:00",
       "trend_5d_delta": -6255,
       "trend_5d_arrow": "↓",
       "series_len": 27,
