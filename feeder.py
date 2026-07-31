@@ -951,6 +951,12 @@ def fetch_t86_institutional(twse_codes, tpex_codes):
             "trust_3d":       sum(d["trust_net"]   for d in days[:3]) if len(days) >= 3 else None,
             "trust_5d":       _wsum5([d["trust_net"]   for d in days]) if len(days) >= 5 else None,
             "dealer_5d":      _wsum5([d["dealer_net"]  for d in days]) if len(days) >= 5 else None,
+            # 12.8: *_5d above are RECENCY-WEIGHTED (they feed L1 scoring). The
+            # *_5d_raw twins are the plain unweighted 5-session sums and exist so
+            # the dashboard can show true flow under a "5d" label. Display only.
+            "foreign_5d_raw": sum(d["foreign_net"] for d in days) if len(days) >= 5 else None,
+            "trust_5d_raw":   sum(d["trust_net"]   for d in days) if len(days) >= 5 else None,
+            "dealer_5d_raw":  sum(d["dealer_net"]  for d in days) if len(days) >= 5 else None,
             "foreign_streak": _streak(foreign_vals),
             "trust_streak":   _streak(trust_vals),
         }
@@ -1790,6 +1796,9 @@ def main():
                 "trust_3d":       t86_entry.get("trust_3d")        if t86_entry else None,
                 "trust_5d":       t86_entry.get("trust_5d")        if t86_entry else None,
                 "dealer_5d":      t86_entry.get("dealer_5d")       if t86_entry else None,
+                "foreign_5d_raw": t86_entry.get("foreign_5d_raw")  if t86_entry else None,
+                "trust_5d_raw":   t86_entry.get("trust_5d_raw")    if t86_entry else None,
+                "dealer_5d_raw":  t86_entry.get("dealer_5d_raw")   if t86_entry else None,
                 "foreign_streak": t86_entry.get("foreign_streak")  if t86_entry else None,
                 "trust_streak":   t86_entry.get("trust_streak")    if t86_entry else None,
                 "l1_score":       l1,
