@@ -1190,9 +1190,9 @@ function chipDetailHTML(t, isPortfolio) {
     rows.push(`</div>`);
     rows.push(`<div class="chip-row">`);
     rows.push(statChip('外資3d', fmtShares(t.foreign_3d), colorClass(t.foreign_3d)));
-    rows.push(statChip('外資5d', fmtShares(t.foreign_5d), colorClass(t.foreign_5d)));
+    rows.push(statChip('外資5d', fmtShares(t.foreign_5d_raw ?? t.foreign_5d), colorClass(t.foreign_5d_raw ?? t.foreign_5d)));
     rows.push(statChip('投信3d', fmtShares(t.trust_3d), colorClass(t.trust_3d)));
-    rows.push(statChip('投信5d', fmtShares(t.trust_5d), colorClass(t.trust_5d)));
+    rows.push(statChip('投信5d', fmtShares(t.trust_5d_raw ?? t.trust_5d), colorClass(t.trust_5d_raw ?? t.trust_5d)));
     rows.push(`</div>`);
   }
 
