@@ -217,23 +217,61 @@ def _roc_to_western(s):
         return None
 
 
-def _verify_freshness_flags(portfolio, watchlist, market, t86_dd, snap_dd, tpex_dd):
+def _history_tail(history):
+    """Last usable OHLCV row from the PER-TICKER STOCK_DAY history.
+
+    The whole-market STOCK_DAY_ALL snapshot lags a full trading session on TWSE
+    (Ch.14, Sec.19.6). The per-ticker history endpoint does NOT -- it already
+    carries the current session's close at every cron slot we run (verified
+    across four sessions, evening runs and pre-dawn backups alike, by comparing
+    each board's ma5 against an independently reconstructed close series).
+    The correct same-session price is therefore already fetched every run; it
+    was simply discarded in favour of the lagging snapshot value.
+
+    Returns (dd, close, prev_close, volume); dd is 'YYYYMMDD'. All None when the
+    history is missing, short or undated. Never raises -- a bad history must
+    degrade to the old snapshot behaviour, never break the run.
+    """
+    try:
+        rows = [r for r in (history or [])
+                if r.get("close") is not None and r.get("date")]
+        if not rows:
+            return None, None, None, None
+        last = rows[-1]
+        prev = rows[-2] if len(rows) >= 2 else None
+        return (last["date"].strftime("%Y%m%d"),
+                last.get("close"),
+                (prev.get("close") if prev else None),
+                last.get("volume"))
+    except Exception as exc:
+        log.debug("history tail unusable: %s", exc)
+        return None, None, None, None
+
+
+def _verify_freshness_flags(portfolio, watchlist, market, t86_dd, snap_dd, tpex_dd,
+                            px_map=None):
     """Guard-on-the-guard (#3a). Independently RE-DERIVE price_stale for every row
     and assert it matches what was written, plus the holding count. A mismatch means
     the freshness flagger itself broke (or a row was mutated after annotation) -- fail
     LOUD (red exit) rather than publish a board whose freshness flags silently lie.
     Pure display-layer invariant; never touches scores or the confluence gate."""
-    def _expect(exch):
-        psd = snap_dd if exch == "TWSE" else (tpex_dd if exch == "TPEx" else None)
+    def _expect(exch, ticker=None):
+        # A row that took its displayed price from the per-ticker history carries
+        # THAT history date as its price session; everything else falls back to
+        # the whole-market snapshot date for its exchange (the original rule).
+        psd = (px_map or {}).get(ticker)
+        if not psd:
+            psd = snap_dd if exch == "TWSE" else (tpex_dd if exch == "TPEx" else None)
         return bool(psd and len(t86_dd) == 8 and psd < t86_dd), psd
     problems = []
     for row in list(portfolio) + list(watchlist):
-        exp_stale, exp_psd = _expect(row.get("exchange"))
+        exp_stale, exp_psd = _expect(row.get("exchange"), row.get("ticker"))
         if row.get("price_stale") != exp_stale:
             problems.append("%s price_stale=%s exp=%s" % (row.get("ticker"), row.get("price_stale"), exp_stale))
         if row.get("price_session") != exp_psd:
             problems.append("%s price_session=%s exp=%s" % (row.get("ticker"), row.get("price_session"), exp_psd))
-    exp_count = sum(1 for row in portfolio if _expect(row.get("exchange"))[0])
+    exp_count = sum(1 for row in portfolio
+                    if _expect(row.get("exchange"), row.get("ticker"))[0])
     if market.get("price_stale_count") != exp_count:
         problems.append("price_stale_count=%s exp=%s" % (market.get("price_stale_count"), exp_count))
     if "t86_session" not in market:
@@ -1673,6 +1711,10 @@ def main():
     portfolio  = []
     # radar was populated by screen_radar_candidates above — NOT reinitialised here
     history_cache = {}
+    # Per-ticker price session actually used for the DISPLAYED price (history
+    # date when it beat the snapshot, else the exchange snapshot date). Read by
+    # the freshness stamper and its self-check below.
+    px_session_by_ticker = {}
 
     # Chapter 6 synthesis inputs — loaded once, applied per ticker below.
     load_weights_override()                    # may replace WEIGHTS in place
@@ -1724,6 +1766,34 @@ def main():
                 history_cache[code] = fetch_history(code, exchange, months=12)
             history = history_cache[code]
             techs   = compute_technicals(history, close)
+
+            # ---- Same-session displayed price (Ch.14/19.6 lag, display half) ----
+            # `close` above is the whole-market snapshot value, a full trading
+            # session behind on TWSE. The per-ticker history already holds the
+            # current session's close, so prefer it for the numbers the human
+            # READS. compute_technicals() is deliberately still fed the snapshot
+            # `close`, and compute_margin_score() below still takes the snapshot
+            # chg_pct, so trend / L2 / composite / action / L1 are unchanged --
+            # feeding the fresh close into scoring is a separate commit.
+            _snap_dd = (snap_date_dd if exchange == "TWSE"
+                        else (tpex_snap_date_dd if exchange == "TPEx" else None))
+            _h_dd, _h_close, _h_prev, _h_vol = _history_tail(history)
+            disp_close   = close
+            disp_chg     = snap.get("chg")
+            disp_chg_pct = snap.get("chg_pct")
+            disp_vol     = snap.get("volume")
+            px_session   = _snap_dd
+            if _h_dd and _h_close is not None and (_snap_dd is None or _h_dd > _snap_dd):
+                disp_close = _h_close
+                px_session = _h_dd
+                if _h_vol is not None:
+                    disp_vol = _h_vol
+                if _h_prev:
+                    disp_chg     = round(_h_close - _h_prev, 2)
+                    disp_chg_pct = round((_h_close - _h_prev) / _h_prev * 100, 2)
+                else:
+                    disp_chg, disp_chg_pct = None, None
+            px_session_by_ticker[code] = px_session
 
             # BUG3 FIX: renamed to t86_entry (no longer shadows inst_market)
             t86_entry = t86.get(code)
@@ -1782,10 +1852,10 @@ def main():
                 "name_zh":   name_zh,
                 "tier":      tier,
                 "exchange":  exchange,
-                "price":     close,
-                "chg":       snap.get("chg"),
-                "chg_pct":   snap.get("chg_pct"),
-                "vol_today": snap.get("volume"),
+                "price":     disp_close,
+                "chg":       disp_chg,
+                "chg_pct":   disp_chg_pct,
+                "vol_today": disp_vol,
                 **techs,
                 "foreign_net":    t86_entry["foreign_net"]         if t86_entry else None,
                 "trust_net":      t86_entry["trust_net"]           if t86_entry else None,
@@ -1917,16 +1987,31 @@ def main():
     # close while TWSE STOCK_DAY_ALL still lags a session). A row is price_stale when
     # its snapshot session is STRICTLY older than the T86 session it's scored against
     # (strict < leaves the legit "T86 fell back to yesterday" path untouched).
-    def _ps_session(_exch):
+    def _ps_session(_exch, _ticker=None):
+        # Per row: when the displayed price came from the per-ticker history
+        # (strictly newer than the snapshot), the row's price session is that
+        # history date. Every other row falls back to the original per-exchange
+        # snapshot date, so non-substituted rows behave exactly as before.
+        _hit = px_session_by_ticker.get(_ticker)
+        if _hit:
+            return _hit
         if _exch == "TWSE":
             return snap_date_dd
         if _exch == "TPEx":
             return tpex_snap_date_dd
         return None  # 興櫃 / unknown: no STOCK_DAY_ALL snapshot
     for _row in portfolio + watchlist:
-        _psd = _ps_session(_row.get("exchange"))
+        _psd = _ps_session(_row.get("exchange"), _row.get("ticker"))
         _row["price_session"] = _psd
         _row["price_stale"] = bool(_psd and len(_t86_dd) == 8 and _psd < _t86_dd)
+    _n_hist_px = sum(
+        1 for _row in portfolio + watchlist
+        if px_session_by_ticker.get(_row.get("ticker"))
+        and px_session_by_ticker.get(_row.get("ticker")) != (
+            snap_date_dd if _row.get("exchange") == "TWSE" else tpex_snap_date_dd))
+    log.info("price source: %d/%d rows displayed the per-ticker history close "
+             "(newer than the whole-market snapshot)",
+             _n_hist_px, len(portfolio) + len(watchlist))
     market["t86_session"] = _t86_dd or None
     market["price_stale_count"] = sum(1 for _row in portfolio if _row.get("price_stale"))
     market["price_stale_watch_count"] = sum(1 for _row in watchlist if _row.get("price_stale"))
@@ -1978,7 +2063,8 @@ def main():
         "news":      {"recent": news_recent[:60], "by_ticker": news_by_ticker, "by_sector": news_by_sector},
         "analysis":  analysis,
     }
-    _verify_freshness_flags(portfolio, watchlist, market, _t86_dd, snap_date_dd, tpex_snap_date_dd)
+    _verify_freshness_flags(portfolio, watchlist, market, _t86_dd, snap_date_dd,
+                            tpex_snap_date_dd, px_map=px_session_by_ticker)
     with open("docs/data.json", "w", encoding="utf-8") as f:
         json.dump(data_out, f, ensure_ascii=False, indent=2)
     log.info(
