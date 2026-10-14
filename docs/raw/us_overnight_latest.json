@@ -1,10 +1,10 @@
 {
-  "asof": "2026-10-13T10:54:25+08:00",
-  "us_session_date": "2026-10-12",
+  "asof": "2026-10-14T08:57:48+08:00",
+  "us_session_date": "2026-10-13",
   "components": {
     "SOX": {
-      "close": 12236.79,
-      "chg_pct": -2.67,
+      "close": 12208.79,
+      "chg_pct": -0.23,
       "symbol": "^SOX"
     },
     "TSM": {
@@ -13,19 +13,19 @@
       "symbol": "TSM"
     },
     "GSPC": {
-      "close": 7807.24,
-      "chg_pct": -0.06,
+      "close": 7805.45,
+      "chg_pct": -0.02,
       "symbol": "^GSPC"
     },
     "VIX": {
-      "close": 15.21,
-      "chg_pct": 2.49,
+      "close": 15.27,
+      "chg_pct": 0.39,
       "symbol": "^VIX"
     }
   },
-  "tilt_raw": -3.81,
+  "tilt_raw": -1.72,
   "regime_veto": false,
-  "L4": -0.381,
-  "label": "Bearish",
+  "L4": -0.172,
+  "label": "Neutral",
   "contributors": 4
 }
