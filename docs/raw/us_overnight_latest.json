@@ -1,31 +1,31 @@
 {
-  "asof": "2026-10-21T08:26:23+08:00",
-  "us_session_date": "2026-10-20",
+  "asof": "2026-10-22T08:29:24+08:00",
+  "us_session_date": "2026-10-21",
   "components": {
     "SOX": {
-      "close": 11283.81,
-      "chg_pct": -0.29,
+      "close": 11505.56,
+      "chg_pct": 1.97,
       "symbol": "^SOX"
     },
     "TSM": {
-      "close": 420.22,
-      "chg_pct": 1.84,
+      "close": 425.08,
+      "chg_pct": 1.16,
       "symbol": "TSM"
     },
     "GSPC": {
-      "close": 7712.57,
-      "chg_pct": 0.28,
+      "close": 7757.17,
+      "chg_pct": 0.58,
       "symbol": "^GSPC"
     },
     "VIX": {
-      "close": 17.31,
-      "chg_pct": -6.13,
+      "close": 16.68,
+      "chg_pct": -3.64,
       "symbol": "^VIX"
     }
   },
-  "tilt_raw": 1.97,
+  "tilt_raw": 2.99,
   "regime_veto": false,
-  "L4": 0.197,
-  "label": "Neutral",
+  "L4": 0.299,
+  "label": "Bullish",
   "contributors": 4
 }
