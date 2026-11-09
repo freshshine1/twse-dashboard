@@ -1,31 +1,31 @@
 {
-  "asof": "2026-11-06T10:04:03+08:00",
-  "us_session_date": "2026-11-05",
+  "asof": "2026-11-09T09:30:12+08:00",
+  "us_session_date": "2026-11-06",
   "components": {
     "SOX": {
-      "close": 9011.14,
-      "chg_pct": -12.25,
+      "close": 9390.25,
+      "chg_pct": 4.21,
       "symbol": "^SOX"
     },
     "TSM": {
-      "close": 395.75,
-      "chg_pct": -2.24,
+      "close": 375.44,
+      "chg_pct": 6.33,
       "symbol": "TSM"
     },
     "GSPC": {
-      "close": 7353.73,
-      "chg_pct": -4.36,
+      "close": 7376.86,
+      "chg_pct": 0.31,
       "symbol": "^GSPC"
     },
     "VIX": {
-      "close": 28.18,
-      "chg_pct": 69.66,
+      "close": 25.64,
+      "chg_pct": -9.01,
       "symbol": "^VIX"
     }
   },
-  "tilt_raw": -10.0,
-  "regime_veto": true,
-  "L4": -1.0,
-  "label": "Strong Bearish (veto)",
+  "tilt_raw": 9.02,
+  "regime_veto": false,
+  "L4": 0.902,
+  "label": "Strong Bullish",
   "contributors": 4
 }
