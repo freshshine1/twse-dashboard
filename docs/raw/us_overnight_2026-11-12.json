@@ -1,0 +1,31 @@
+{
+  "asof": "2026-11-12T10:45:01+08:00",
+  "us_session_date": "2026-11-11",
+  "components": {
+    "SOX": {
+      "close": 10564.11,
+      "chg_pct": 5.66,
+      "symbol": "^SOX"
+    },
+    "TSM": {
+      "close": 413.35,
+      "chg_pct": 4.25,
+      "symbol": "TSM"
+    },
+    "GSPC": {
+      "close": 7619.38,
+      "chg_pct": 1.31,
+      "symbol": "^GSPC"
+    },
+    "VIX": {
+      "close": 17.49,
+      "chg_pct": -10.12,
+      "symbol": "^VIX"
+    }
+  },
+  "tilt_raw": 8.92,
+  "regime_veto": false,
+  "L4": 0.892,
+  "label": "Strong Bullish",
+  "contributors": 4
+}
