@@ -1,0 +1,31 @@
+{
+  "asof": "2026-11-18T11:25:04+08:00",
+  "us_session_date": "2026-11-17",
+  "components": {
+    "SOX": {
+      "close": 9642.88,
+      "chg_pct": 0.34,
+      "symbol": "^SOX"
+    },
+    "TSM": {
+      "close": 359.69,
+      "chg_pct": -3.68,
+      "symbol": "TSM"
+    },
+    "GSPC": {
+      "close": 7340.53,
+      "chg_pct": -1.03,
+      "symbol": "^GSPC"
+    },
+    "VIX": {
+      "close": 25.46,
+      "chg_pct": 11.13,
+      "symbol": "^VIX"
+    }
+  },
+  "tilt_raw": -3.85,
+  "regime_veto": false,
+  "L4": -0.385,
+  "label": "Bearish",
+  "contributors": 4
+}
